@@ -27,7 +27,7 @@ This setup is intended for use with any Unix-like system. You should have the fo
 To set up your system using the configurations in this repository, clone this repository and run the `install.sh` script:
 
 ```bash
-git clone https://github.com/bartventer/dotfiles.git
+git clone https://github.com/<your-username>/dotfiles.git
 cd dotfiles
 ./install.sh
 ```
@@ -43,6 +43,18 @@ The scipt performs the following steps:
 7. If the `powerlevel10k` theme is successfully installed, it sources the `.zshrc` file to apply the changes.
 
 Please note that if a file already exists in your home directory and is supposed to be symlinked by the script, the existing file will not be backed up and will be replaced by the symlink. Make sure to manually back up any important configuration files in your home directory before running the script.
+
+## Visual Studio Code Settings
+
+If you are using Visual Studio Code, you can modify your settings to automatically sync your dotfiles. Add the following settings to your `settings.json` file:
+
+```json
+{
+    "dotfiles.repository": "<your-username>/dotfiles",
+    "dotfiles.targetPath": "~/dotfiles",
+    "dotfiles.installCommand": "install.sh"
+}
+```
 
 ## License
 
