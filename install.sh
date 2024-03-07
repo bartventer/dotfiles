@@ -139,7 +139,7 @@ install_neovim() {
 
     # Determine package manager and corresponding commands
     case "$package_manager" in
-    "pacman -Q")
+    "pacman")
         # Check if Neovim is already installed
         if ! pacman -Q neovim &>/dev/null; then
             echo "Installing Neovim"
