@@ -1,3 +1,11 @@
+## [1.1.7](https://github.com/bartventer/dotfiles/compare/v1.1.6...v1.1.7) (2024-03-07)
+
+
+### Bug Fixes
+
+* **install.sh:** Refactor Neovim configuration to execute commands individually in headless mode ([82b7533](https://github.com/bartventer/dotfiles/commit/82b7533989fe99c8f4d4ba186838f36f3ded2aa3))
+* **install.sh:** update `configure_neovim` function ([5658d4c](https://github.com/bartventer/dotfiles/commit/5658d4ccbd01d4a910dd681a3b44f4cccdc4515c))
+
 ## [1.1.6](https://github.com/bartventer/dotfiles/compare/v1.1.5...v1.1.6) (2024-03-07)
 
 
