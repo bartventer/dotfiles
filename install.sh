@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# List of common packages to install
+# List of common packages to install across all distros
 common_packages=("git" "tmux" "wget" "fontconfig")
 
 # Distro specific packages
+# An associative array where the key is the distro name and the value is a string of packages for that distro
 declare -A distro_packages
 distro_packages=(
     ["arch"]="lua xclip tree-sitter ripgrep fd"
@@ -13,23 +14,28 @@ distro_packages=(
 )
 
 # Declare an associative array for package managers and their commands
+# The key is the package manager name and the value is a comma-separated string of commands for install, update, and check if installed
 declare -A pkg_managers=(
-    ["apt-get"]=([install]="apt-get install -y" [update]="apt-get update" [is_installed]="dpkg -s")
-    ["dnf"]=([install]="dnf install -y" [update]="dnf check-update" [is_installed]="rpm -q")
-    ["yum"]=([install]="yum install -y" [update]="yum check-update" [is_installed]="rpm -q")
-    ["pacman"]=([install]="pacman -S --noconfirm" [update]="pacman -Syu --noconfirm" [is_installed]="pacman -Q")
-    ["brew"]=([install]="brew install" [update]="brew update" [is_installed]="brew list --versions")
+    ["apt-get"]="apt-get install -y,apt-get update,dpkg -s"
+    ["dnf"]="dnf install -y,dnf check-update,rpm -q"
+    ["yum"]="yum install -y,yum check-update,rpm -q"
+    ["pacman"]="pacman -S --noconfirm,pacman -Syu --noconfirm,pacman -Q"
+    ["brew"]="brew install,brew update,brew list --versions"
 )
+
 # Define the repository directory for dotfiles
 REPO_DIR="$HOME/dotfiles"
 
 # Array of file paths relative to the repository directory
+# These are the files that will be symlinked to the home directory
 declare -a relative_paths=(
     ".zshrc"
     ".config/nvim"
     ".tmux.conf"
 )
+
 # Associative array mapping the plugin names to their git repository URLs
+# These plugins will be cloned into the oh-my-zsh custom plugins directory
 declare -A plugins=(
     ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
     ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
@@ -93,12 +99,17 @@ done
 install_packages() {
     # The package manager command to check if a package is installed
     local package_manager=$1
+    # Split the package manager commands into an array
+    IFS=',' read -ra cmds <<< "${pkg_managers[$package_manager]}"
     # The command to install a package
-    local install_cmd=${pkg_managers[$package_manager][install]}
+    local install_cmd="${cmds[0]}"
     # The command to update packages
-    local update_cmd=${pkg_managers[$package_manager][update]}
+    local update_cmd="${cmds[1]}"
     # The command to check if a package is installed
-    local is_installed_cmd=${pkg_managers[$package_manager][is_installed]}
+    local is_installed_cmd="${cmds[2]}"
+    # Update the package lists
+    echo "Updating package lists"
+    sudo "$update_cmd"
     # Get the name of the current distribution
     local distro
     distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
@@ -113,7 +124,7 @@ install_packages() {
         if ! $is_installed_cmd "$package" &>/dev/null; then
             echo "Installing $package"
             # Install the package
-            sudo $install_cmd "$package"
+            sudo "$install_cmd" "$package"
         else
             # If the package is already installed, print a message
             echo "$package is already installed"
