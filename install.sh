@@ -226,10 +226,10 @@ configure_neovim() {
     echo "Configuring Neovim..."
     treesitter_parsers="markdown_inline"
     null_ls_executables="stylua eslint_d prettierd black goimports_reviser"
-    commands=('Lazy sync' "TSInstallSync $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables" 'quit')
+    commands=('Lazy sync' "TSInstallSync $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
     for cmd in "${commands[@]}"; do
         echo "Running command: $cmd..."
-        nvim --headless -c "$cmd"
+        nvim --headless -c "$cmd" -c "quitall"
     done
 
     # Call the clipboard configuration script
