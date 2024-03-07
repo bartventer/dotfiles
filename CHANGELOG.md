@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/bartventer/dotfiles/compare/v1.1.3...v1.1.4) (2024-03-07)
+
+
+### Bug Fixes
+
+* **install.sh:** replace `command_exists` function with direct command check ([3c49458](https://github.com/bartventer/dotfiles/commit/3c494589669821f20a2fa492c999df2b84165d1b))
+
 ## [1.1.3](https://github.com/bartventer/dotfiles/compare/v1.1.2...v1.1.3) (2024-03-07)
 
 
