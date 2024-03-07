@@ -32,24 +32,24 @@ cd dotfiles
 ./install.sh
 ```
 
-You can customize the installation using the following options:
-
--   `t` or `--theme`: Specify a custom theme name for oh-my-zsh.
--   `r` or `--repo`: Specify a custom theme repository for oh-my-zsh.
--   `c` or `--clipboard`-config: Specify a custom path to the configure_nvim_clipboard.sh script.
--   `l` or `--language`: Specify a language for Neovim configuration.
-
 The scipt performs the following steps:
 
 1. Determines the package manager of your system (supports `apt-get`, `dnf`, `yum`, `pacman`, and `brew`).
 2. Updates the package lists for upgrades or new package installations.
 3. Installs a list of common packages (`git`, `tmux`, `wget`, `fontconfig`) and some distribution-specific packages.
-4. Installs Neovim. If the package manager is not supported for Neovim installation, it builds Neovim from source.
+4. Installs `Neovim`. If the package manager is not supported for `Neovim` installation, it builds `Neovim` from source.
 5. Creates symbolic links from the home directory to the files in the repository. If a file already exists, it will be replaced by the symlink.
-6. If `zsh` is installed, it installs `oh-my-zsh` and a set of `zsh` plugins. It also clones the `powerlevel10k` theme for `oh-my-zsh`.
+6. If `zsh` is installed, it installs `oh-my-zsh` and a set of zsh plugins. It also clones the `powerlevel10k` theme for oh-my-zsh.
 7. If the `powerlevel10k` theme is successfully installed, it sources the `.zshrc` file to apply the changes.
+8. Configures `Neovim` by installing plugins, extra `tree-sitter` parsers, running `Mason` update, and installing `null-ls` executables.
+9. Calls the clipboard configuration script to configure clipboard support in `Neovim`.
 
-Please note that if a file already exists in your home directory and is supposed to be symlinked by the script, the existing file will not be backed up and will be replaced by the symlink. Make sure to manually back up any important configuration files in your home directory before running the script.
+You can customize the installation using the following command-line options:
+
+-   `t` or `--theme`: Specify a custom theme name for oh-my-zsh.
+-   `r` or `--repo`: Specify a custom theme repository for oh-my-zsh.
+-   `c` or `--clipboard`-config: Specify a custom path to the configure_nvim_clipboard.sh script.
+-   `l` or `--language`: Specify a language for Neovim configuration.
 
 ## Visual Studio Code Settings
 
