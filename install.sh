@@ -327,7 +327,7 @@ pkg_manager=""
 
 # Check for package manager, install packages, and source .zshrc file
 for pm in "${!pkg_managers[@]}"; do
-    if command_exists "$pm"; then
+    if command -v "$pm" > /dev/null; then
         echo "$pm found"
         pkg_manager=$pm
         install_packages "$pkg_manager"
