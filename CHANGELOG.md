@@ -1,3 +1,11 @@
+## [1.1.6](https://github.com/bartventer/dotfiles/compare/v1.1.5...v1.1.6) (2024-03-07)
+
+
+### Bug Fixes
+
+* **CI:** handle different distributions in CI setup ([8df1068](https://github.com/bartventer/dotfiles/commit/8df106805bc964bc7d7f6e97a00196fbd97f1135))
+* **CI:** use case statement for package manager in CI setup ([61a5e72](https://github.com/bartventer/dotfiles/commit/61a5e7202d8986f52a2fc4e62d861ff9e67a2d3f))
+
 ## [1.1.5](https://github.com/bartventer/dotfiles/compare/v1.1.4...v1.1.5) (2024-03-07)
 
 
