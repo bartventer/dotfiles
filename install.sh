@@ -102,14 +102,14 @@ install_packages() {
     # Split the package manager commands into an array
     IFS=',' read -ra cmds <<< "${pkg_managers[$package_manager]}"
     # The command to install a package
-    local install_cmd="${cmds[0]}"
+    IFS=' ' read -ra install_cmd <<< "${cmds[0]}"
     # The command to update packages
-    local update_cmd="${cmds[1]}"
+    IFS=' ' read -ra update_cmd <<< "${cmds[1]}"
     # The command to check if a package is installed
-    local is_installed_cmd="${cmds[2]}"
+    IFS=' ' read -ra is_installed_cmd <<< "${cmds[2]}"
     # Update the package lists
     echo "Updating package lists"
-    sudo "$update_cmd"
+    sudo "${update_cmd[@]}"
     # Get the name of the current distribution
     local distro
     distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
@@ -121,10 +121,10 @@ install_packages() {
     # Loop through the list of packages
     for package in "${packages[@]}"; do
         # If the package is not installed
-        if ! $is_installed_cmd "$package" &>/dev/null; then
+        if ! "${is_installed_cmd[@]}" "$package" &>/dev/null; then
             echo "Installing $package"
             # Install the package
-            sudo "$install_cmd" "$package"
+            sudo "${install_cmd[@]}" "$package"
         else
             # If the package is already installed, print a message
             echo "$package is already installed"
@@ -261,6 +261,10 @@ create_symlink() {
     local target=$2
     echo "Creating symlink from $source to $target"
     mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
+    # If the target is a directory, remove it
+    if [ -d "$target" ]; then
+        rm -rf "$target"
+    fi
     ln -sf "$source" "$target"
 }
 
