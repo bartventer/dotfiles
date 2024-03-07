@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/bartventer/dotfiles/compare/v1.1.0...v1.1.1) (2024-03-07)
+
+
+### Bug Fixes
+
+* **.config/nvim:** correct the path for the Delve debugger in dap-go configuration ([b79f4db](https://github.com/bartventer/dotfiles/commit/b79f4db2bb5a80ac1292d68983906c348bbe9892))
+
 # [1.1.0](https://github.com/bartventer/dotfiles/compare/v1.0.0...v1.1.0) (2024-03-07)
 
 
