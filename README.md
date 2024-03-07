@@ -32,6 +32,13 @@ cd dotfiles
 ./install.sh
 ```
 
+You can customize the installation using the following options:
+
+-   `t` or `--theme`: Specify a custom theme name for oh-my-zsh.
+-   `r` or `--repo`: Specify a custom theme repository for oh-my-zsh.
+-   `c` or `--clipboard`-config: Specify a custom path to the configure_nvim_clipboard.sh script.
+-   `l` or `--language`: Specify a language for Neovim configuration.
+
 The scipt performs the following steps:
 
 1. Determines the package manager of your system (supports `apt-get`, `dnf`, `yum`, `pacman`, and `brew`).
