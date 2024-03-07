@@ -223,16 +223,14 @@ configure_neovim() {
     # Define local variables
     local package_manager=$1
 
-    # Install Neovim plugins, extra TS parsers, run Mason update, and install null-ls executables
-    echo "Installing Neovim plugins, extra tree-sitter parsers, running Mason update, and installing null-ls executables"
+    echo "Configuring Neovim..."
     treesitter_parsers="markdown_inline"
     null_ls_executables="stylua eslint_d prettierd black goimports_reviser"
-    nvim --headless \
-        -c 'Lazy sync' \
-        -c "TSInstallSync $treesitter_parsers" \
-        -c 'MasonUpdate' \
-        -c "MasonInstall $null_ls_executables" \
-        -c 'quit'
+    commands=('Lazy sync' "TSInstallSync $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables" 'quit')
+    for cmd in "${commands[@]}"; do
+        echo "Running command: $cmd..."
+        nvim --headless -c "$cmd"
+    done
 
     # Call the clipboard configuration script
     # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
