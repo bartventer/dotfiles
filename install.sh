@@ -12,6 +12,14 @@ distro_packages=(
     ["ubuntu"]="lua5.4 fd-find python3-venv"
 )
 
+# Declare an associative array for package managers and their commands
+declare -A pkg_managers=(
+    ["apt-get"]=([install]="apt-get install -y" [update]="apt-get update" [is_installed]="dpkg -s")
+    ["dnf"]=([install]="dnf install -y" [update]="dnf check-update" [is_installed]="rpm -q")
+    ["yum"]=([install]="yum install -y" [update]="yum check-update" [is_installed]="rpm -q")
+    ["pacman"]=([install]="pacman -S --noconfirm" [update]="pacman -Syu --noconfirm" [is_installed]="pacman -Q")
+    ["brew"]=([install]="brew install" [update]="brew update" [is_installed]="brew list --versions")
+)
 # Define the repository directory for dotfiles
 REPO_DIR="$HOME/dotfiles"
 
@@ -86,7 +94,11 @@ install_packages() {
     # The package manager command to check if a package is installed
     local package_manager=$1
     # The command to install a package
-    local install_command=$2
+    local install_cmd=${pkg_managers[$package_manager][install]}
+    # The command to update packages
+    local update_cmd=${pkg_managers[$package_manager][update]}
+    # The command to check if a package is installed
+    local is_installed_cmd=${pkg_managers[$package_manager][is_installed]}
     # Get the name of the current distribution
     local distro
     distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
@@ -98,11 +110,10 @@ install_packages() {
     # Loop through the list of packages
     for package in "${packages[@]}"; do
         # If the package is not installed
-        if ! $package_manager "$package" &>/dev/null; then
+        if ! $is_installed_cmd "$package" &>/dev/null; then
             echo "Installing $package"
             # Install the package
-            # shellcheck disable=SC2086
-            sudo $install_command -y "$package"
+            sudo $install_cmd "$package"
         else
             # If the package is already installed, print a message
             echo "$package is already installed"
@@ -194,7 +205,14 @@ install_neovim() {
         ;;
     esac
 
-   # Install Neovim plugins, extra TS parsers, run Mason update, and install null-ls executables
+}
+
+# Function to configure Neovim
+configure_neovim() {
+    # Define local variables
+    local package_manager=$1
+
+    # Install Neovim plugins, extra TS parsers, run Mason update, and install null-ls executables
     echo "Installing Neovim plugins, extra tree-sitter parsers, running Mason update, and installing null-ls executables"
     treesitter_parsers="markdown_inline"
     null_ls_executables="stylua eslint_d prettierd black goimports_reviser"
@@ -221,9 +239,10 @@ install_neovim() {
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
         echo "Configuring Neovim for $NVIM_LANGUAGE"
-        bash ".config/nvim/scripts/lang/${NVIM_LANGUAGE}.sh"
+        bash ".config/nvim/scripts/lang/${NVIM_LANGUAGE}.sh" "$package_manager"
     fi
 }
+    
 
 # Function to create symlinks from the source to the target
 create_symlink() {
@@ -291,77 +310,58 @@ for relative_path in "${relative_paths[@]}"; do
     create_symlink "$source" "$target"
 done
 
+
+# Initialize pkg_manager variable
+pkg_manager=""
+
 # Check for package manager, install packages, and source .zshrc file
-case "$(uname)" in
-*nix | *ux | Darwin*)
-    if command -v apt-get >/dev/null 2>&1; then
-        echo "apt-get found"
-        sudo apt-get update # Update package lists
-        install_packages "dpkg -s" "apt-get install -y"
-        install_neovim "apt-get"
-    elif command -v dnf >/dev/null 2>&1; then
-        echo "dnf found"
-        sudo dnf check-update # Update package lists
-        install_packages "dnf list installed" "dnf install -y"
-    elif command -v yum >/dev/null 2>&1; then
-        echo "yum found"
-        sudo yum check-update # Update package lists
-        install_packages "rpm -q" "yum install -y"
-    elif command -v pacman >/dev/null 2>&1; then
-        echo "pacman found"
-        sudo pacman -Syu --noconfirm # Update package lists
-        install_packages "pacman -Q" "pacman -S --noconfirm"
-        install_neovim "pacman -Q"
-    else
-        if [ "$(uname)" = "Darwin" ]; then
-            if command -v brew >/dev/null 2>&1; then
-                echo "Homebrew found"
-                brew update # Update package lists
-                install_packages "brew list --versions" "brew install"
-                install_neovim "brew list --versions"
-            else
-                echo "Homebrew not found. Please install it first."
-                exit 1
-            fi
-        else
-            echo "No known package manager found"
-            exit 1
-        fi
+for pm in "${!pkg_managers[@]}"; do
+    if command_exists "$pm"; then
+        echo "$pm found"
+        pkg_manager=$pm
+        install_packages "$pkg_manager"
+        install_neovim "$pkg_manager"
+        break
+    fi
+done
+
+if [ -n "$(command -v zsh)" ]; then
+    echo "zsh is installed"
+
+    # Install oh-my-zsh if it's not already installed
+    if [ ! -d "$HOME"/.oh-my-zsh ]; then
+        echo "Installing oh-my-zsh"
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     fi
 
-    if [ -n "$(command -v zsh)" ]; then
-        echo "zsh is installed"
+    # Clone plugins and theme
+    for plugin in "${!plugins[@]}"; do
+        clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
+    done
 
-        # Install oh-my-zsh if it's not already installed
-        if [ ! -d "$HOME"/.oh-my-zsh ]; then
-            echo "Installing oh-my-zsh"
-            sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-        fi
-
-        # Clone plugins and theme
-        for plugin in "${!plugins[@]}"; do
-            clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
-        done
-
-        # Check if the theme is already installed
-        if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-            echo "Installing $OH_MY_ZSH_THEME_NAME"
-            git clone --depth=1 https://github.com/"$OH_MY_ZSH_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
-        fi
-
-        # Source .zshrc file to apply the changes
-        echo "Sourcing .zshrc file"
-        if [ -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-            zsh -c "source $HOME/.zshrc"
-        else
-            echo "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
-        fi
-    else
-        echo "zsh not found, cannot source .zshrc file"
+    # Check if the theme is already installed
+    if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
+        echo "Installing $OH_MY_ZSH_THEME_NAME"
+        git clone --depth=1 https://github.com/"$OH_MY_ZSH_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
     fi
-    ;;
-*)
-    echo "Unsupported OS"
-    exit 1
-    ;;
-esac
+
+    # Install powerlevel10k fonts
+    install_powerlevel10k_fonts
+
+    # Source .zshrc file to apply the changes
+    echo "Sourcing .zshrc file"
+    if [ -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
+        zsh -c "source $HOME/.zshrc"
+    else
+        echo "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
+    fi
+
+    # Configure Neovim
+    if [ -n "$pkg_manager" ]; then
+        configure_neovim "$pkg_manager"
+    else
+        echo "No package manager found, cannot configure Neovim"
+    fi
+else
+    echo "zsh not found, cannot source .zshrc file"
+fi
