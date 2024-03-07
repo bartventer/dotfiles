@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/bartventer/dotfiles/compare/v1.1.1...v1.1.2) (2024-03-07)
+
+
+### Bug Fixes
+
+* **install.sh/pkg_managers:** store `install`, `update`, and `is_installed` commands as comma-separated string ([f49a437](https://github.com/bartventer/dotfiles/commit/f49a4378f19273f9ef54e7e9f166c04b184d926e))
+
 ## [1.1.1](https://github.com/bartventer/dotfiles/compare/v1.1.0...v1.1.1) (2024-03-07)
 
 
