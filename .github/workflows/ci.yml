@@ -3,10 +3,19 @@ name: Test Installation
 on: [push, pull_request]
 
 jobs:
-    test:
+    test-linux:
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                image:
+                    [
+                        'archlinux:latest',
+                        'debian:latest',
+                        'fedora:latest',
+                        'ubuntu:latest',
+                    ]
         container:
-            image: archlinux:latest
+            image: ${{ matrix.image }}
 
         steps:
             - name: Checkout
@@ -14,7 +23,32 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  pacman -Syu --noconfirm git sudo
+                  # Detect distribution
+                  if grep -qEi "debian|buntu|mint" /etc/*release; then
+                      sudo apt-get update
+                      sudo apt-get install -y git sudo zsh
+                  elif grep -qEi "fedora|centos|redhat" /etc/*release; then
+                      sudo dnf install -y git sudo zsh
+                  elif grep -qEi "arch" /etc/*release; then
+                      sudo pacman -Syu --noconfirm git sudo zsh
+                  fi
+
+            - name: Run Install Script
+              run: |
+                  chmod +x install.sh
+                  ./install.sh
+
+    test-macos:
+        runs-on: macos-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Install Dependencies
+              run: |
+                  # You may need to adjust this command for macOS
+                  brew install git zsh
 
             - name: Run Install Script
               run: |
@@ -23,7 +57,7 @@ jobs:
 
     semantic-release:
         name: Semantic Release
-        needs: [test]
+        needs: [test-linux, test-macos]
         runs-on: ubuntu-latest
         permissions:
             contents: write
