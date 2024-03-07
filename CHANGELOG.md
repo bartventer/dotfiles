@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/bartventer/dotfiles/compare/v1.1.2...v1.1.3) (2024-03-07)
+
+
+### Bug Fixes
+
+* **install.sh:** update pacman neovim installation case branch ([facb416](https://github.com/bartventer/dotfiles/commit/facb416b8484161c214362df5fb2a5b95ad3aaa1))
+
 ## [1.1.2](https://github.com/bartventer/dotfiles/compare/v1.1.1...v1.1.2) (2024-03-07)
 
 
