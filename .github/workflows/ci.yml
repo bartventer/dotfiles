@@ -23,6 +23,17 @@ jobs:
 
             - name: Install Dependencies
               run: |
+                  # Run commands as root
+                  if [ "$USER" != "root" ]; then
+                      exec su -c "$0 $*"
+                  fi
+
+                  # Install sudo
+                  if ! command -v sudo &> /dev/null; then
+                      apt-get update
+                      apt-get install -y sudo
+                  fi
+
                   # Detect distribution
                   if grep -qEi "debian|buntu|mint" /etc/*release; then
                       sudo apt-get update
