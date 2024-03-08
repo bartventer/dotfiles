@@ -24,4 +24,4 @@ esac
 # ... and other dependencies
 
 
-echo "Dependencies installation complete"
+echo -e "\e[32mGoLang setup complete\e[0m"

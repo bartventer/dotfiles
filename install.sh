@@ -201,6 +201,8 @@ install_packages() {
                 ;;
         esac
     done
+
+    echo -e "\e[32mPackages installed successfully!\e[0m"
 }
 
 # Function to install Neovim
@@ -340,8 +342,11 @@ install_neovim() {
         ;;
     esac
 
+    echo -e "\e[32mNeovim installed successfully!\e[0m"
+
     # Source zshrc
     source_zshrc
+
 
 }
 
@@ -411,6 +416,8 @@ configure_neovim() {
         append_env_variable_to_zshrc "LANG" "en_US.UTF-8"
         append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
     fi
+
+    echo -e "\e[32mNeovim configured successfully!\e[0m"
     
     # Source zshrc
     source_zshrc
@@ -484,6 +491,8 @@ install_powerlevel10k_fonts() {
 
     # Remove the temporary directory
     rm -r "$tmp_dir"
+
+    echo -e "\e[32mPowerlevel10k fonts installed successfully!\e[0m"
 }
 
 # Create symlinks for all files in the relative_paths array
@@ -537,12 +546,13 @@ esac
 
 # Check if a package manager was found
 if [ -z "$pkg_manager" ]; then
-    echo "No package manager found"
+    echo -e "\e[31mNo package manager found, skipping package installation\e[0m"
+    exit 1
 fi
 
 # Check if zsh is installed
 if [ -n "$(command -v zsh)" ]; then
-    echo "zsh is installed"
+    echo "zsh found"
 
     # Install oh-my-zsh if it's not already installed
     if [ ! -d "$HOME"/.oh-my-zsh ]; then
@@ -568,9 +578,7 @@ if [ -n "$(command -v zsh)" ]; then
         ;;
         
     *)
-        # Default case
-        echo "Unsupported shell: $current_shell"
-        echo "Please run this script in bash or zsh."
+        echo -e "\e[31mUnsupported shell: $current_shell. Please run this script in bash or zsh.\e[0m"
         exit 1
         ;;
     esac
@@ -588,22 +596,20 @@ if [ -n "$(command -v zsh)" ]; then
     if [ -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
         source_zshrc
     else
-        echo "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
+        echo -e "\e[31mCannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found\e[0m"
         exit 1
     fi
 
 else
-    echo "zsh not found, cannot source .zshrc file"
+    echo -e "\e[31mzsh not found, cannot source .zshrc file\e[0m"
     exit 1
 fi
 
-# Install Neovim and configure it
-if [ -n "$pkg_manager" ]; then
-    install_neovim "$pkg_manager"
-    configure_neovim "$pkg_manager"
-else
-    echo "No package manager found, skipping Neovim installation and configuration"
-    exit 1
-fi
+# Install Neovim
+install_neovim "$pkg_manager"
 
+# Configure Neovim
+configure_neovim "$pkg_manager"
+
+# Finish
 echo -e "\e[32mDotfiles installation complete!\e[0m"

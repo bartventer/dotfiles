@@ -78,3 +78,5 @@ if ! grep -q "$UNIQUE_CONFIG_PART" "$OPTIONS_FILE"; then
         echo "Clipboard configuration added to $OPTIONS_FILE."
     fi
 fi
+
+echo -e "\e[32mClipboard setup complete\e[0m"
