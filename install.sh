@@ -42,6 +42,9 @@ declare -A plugins=(
     ["zsh-history-substring-search"]="https://github.com/zsh-users/zsh-history-substring-search.git"
 )
 
+# Default path to the .zshrc file
+ZSHRC="$HOME/.zshrc"
+
 # Default theme name and repository for oh-my-zsh, defaults to powerlevel10k
 OH_MY_ZSH_THEME_NAME="powerlevel10k"
 OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
@@ -51,6 +54,9 @@ NVIM_SCRIPTS_DIR=".config/nvim/scripts"
 
 # Default path to the configure_nvim_clipboard.sh script
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
+
+# Default path to the language-specific Neovim configure script
+NVIM_LANGUAGE_SCRIPT="${NVIM_SCRIPTS_DIR}/lang"
 
 # Default language for Neovim configuration, defaults to golang
 NVIM_LANGUAGE="golang"
@@ -94,6 +100,13 @@ while true; do
       ;;
   esac
 done
+
+# Function to source .zshrc
+source_zshrc() {
+    # Source .zshrc file to apply the changes
+    echo "Sourcing .zshrc file"
+    zsh -c "source $ZSHRC"
+}
 
 # Function to install packages
 install_packages() {
@@ -153,33 +166,52 @@ install_neovim() {
         # Check if Neovim is already installed
         if ! dpkg -s neovim &>/dev/null; then
             echo "Installing Neovim"
+
+            # Neovim variables
+            nvim_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+            nvim_tarball_name="nvim-linux64.tar.gz"
+            nvim_install_dir="/opt/nvim-linux64"
+            nvim_bin_dir="$nvim_install_dir/bin"
+
             # Create a temporary directory
-            tmpdir=$(mktemp -d)
+            nvim_tmpdir=$(mktemp -d)
             # Download the pre-built binary for Neovim into the temporary directory
-            curl -L https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz -o "$tmpdir/nvim-linux64.tar.gz"
+            curl -L $nvim_url -o "$nvim_tmpdir/$nvim_tarball_name"
             # Extract the downloaded archive in the temporary directory
-            tar -C "$tmpdir" -xzf "$tmpdir/nvim-linux64.tar.gz"
+            tar -C "$nvim_tmpdir" -xzf "$nvim_tmpdir/$nvim_tarball_name"
             # Move the extracted directory to /opt
-            sudo mv "$tmpdir/nvim-linux64" /opt/
+            sudo mv "$nvim_tmpdir/nvim-linux64" $nvim_install_dir
             # Remove the temporary directory
-            rm -r "$tmpdir"
-            # Add the bin directory of the extracted archive to the PATH
-            echo "export PATH=\"\$PATH:/opt/nvim-linux64/bin\"" >> ~/.zshrc
+            rm -r "$nvim_tmpdir"
+            # Add the bin directory of the extracted archive to the PATH in .zshrc if it's not already there
+            if ! grep -q "$nvim_bin_dir" "$ZSHRC"; then
+                echo -e "\nexport PATH=\"\$PATH:$nvim_bin_dir\"" >> "$ZSHRC"
+            fi
+            # Also ensure that the bin directory is added to the PATH for the current session
+            export PATH="$PATH:$nvim_bin_dir"
 
             # Install tree-sitter
             echo "Installing tree-sitter"
+
             # Create a temporary directory
-            tmpdir=$(mktemp -d)
+            ts_tmpdir=$(mktemp -d)
+            # TS variables
+            ts_binary_name="tree-sitter-linux-x64"
+            ts_binary_url="https://github.com/tree-sitter/tree-sitter/releases/latest/download/$ts_binary_name.gz"
+            # TS file paths
+            ts_gz_file_path="$ts_tmpdir/$ts_binary_name.gz"
+            ts_binary_file_path="$ts_tmpdir/$ts_binary_name"
+
             # Download the precompiled binary for tree-sitter
-            curl -L https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-x64.gz -o "$tmpdir/tree-sitter-linux-x64.gz"
+            curl -L $ts_binary_url -o "$ts_gz_file_path"
             # Extract the downloaded archive to the temporary directory
-            gunzip "$tmpdir/tree-sitter-linux-x64.gz"
+            gunzip "$ts_gz_file_path"
             # Make the binary executable
-            chmod +x "$tmpdir/tree-sitter-linux-x64"
+            chmod +x "$ts_binary_file_path"
             # Move the binary to /usr/local/bin
-            sudo mv "$tmpdir/tree-sitter-linux-x64" /usr/local/bin/tree-sitter
+            sudo mv "$ts_binary_file_path" /usr/local/bin/tree-sitter
             # Remove the temporary directory
-            rm -r "$tmpdir"
+            rm -r "$ts_tmpdir"
 
         else
             echo "Neovim is already installed"
@@ -216,6 +248,29 @@ install_neovim() {
         ;;
     esac
 
+    # Source zshrc
+    source_zshrc
+
+}
+
+# Function to append an environment variable to .zshrc
+# If the variable is already set but commented out, it will be uncommented
+# If the variable is not set, it will be added to the end of the file
+append_env_variable_to_zshrc() {
+    # Name of the environment variable
+    local var_name="$1"
+    # Value of the environment variable
+    local var_value="$2"
+
+    # If the variable is already set but commented out, uncomment it
+    if grep -q "^#.*export $var_name=$var_value" "$ZSHRC"; then
+        echo "Uncommenting $var_name environment variable"
+        sed -i "s/^#.*export $var_name=$var_value/export $var_name=$var_value/" "$ZSHRC"
+    # If the variable is not set, add it to the end of the file
+    elif ! grep -q "$var_name=$var_value" "$ZSHRC"; then
+        echo "Setting $var_name environment variable"
+        echo -e "\nexport $var_name=$var_value" >> "$ZSHRC"
+    fi
 }
 
 # Function to configure Neovim
@@ -225,19 +280,20 @@ configure_neovim() {
 
     echo "Configuring Neovim..."
     treesitter_parsers="markdown_inline"
-    null_ls_executables="stylua eslint_d prettierd black goimports_reviser"
+    null_ls_executables="stylua eslint_d prettierd black goimports-reviser"
     commands=('Lazy sync' "TSInstallSync $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
     for cmd in "${commands[@]}"; do
         echo "Running command: $cmd..."
-        nvim --headless -c "$cmd" -c "quitall"
+        zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
     done
 
     # Call the clipboard configuration script
     # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
     echo "Configuring Neovim clipboard"
     # shellcheck disable=SC1090
-    source "$CLIPBOARD_CONFIG_SCRIPT"
+    zsh -c "source $REPO_DIR/$CLIPBOARD_CONFIG_SCRIPT $package_manager"
 
+    # CoPilot message
     printf "\n
     \033[1;33m
     [Neovim CoPilot]
@@ -245,11 +301,24 @@ configure_neovim() {
     \033[0m
     \n"
 
+
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
         echo "Configuring Neovim for $NVIM_LANGUAGE"
-        bash ".config/nvim/scripts/lang/${NVIM_LANGUAGE}.sh" "$package_manager"
+        # shellcheck disable=SC1090
+        zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
     fi
+
+    # Docker specific configuration
+    if [ -f /.dockerenv ]; then
+        echo "Docker detected. Configuring Neovim for Docker..."
+        # Set the language environment variables
+        append_env_variable_to_zshrc "LANG" "en_US.UTF-8"
+        append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
+    fi
+    
+    # Source zshrc
+    source_zshrc
 }
     
 
@@ -286,9 +355,12 @@ install_powerlevel10k_fonts() {
     # Font file names
     font_files=("Regular" "Bold" "Italic" "Bold%20Italic")
 
+    # Create a temporary directory
+    tmp_dir=$(mktemp -d)
+
     # Download the font files
     for font_file in "${font_files[@]}"; do
-        wget "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${font_file}.ttf"
+        wget -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${font_file}.ttf"
     done
 
     # Determine the OS and move the font files to the correct directory
@@ -298,7 +370,7 @@ install_powerlevel10k_fonts() {
         mkdir -p ~/.fonts
 
         # Move the font files to the correct directory
-        mv MesloLGS*.ttf ~/.fonts/
+        mv "$tmp_dir"/MesloLGS*.ttf ~/.fonts/
 
         # Update the font cache
         fc-cache -fv
@@ -308,12 +380,15 @@ install_powerlevel10k_fonts() {
         mkdir -p ~/Library/Fonts
 
         # Move the font files to the correct directory
-        mv MesloLGS*.ttf ~/Library/Fonts/
+        mv "$tmp_dir"/MesloLGS*.ttf ~/Library/Fonts/
         ;;
     *)
         echo "Unsupported OS for font installation"
         ;;
     esac
+
+    # Remove the temporary directory
+    rm -r "$tmp_dir"
 }
 
 # Create symlinks for all files in the relative_paths array
@@ -347,9 +422,8 @@ if [ -n "$(command -v zsh)" ]; then
     install_powerlevel10k_fonts
 
     # Source .zshrc file to apply the changes
-    echo "Sourcing .zshrc file"
     if [ -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-        zsh -c "source $HOME/.zshrc"
+        source_zshrc
     else
         echo "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
     fi
@@ -379,8 +453,3 @@ if [ -n "$pkg_manager" ]; then
 else
     echo "No package manager found, cannot configure Neovim"
 fi
-
-# Source .zshrc file to apply the changes
-echo "Sourcing .zshrc file"
-# shellcheck disable=SC1091
-source "$HOME/.zshrc"
