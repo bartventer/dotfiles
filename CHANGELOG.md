@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/bartventer/dotfiles/compare/v2.0.1...v2.0.2) (2024-03-08)
+
+
+### Bug Fixes
+
+* Use 'which' command for package manager detection ([ca0ade6](https://github.com/bartventer/dotfiles/commit/ca0ade677a263fcc1ba66fca5e185200b6320e73))
+
 ## [2.0.1](https://github.com/bartventer/dotfiles/compare/v2.0.0...v2.0.1) (2024-03-08)
 
 
