@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/bartventer/dotfiles/compare/v2.5.1...v2.6.0) (2024-03-08)
+
+
+### Features
+
+* **install.sh, neovim/scripts:** Add detailed logging to improve traceability and debugging ([94ebaeb](https://github.com/bartventer/dotfiles/commit/94ebaeb7b6159879966a91a63cc326439ba4f211))
+
 ## [2.5.1](https://github.com/bartventer/dotfiles/compare/v2.5.0...v2.5.1) (2024-03-08)
 
 
