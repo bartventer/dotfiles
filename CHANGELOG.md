@@ -1,3 +1,20 @@
+# [1.2.0](https://github.com/bartventer/dotfiles/compare/v1.1.7...v1.2.0) (2024-03-08)
+
+
+### Bug Fixes
+
+* **.zshrc:** Update file with new paths and sources ([3dd6963](https://github.com/bartventer/dotfiles/commit/3dd69633455561f53debe0f959eee1cbd2f27afc))
+* **dap-go.lua, keymaps.lua:** move keymaps to dap-go.lua to resolve multiple require issue ([fb6be07](https://github.com/bartventer/dotfiles/commit/fb6be0764979ede520f39f7ba15a1706c122ec03))
+* **install.sh:** move distro packages installation before oh-my-zsh and fonts setup ([a2756ae](https://github.com/bartventer/dotfiles/commit/a2756aeea9fbb157ca0ab72401145b3560b518f5))
+* **install.sh:** move neovim configuration to after oh-my-zsh setup ([43ee885](https://github.com/bartventer/dotfiles/commit/43ee885f1c88aa26c3e5c1b5adec9d9fff02fe22))
+* **nvim-dap-virtual-text.lua, settings.json:** suppress `shellcheck` warnings ([110bc31](https://github.com/bartventer/dotfiles/commit/110bc31d43b2e518772ba6c97553c097e67550e9))
+
+
+### Features
+
+* **install.sh:** enhance neovim installation and configuration ([b054fd0](https://github.com/bartventer/dotfiles/commit/b054fd0fb1445dfedc91ed2703555b3e8ae3ff86))
+* **tmux:** enable mouse mode and add pane navigation ([65d1ad9](https://github.com/bartventer/dotfiles/commit/65d1ad9e664b6247ae26f9048f3eeaa34c60fb22))
+
 ## [1.1.7](https://github.com/bartventer/dotfiles/compare/v1.1.6...v1.1.7) (2024-03-07)
 
 
