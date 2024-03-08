@@ -30,6 +30,12 @@ declare -A pkg_managers=(
 # Define the repository directory for dotfiles
 REPO_DIR="$HOME/dotfiles"
 
+# If CI environment variable is true, override the REPO_DIR
+if [ "$CI" = "true" ]; then
+    REPO_DIR="$GITHUB_WORKSPACE"
+fi
+
+
 # Array of file paths relative to the repository directory
 # These are the files that will be symlinked to the home directory
 declare -a relative_paths=(
@@ -49,12 +55,22 @@ declare -A plugins=(
 # Default path to the .zshrc file
 ZSHRC="$HOME/.zshrc"
 
+# If CI environment variable is true, override the ZSHRC
+if [ "$CI" = "true" ]; then
+    ZSHRC="$GITHUB_WORKSPACE/.zshrc"
+fi
+
 # Default theme name and repository for oh-my-zsh, defaults to powerlevel10k
 OH_MY_ZSH_THEME_NAME="powerlevel10k"
 OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
 
 # Default path to the scripts directory in nvim
 NVIM_SCRIPTS_DIR=".config/nvim/scripts"
+
+# If CI environment variable is true, override the NVIM_SCRIPTS_DIR
+if [ "$CI" = "true" ]; then
+    NVIM_SCRIPTS_DIR="$GITHUB_WORKSPACE/.config/nvim/scripts"
+fi
 
 # Default path to the configure_nvim_clipboard.sh script
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"

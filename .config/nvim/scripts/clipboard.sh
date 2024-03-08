@@ -3,6 +3,11 @@
 # Options file path
 OPTIONS_FILE="$HOME/.config/nvim/lua/core/options.lua"
 
+# If CI environment variable is true, override the OPTIONS_FILE
+if [ "$CI" = "true" ]; then
+    OPTIONS_FILE="$GITHUB_WORKSPACE/.config/nvim/lua/core/options.lua"
+fi
+
 # Check the operating system
 OS=$(uname -s)
 # Set the copy and paste commands
