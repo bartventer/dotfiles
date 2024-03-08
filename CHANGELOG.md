@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/bartventer/dotfiles/compare/v2.1.1...v2.1.2) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Use `ps` for shell detection for improved compatibility ([064cc83](https://github.com/bartventer/dotfiles/commit/064cc832d5b4283e2e321b556d1ce1aa64554ae8))
+
 ## [2.1.1](https://github.com/bartventer/dotfiles/compare/v2.1.0...v2.1.1) (2024-03-08)
 
 
