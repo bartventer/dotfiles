@@ -27,13 +27,13 @@ jobs:
                   case "${{ matrix.image }}" in
                       debian:*|ubuntu:*)
                           apt-get update
-                          apt-get install -y git zsh
+                          apt-get install -y git zsh curl
                           ;;
                       fedora:*)
-                          dnf install -y git zsh
+                          dnf install -y git zsh curl
                           ;;
                       archlinux:*)
-                          pacman -Syu --noconfirm git zsh
+                          pacman -Syu --noconfirm git zsh curl
                           ;;
                   esac
 
