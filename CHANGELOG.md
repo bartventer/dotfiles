@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/bartventer/dotfiles/compare/v2.0.3...v2.1.0) (2024-03-08)
+
+
+### Features
+
+* **install.sh:** Improve package manager detection for CI environments ([1df065b](https://github.com/bartventer/dotfiles/commit/1df065bd7803c4baddd0687acbca3dbd642a4426))
+
 ## [2.0.3](https://github.com/bartventer/dotfiles/compare/v2.0.2...v2.0.3) (2024-03-08)
 
 
