@@ -14,7 +14,7 @@ echo "Installing delve"
 
 case $PACKAGE_MANAGER in
 pacman)
-    sudo pacman -S delve
+    sudo pacman -S delve --noconfirm
     ;;
 *)
     go install github.com/go-delve/delve/cmd/dlv@latest
