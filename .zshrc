@@ -1,8 +1,12 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+prompt_file="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt.zsh"
+
+# Check if the prompt file is readable
+if [[ -r "$prompt_file" ]]; then
+  # Source the prompt file
+  source "$prompt_file"
 fi
 
 # If you come from bash you might have to change your $PATH.
@@ -10,13 +14,15 @@ fi
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
-export PATH=$HOME/bin:/usr/local/bin:$PATH
-export PATH=$PATH:/usr/local/go/bin
+
+# Path: (colon separated list of directories, preserves origanal $PATH and adds new directories to the end)
+export PATH=$PATH:$HOME/bin:/usr/local/bin:/usr/local/go/bin:$GOPATH/bin:/usr/local/lua/bin:$HOME/.config/emacs/bin
+
+# Go path
 export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
-export PATH=$PATH:/usr/local/lua/bin # To include lua path
-export npm_config_prefix="$HOME/.local" #Allow user-wide installations: https://wiki.archlinux.org/title/node.js_
-export PATH=$PATH:$HOME/.config/emacs/bin # To include emacs path: https://github.com/doomemacs/doomemacs#install
+
+# Npm config to allow user-wide installations (https://wiki.archlinux.org/title/node.js_)
+export npm_config_prefix="$HOME/.local"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -139,4 +145,10 @@ fi
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-source $HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme
+# Source powerlevel10k theme if it exists
+POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
+if [ -f "$POWERLEVEL10K_THEME" ]; then
+    source "$POWERLEVEL10K_THEME"
+fi
+export PATH="$PATH:/opt/nvim-linux64/bin"
+export LC_ALL=en_US.UTF-8
