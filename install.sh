@@ -74,7 +74,7 @@ PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 eval set -- "$PARSED"
 
 # Parse command-line options
-while (( "$#" )); do
+while [ "$#" -gt 0 ]; do
   case "$1" in
     -t|--theme)
       OH_MY_ZSH_THEME_NAME="$2"
@@ -452,14 +452,31 @@ done
 pkg_manager=""
 
 # Check for package manager, install packages, and source .zshrc file
-for pm in "${!pkg_managers[@]}"; do
-    if command -v "$pm" > /dev/null; then
-        echo "$pm found"
-        pkg_manager=$pm
-        install_packages "$pkg_manager"
-        break
-    fi
-done
+case $SHELL in
+  *zsh*)
+    # Zsh syntax
+    # shellcheck disable=SC2296
+    for pm in ${(k)pkg_managers}; do
+      if command -v "$pm" > /dev/null; then
+          echo "$pm found"
+          pkg_manager=$pm
+          install_packages "$pkg_manager"
+          break
+      fi
+    done
+    ;;
+  *)
+    # Bash syntax
+    for pm in "${!pkg_managers[@]}"; do
+      if command -v "$pm" > /dev/null; then
+          echo "$pm found"
+          pkg_manager=$pm
+          install_packages "$pkg_manager"
+          break
+      fi
+    done
+    ;;
+esac
 
 # Specific check for macOS and Homebrew
 if [[ "$OSTYPE" == "darwin"* ]] && [ -z "$pkg_manager" ]; then
