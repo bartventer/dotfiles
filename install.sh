@@ -118,7 +118,11 @@ install_packages() {
     
     # Update the package lists
     echo "Updating package lists"
-    sudo "${update_cmd[@]}"
+    if [[ "$CI" == "true" ]]; then
+        "${update_cmd[@]}"
+    else
+        sudo "${update_cmd[@]}"
+    fi
 
     # Get the name of the current distribution
     local distro
