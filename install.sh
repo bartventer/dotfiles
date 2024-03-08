@@ -448,43 +448,41 @@ done
 # Initialize pkg_manager variable
 pkg_manager=""
 
+# Define the binary directory path based on the OS
+bin_directory_path="/usr/bin/"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    bin_directory_path="/usr/local/bin/"
+fi
+
 # Check for package manager, install packages, and source .zshrc file
 case $0 in
   *zsh*)
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
-        if type "$pm" > /dev/null 2>&1; then
+        if [ -x "${bin_directory_path}${pm}" ]; then
             echo "$pm found"
             pkg_manager=$pm
             install_packages "$pkg_manager"
             break
-      fi
+        fi
     done
     ;;
   *bash*)
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
-        if type "$pm" > /dev/null 2>&1; then
+        if [ -x "${bin_directory_path}${pm}" ]; then
             echo "$pm found"
             pkg_manager=$pm
             install_packages "$pkg_manager"
             break
-      fi
+        fi
     done
     ;;
 esac
 
-# Specific check for macOS and Homebrew
-if [[ "$OSTYPE" == "darwin"* ]] && [ -z "$pkg_manager" ]; then
-    if type brew > /dev/null 2>&1; then
-        echo "brew found"
-        pkg_manager="brew"
-        install_packages "$pkg_manager"
-    else
-        echo "No package manager found"
-    fi
-elif [ -z "$pkg_manager" ]; then
+# Check if a package manager was found
+if [ -z "$pkg_manager" ]; then
     echo "No package manager found"
 fi
 
