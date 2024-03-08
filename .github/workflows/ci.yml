@@ -38,6 +38,7 @@ jobs:
                   esac
 
             - name: Run Install Script
+              shell: zsh
               run: |
                   chmod +x install.sh
                   ./install.sh
@@ -55,6 +56,7 @@ jobs:
                   brew install git zsh
 
             - name: Run Install Script
+              shell: zsh
               run: |
                   chmod +x install.sh
                   ./install.sh
