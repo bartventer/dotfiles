@@ -1,3 +1,20 @@
+# [2.2.0](https://github.com/bartventer/dotfiles/compare/v2.1.2...v2.2.0) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** adjust command parsing in install_packages function for POSIX shells ([19f75bb](https://github.com/bartventer/dotfiles/commit/19f75bba5515f97255a2ba4e9cb4eb92afbd9eb8))
+* **install.sh:** correct package manager command parsing in install_packages function ([769f7e1](https://github.com/bartventer/dotfiles/commit/769f7e1bd4c4d2d770d56c3f216829c5061e0fdc))
+* **install.sh:** resolve command parsing and execution in install_packages function ([bf31b27](https://github.com/bartventer/dotfiles/commit/bf31b270d1f127d76b3e51ce5a636973ae4f7851))
+* **install.sh:** skip nvim headless commands in CI ([eeb71cb](https://github.com/bartventer/dotfiles/commit/eeb71cb403d613b47e8c03586ac6c0e4cd7f9ce2))
+* **install.sh, clipboard.sh:** Update script paths for CI environment ([e6f0a1b](https://github.com/bartventer/dotfiles/commit/e6f0a1b7b88eeb1ad9aa4592dd9cab18c39cab77))
+
+
+### Features
+
+* **install.sh:** add conditional execution of language-specific Neovim headless mode ([2b7b9ca](https://github.com/bartventer/dotfiles/commit/2b7b9ca8a3731e77ae1ece16c9253330a8f465bf))
+* add conditional execution of language-specific Neovim script ([6e94415](https://github.com/bartventer/dotfiles/commit/6e94415540a3f0b8efd94d6766b21291adde2f98))
+
 ## [2.1.2](https://github.com/bartventer/dotfiles/compare/v2.1.1...v2.1.2) (2024-03-08)
 
 
