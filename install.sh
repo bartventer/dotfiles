@@ -112,29 +112,33 @@ source_zshrc() {
 
 # Function to install packages
 install_packages() {
-    # The package manager command to check if a package is installed
+    # Store the package manager passed as an argument
     local package_manager=$1
-    # Save the original IFS
+
+    # Save the original IFS (Internal Field Separator)
     old_IFS=$IFS
-    # Change the IFS to a comma
+
+    # Change the IFS to a comma for splitting the package manager commands
     IFS=','
-    # Split the string into an array
-    cmds=("${pkg_managers[$package_manager]}")
+    
+    # Split the package manager commands into an array
+    # shellcheck disable=SC2206
+    cmds=(${pkg_managers[$package_manager]})
+    
     # Restore the original IFS
     IFS=$old_IFS
-    # The command to install a package
-    install_cmd=("${cmds[0]}")
-    # The command to update packages
-    update_cmd=("${cmds[1]}")
-    # The command to check if a package is installed
-    is_installed_cmd=("${cmds[2]}")
-    
+
+    # Store the individual commands for installing, updating and checking if a package is installed
+    IFS=' ' read -r -a install_cmd <<< "${cmds[0]}"
+    IFS=' ' read -r -a update_cmd <<< "${cmds[1]}"
+    IFS=' ' read -r -a is_installed_cmd <<< "${cmds[2]}"
+
     # Update the package lists
     echo "Updating package lists"
     if [[ "$CI" == "true" ]]; then
         "${update_cmd[@]}"
     else
-        sudo "${update_cmd[@]}"
+        sudo sh -c "$(printf "%q " "${update_cmd[@]}")"
     fi
 
     # Get the name of the current distribution
@@ -144,13 +148,14 @@ install_packages() {
     else
         distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
     fi
-    
+
     # Start with the common packages
     local packages=("${common_packages[@]}")
-    
+
     # Add the distribution-specific packages to the list
     IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
-    packages+=("${distro_specific_packages[@]}")
+    # shellcheck disable=SC2206
+    packages+=(${distro_specific_packages[@]})
 
     # Loop through the list of packages
     for package in "${packages[@]}"; do
@@ -161,7 +166,7 @@ install_packages() {
             if [[ "$CI" == "true" ]]; then
                 "${install_cmd[@]}" "$package"
             else
-                sudo "${install_cmd[@]}" "$package"
+                sudo sh -c "$(printf "%q " "${install_cmd[@]}") $package"
             fi
         else
             # If the package is already installed, print a message
