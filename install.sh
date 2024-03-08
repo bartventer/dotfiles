@@ -151,7 +151,7 @@ install_packages() {
     # Add the distribution-specific packages to the list
     IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
     packages+=("${distro_specific_packages[@]}")
-    
+
     # Loop through the list of packages
     for package in "${packages[@]}"; do
         # If the package is not installed
