@@ -398,6 +398,20 @@ for relative_path in "${relative_paths[@]}"; do
     create_symlink "$source" "$target"
 done
 
+# Initialize pkg_manager variable
+pkg_manager=""
+
+# Check for package manager, install packages, and source .zshrc file
+for pm in "${!pkg_managers[@]}"; do
+    if command -v "$pm" > /dev/null; then
+        echo "$pm found"
+        pkg_manager=$pm
+        install_packages "$pkg_manager"
+        break
+    fi
+done
+
+# Check if zsh is installed
 if [ -n "$(command -v zsh)" ]; then
     echo "zsh is installed"
 
@@ -432,24 +446,10 @@ else
     echo "zsh not found, cannot source .zshrc file"
 fi
 
-# Initialize pkg_manager variable
-pkg_manager=""
-
-# Check for package manager, install packages, and source .zshrc file
-for pm in "${!pkg_managers[@]}"; do
-    if command -v "$pm" > /dev/null; then
-        echo "$pm found"
-        pkg_manager=$pm
-        install_packages "$pkg_manager"
-        install_neovim "$pkg_manager"
-        break
-    fi
-done
-
-
-# Configure Neovim
+# Install Neovim and configure it
 if [ -n "$pkg_manager" ]; then
+    install_neovim "$pkg_manager"
     configure_neovim "$pkg_manager"
 else
-    echo "No package manager found, cannot configure Neovim"
+    echo "No package manager found, skipping Neovim installation and configuration"
 fi
