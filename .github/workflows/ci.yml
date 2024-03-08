@@ -19,7 +19,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v3
 
             - name: Install Dependencies
               run: |
@@ -27,13 +27,13 @@ jobs:
                   case "${{ matrix.image }}" in
                       debian:*|ubuntu:*)
                           apt-get update
-                          apt-get install -y git zsh curl procps
+                          apt-get install -y build-essential git zsh curl procps
                           ;;
                       fedora:*)
-                          dnf install -y git zsh curl procps-ng
+                          dnf install -y gcc git zsh curl procps-ng
                           ;;
                       archlinux:*)
-                          pacman -Syu --noconfirm git zsh curl procps-ng
+                          pacman -Syu --noconfirm base-devel git zsh curl procps-ng
                           ;;
                   esac
 
@@ -47,12 +47,11 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
 
             - name: Install Dependencies
               run: |
-                  # You may need to adjust this command for macOS
-                  brew install git zsh curl
+                  brew install gcc git zsh curl
 
             - name: Run Install Script
               run: |
