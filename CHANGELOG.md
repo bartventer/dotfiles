@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/bartventer/dotfiles/compare/v2.2.0...v2.2.1) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Correct command execution in install_packages function ([82d7214](https://github.com/bartventer/dotfiles/commit/82d72141976d4207c39957791945674468082454))
+
 # [2.2.0](https://github.com/bartventer/dotfiles/compare/v2.1.2...v2.2.0) (2024-03-08)
 
 
