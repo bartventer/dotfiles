@@ -128,11 +128,11 @@ install_packages() {
     # Restore the original IFS
     IFS=$old_IFS
     # The command to install a package
-    install_cmd=("${cmds[0]}")
+    IFS=' ' read -r -a install_cmd <<< "${cmds[0]}"
     # The command to update packages
-    update_cmd=("${cmds[1]}")
+    IFS=' ' read -r -a update_cmd <<< "${cmds[1]}"
     # The command to check if a package is installed
-    is_installed_cmd=("${cmds[2]}")
+    IFS=' ' read -r -a is_installed_cmd <<< "${cmds[2]}"
     
     # Update the package lists
     echo "Updating package lists"
