@@ -126,10 +126,10 @@ install_packages() {
     local packages=("${common_packages[@]}")
 
     # Add the distribution-specific packages to the list
-    local distro_specific_packages
-    mapfile -t distro_specific_packages <<< "${distro_packages[$distro]// /$'\n'}"
+    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
     packages=("${packages[@]}" "${distro_specific_packages[@]}")
 
+    echo "Installing the following packages for $distro: ${packages[*]}..."
     # Get the update command for the package manager
     update_cmd="${pkg_managers[$package_manager]}"
 
@@ -611,4 +611,4 @@ else
     exit 1
 fi
 
-echo "Dotfiles installation complete!"
+echo -e "\e[32mDotfiles installation complete!\e[0m"
