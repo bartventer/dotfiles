@@ -1,3 +1,25 @@
+# [2.0.0](https://github.com/bartventer/dotfiles/compare/v1.2.0...v2.0.0) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Resolved 'bad option: -a' error in script ([abf381f](https://github.com/bartventer/dotfiles/commit/abf381f27bd7f56e0355a228bd24fc423ec0d6ca))
+* **install.sh:** Update install.sh for compatibility with both Bash and Zsh ([e125492](https://github.com/bartventer/dotfiles/commit/e125492f2bf77fad1f8a21561a7acc64841d626c))
+* **install.sh:** Update option parsing in install.sh and update documentation ([7adb196](https://github.com/bartventer/dotfiles/commit/7adb1964a7f59cf7e6409a5774262e4093ca034b))
+
+
+### Features
+
+* **CI:** set shell to  zsh for install script step on Macos and Linux distros ([58b83c8](https://github.com/bartventer/dotfiles/commit/58b83c80c969db5ca77d18ebe02273ffaf960956))
+* **install.sh:** Enhance plugin cloning compatibility for Bash and Zsh ([33ae22a](https://github.com/bartventer/dotfiles/commit/33ae22a1a7df1c70997d60073e0b81ad134c361c))
+* **install.sh:** Enhance script compatibility with macOS and CI environments ([aabb26e](https://github.com/bartventer/dotfiles/commit/aabb26ece2a797bb5c341ed8cd1b3c002b18287a))
+* **install.sh:** Improve shell detection and package manager iteration ([ac5d093](https://github.com/bartventer/dotfiles/commit/ac5d093cd8553af96aa72dcb1e12b1d368d14e62))
+
+
+### BREAKING CHANGES
+
+* **install.sh:** The script no longer supports long command-line options. Users who were using long options will need to switch to short options. Scripts that rely on the old `getopt` command may need to be updated.
+
 # [1.2.0](https://github.com/bartventer/dotfiles/compare/v1.1.7...v1.2.0) (2024-03-08)
 
 
