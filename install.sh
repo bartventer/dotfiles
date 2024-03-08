@@ -119,18 +119,20 @@ source_zshrc() {
 install_packages() {
     # The package manager command to check if a package is installed
     local package_manager=$1
-    # Split the package manager commands into an array
-    # shellcheck disable=SC2206
-    cmds=(${pkg_managers[$package_manager]//,/ })
+    # Save the original IFS
+    old_IFS=$IFS
+    # Change the IFS to a comma
+    IFS=','
+    # Split the string into an array
+    cmds=("${pkg_managers[$package_manager]}")
+    # Restore the original IFS
+    IFS=$old_IFS
     # The command to install a package
-    # shellcheck disable=SC2206
-    install_cmd=(${cmds[0]// / })
+    install_cmd=("${cmds[0]}")
     # The command to update packages
-    # shellcheck disable=SC2206
-    update_cmd=(${cmds[1]// / })
+    update_cmd=("${cmds[1]}")
     # The command to check if a package is installed
-    # shellcheck disable=SC2206
-    is_installed_cmd=(${cmds[2]// / })
+    is_installed_cmd=("${cmds[2]}")
     
     # Update the package lists
     echo "Updating package lists"
@@ -160,7 +162,6 @@ install_packages() {
         # If the package is not installed
         if ! "${is_installed_cmd[@]}" "$package" &>/dev/null; then
             echo "Installing $package"
-            # Install the package
             # Install the package
             if [[ "$CI" == "true" ]]; then
                 "${install_cmd[@]}" "$package"
