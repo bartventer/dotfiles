@@ -55,11 +55,6 @@ declare -A plugins=(
 # Default path to the .zshrc file
 ZSHRC="$HOME/.zshrc"
 
-# If CI environment variable is true, override the ZSHRC
-if [ "$CI" = "true" ]; then
-    ZSHRC="$GITHUB_WORKSPACE/.zshrc"
-fi
-
 # Default theme name and repository for oh-my-zsh, defaults to powerlevel10k
 OH_MY_ZSH_THEME_NAME="powerlevel10k"
 OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
@@ -369,8 +364,11 @@ configure_neovim() {
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
         echo "Configuring Neovim for $NVIM_LANGUAGE"
-        # shellcheck disable=SC1090
-        zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
+        # Skip if CI environment variable is true
+        if [ "$CI" = "true" ]; then
+            # shellcheck disable=SC1090
+            zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
+        fi
     fi
 
     # Docker specific configuration
