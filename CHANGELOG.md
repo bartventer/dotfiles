@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/bartventer/dotfiles/compare/v2.0.2...v2.0.3) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Use 'type' command for package manager detection ([c1671e2](https://github.com/bartventer/dotfiles/commit/c1671e26eb0d0f2803c2f60f2279aa170c17b56a))
+
 ## [2.0.2](https://github.com/bartventer/dotfiles/compare/v2.0.1...v2.0.2) (2024-03-08)
 
 
