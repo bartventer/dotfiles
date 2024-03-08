@@ -452,7 +452,7 @@ done
 pkg_manager=""
 
 # Check for package manager, install packages, and source .zshrc file
-case $SHELL in
+case $(ps -p $$ -ocomm=) in
   *zsh*)
     # Zsh syntax
     # shellcheck disable=SC2296
@@ -465,7 +465,7 @@ case $SHELL in
       fi
     done
     ;;
-  *)
+  *bash*)
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
       if command -v "$pm" > /dev/null; then
