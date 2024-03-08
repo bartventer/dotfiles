@@ -61,11 +61,6 @@ OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
 # Default path to the scripts directory in nvim
 NVIM_SCRIPTS_DIR=".config/nvim/scripts"
 
-# If CI environment variable is true, override the NVIM_SCRIPTS_DIR
-if [ "$CI" = "true" ]; then
-    NVIM_SCRIPTS_DIR="$GITHUB_WORKSPACE/.config/nvim/scripts"
-fi
-
 # Default path to the configure_nvim_clipboard.sh script
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 
