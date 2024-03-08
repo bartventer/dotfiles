@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/bartventer/dotfiles/compare/v2.1.0...v2.1.1) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Update package manager detection to use `command -v` for improved compatibility across different environments. ([b084175](https://github.com/bartventer/dotfiles/commit/b084175d506ff6e9d4f1b48ff9fc74cb469c99e3))
+
 # [2.1.0](https://github.com/bartventer/dotfiles/compare/v2.0.3...v2.1.0) (2024-03-08)
 
 
