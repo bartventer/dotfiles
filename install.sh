@@ -448,19 +448,13 @@ done
 # Initialize pkg_manager variable
 pkg_manager=""
 
-# Define the binary directory path based on the OS
-bin_directory_path="/usr/bin/"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    bin_directory_path="/usr/local/bin/"
-fi
-
 # Check for package manager, install packages, and source .zshrc file
 case $0 in
   *zsh*)
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
-        if [ -x "${bin_directory_path}${pm}" ]; then
+        if command -v "$pm" >/dev/null 2>&1; then
             echo "$pm found"
             pkg_manager=$pm
             install_packages "$pkg_manager"
@@ -471,7 +465,7 @@ case $0 in
   *bash*)
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
-        if [ -x "${bin_directory_path}${pm}" ]; then
+        if command -v "$pm" >/dev/null 2>&1; then
             echo "$pm found"
             pkg_manager=$pm
             install_packages "$pkg_manager"
