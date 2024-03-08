@@ -454,7 +454,7 @@ case $0 in
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
-        if which "$pm" > /dev/null 2>&1; then
+        if type "$pm" > /dev/null 2>&1; then
             echo "$pm found"
             pkg_manager=$pm
             install_packages "$pkg_manager"
@@ -465,7 +465,7 @@ case $0 in
   *bash*)
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
-        if which "$pm" > /dev/null 2>&1; then
+        if type "$pm" > /dev/null 2>&1; then
             echo "$pm found"
             pkg_manager=$pm
             install_packages "$pkg_manager"
@@ -477,7 +477,7 @@ esac
 
 # Specific check for macOS and Homebrew
 if [[ "$OSTYPE" == "darwin"* ]] && [ -z "$pkg_manager" ]; then
-    if which brew > /dev/null 2>&1; then
+    if type brew > /dev/null 2>&1; then
         echo "brew found"
         pkg_manager="brew"
         install_packages "$pkg_manager"
