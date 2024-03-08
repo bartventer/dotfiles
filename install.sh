@@ -445,7 +445,7 @@ done
 pkg_manager=""
 
 # Check for package manager, install packages, and source .zshrc file
-case $(ps -p $$ -ocomm=) in
+case $0 in
   *zsh*)
     # Zsh syntax
     # shellcheck disable=SC2296
@@ -495,8 +495,7 @@ if [ -n "$(command -v zsh)" ]; then
     fi
 
     # Clone plugins and theme
-    # Clone plugins and theme
-    case $(ps -p $$ -ocomm=) in
+    case $0 in
     *zsh*)
         # Zsh syntax
         # shellcheck disable=SC2296
