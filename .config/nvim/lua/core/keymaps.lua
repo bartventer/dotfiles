@@ -40,14 +40,6 @@ vim.keymap.set('n', '<Leader>ds',
         local widgets = require('dap.ui.widgets')
         widgets.centered_float(widgets.scopes)
     end)
--- Debug a test function (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
-vim.keymap.set('n', '<Leader>dt', function()
-    require('dap-go').debug_test()
-end)
--- Debug the last test (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
-vim.keymap.set('n', '<Leader>dlt', function()
-    require('dap-go').debug_last_test()
-end)
 -- Debug a test file
 vim.keymap.set('n', '<Leader>dtf', function()
     require 'dap'.run({
