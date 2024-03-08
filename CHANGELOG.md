@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/bartventer/dotfiles/compare/v2.5.0...v2.5.1) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** resolve incorrect scripts path on CI ([f6c802e](https://github.com/bartventer/dotfiles/commit/f6c802ebbdfc32a0ff2c2ea8733e01b8e890fdeb))
+
 # [2.5.0](https://github.com/bartventer/dotfiles/compare/v2.4.0...v2.5.0) (2024-03-08)
 
 
