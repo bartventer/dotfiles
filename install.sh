@@ -381,10 +381,7 @@ configure_neovim() {
     commands=('Lazy sync' "TSInstallSync! $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
     for cmd in "${commands[@]}"; do
         echo "Running command: $cmd..."
-        # Skip if CI environment variable is true
-        if [ "$CI" != "true" ]; then
-            zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
-        fi
+        zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
     done
 
     # Call the clipboard configuration script
