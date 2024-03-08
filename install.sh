@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Installing dotfiles..."
-echo "Current PATH: $PATH"
+echo "Current printenv: $(printenv)"
 
 # List of common packages to install across all distros
 common_packages=("git" "tmux" "wget" "fontconfig")
@@ -454,22 +454,22 @@ case $0 in
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
-      if command -v "$pm" > /dev/null; then
-          echo "$pm found"
-          pkg_manager=$pm
-          install_packages "$pkg_manager"
-          break
+        if which "$pm" > /dev/null 2>&1; then
+            echo "$pm found"
+            pkg_manager=$pm
+            install_packages "$pkg_manager"
+            break
       fi
     done
     ;;
   *bash*)
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
-      if command -v "$pm" > /dev/null; then
-          echo "$pm found"
-          pkg_manager=$pm
-          install_packages "$pkg_manager"
-          break
+        if which "$pm" > /dev/null 2>&1; then
+            echo "$pm found"
+            pkg_manager=$pm
+            install_packages "$pkg_manager"
+            break
       fi
     done
     ;;
@@ -477,7 +477,7 @@ esac
 
 # Specific check for macOS and Homebrew
 if [[ "$OSTYPE" == "darwin"* ]] && [ -z "$pkg_manager" ]; then
-    if command -v /usr/local/bin/brew > /dev/null; then
+    if which brew > /dev/null 2>&1; then
         echo "brew found"
         pkg_manager="brew"
         install_packages "$pkg_manager"
