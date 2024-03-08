@@ -126,7 +126,8 @@ install_packages() {
     local packages=("${common_packages[@]}")
 
     # Add the distribution-specific packages to the list
-    distro_specific_packages=("${distro_packages[$distro]}")
+    local distro_specific_packages
+    mapfile -t distro_specific_packages <<< "${distro_packages[$distro]// /$'\n'}"
     packages=("${packages[@]}" "${distro_specific_packages[@]}")
 
     # Get the update command for the package manager
@@ -377,7 +378,7 @@ configure_neovim() {
     echo "Configuring Neovim..."
     treesitter_parsers="markdown_inline"
     null_ls_executables="stylua eslint_d prettierd black goimports-reviser"
-    commands=('Lazy sync' "TSInstallSync $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
+    commands=('Lazy sync' "TSInstallSync! $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
     for cmd in "${commands[@]}"; do
         echo "Running command: $cmd..."
         # Skip if CI environment variable is true
@@ -501,8 +502,20 @@ done
 pkg_manager=""
 
 # Check for package manager, install packages, and source .zshrc file
-case $(ps -p $$ -ocomm=) in
-  *zsh*)
+current_shell=""
+# Get the current shell
+if [ -n "$BASH" ]; then
+    current_shell="bash"
+elif [ -n "$ZSH_NAME" ]; then
+    current_shell="zsh"
+else
+    echo "Unsupported shell for dotfiles installation ($current_shell)"
+    exit 1
+fi
+
+# Check for package manager and install packages
+case $current_shell in
+  zsh)
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
@@ -514,7 +527,7 @@ case $(ps -p $$ -ocomm=) in
         fi
     done
     ;;
-  *bash*)
+  bash)
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
         if command -v "$pm" >/dev/null 2>&1; then
@@ -543,7 +556,8 @@ if [ -n "$(command -v zsh)" ]; then
     fi
 
     # Clone plugins and theme
-    case $0 in
+    echo "Cloning oh-my-zsh plugins and theme..."
+    case $current_shell in
     *zsh*)
         # Zsh syntax
         # shellcheck disable=SC2296
@@ -556,6 +570,13 @@ if [ -n "$(command -v zsh)" ]; then
         for plugin in "${!plugins[@]}"; do
             clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
         done
+        ;;
+        
+    *)
+        # Default case
+        echo "Unsupported shell: $current_shell"
+        echo "Please run this script in bash or zsh."
+        exit 1
         ;;
     esac
 
@@ -573,10 +594,12 @@ if [ -n "$(command -v zsh)" ]; then
         source_zshrc
     else
         echo "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
+        exit 1
     fi
 
 else
     echo "zsh not found, cannot source .zshrc file"
+    exit 1
 fi
 
 # Install Neovim and configure it
@@ -585,4 +608,7 @@ if [ -n "$pkg_manager" ]; then
     configure_neovim "$pkg_manager"
 else
     echo "No package manager found, skipping Neovim installation and configuration"
+    exit 1
 fi
+
+echo "Dotfiles installation complete!"
