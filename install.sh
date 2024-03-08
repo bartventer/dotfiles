@@ -343,7 +343,10 @@ configure_neovim() {
     commands=('Lazy sync' "TSInstallSync $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
     for cmd in "${commands[@]}"; do
         echo "Running command: $cmd..."
-        zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
+        # Skip if CI environment variable is true
+        if [ "$CI" != "true" ]; then
+            zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
+        fi
     done
 
     # Call the clipboard configuration script
@@ -364,11 +367,8 @@ configure_neovim() {
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
         echo "Configuring Neovim for $NVIM_LANGUAGE"
-        # Skip if CI environment variable is true
-        if [ "$CI" != "true" ]; then
-            # shellcheck disable=SC1090
-            zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
-        fi
+        # shellcheck disable=SC1090
+        zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
     fi
 
     # Docker specific configuration
