@@ -11,6 +11,7 @@ distro_packages=(
     ["debian"]="lua5.4 xclip ripgrep fd-find python3-venv"
     ["fedora"]="lua fd-find"
     ["ubuntu"]="lua5.4 fd-find python3-venv"
+    ["macos"]="lua fd"
 )
 
 # Declare an associative array for package managers and their commands
@@ -72,7 +73,8 @@ LONGOPTS=theme:,repo:,clipboard-config:,language:
 PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
 eval set -- "$PARSED"
 
-while true; do
+# Parse command-line options
+while (( "$#" )); do
   case "$1" in
     -t|--theme)
       OH_MY_ZSH_THEME_NAME="$2"
@@ -120,24 +122,38 @@ install_packages() {
     IFS=' ' read -ra update_cmd <<< "${cmds[1]}"
     # The command to check if a package is installed
     IFS=' ' read -ra is_installed_cmd <<< "${cmds[2]}"
+    
     # Update the package lists
     echo "Updating package lists"
     sudo "${update_cmd[@]}"
+
     # Get the name of the current distribution
     local distro
-    distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        distro="macos"
+    else
+        distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
+    fi
+    
     # Start with the common packages
     local packages=("${common_packages[@]}")
+    
     # Add the distribution-specific packages to the list
     IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
     packages+=("${distro_specific_packages[@]}")
+    
     # Loop through the list of packages
     for package in "${packages[@]}"; do
         # If the package is not installed
         if ! "${is_installed_cmd[@]}" "$package" &>/dev/null; then
             echo "Installing $package"
             # Install the package
-            sudo "${install_cmd[@]}" "$package"
+            # Install the package
+            if [[ "$CI" == "true" ]]; then
+                "${install_cmd[@]}" "$package"
+            else
+                sudo "${install_cmd[@]}" "$package"
+            fi
         else
             # If the package is already installed, print a message
             echo "$package is already installed"
@@ -157,7 +173,11 @@ install_neovim() {
         if ! pacman -Q neovim &>/dev/null; then
             echo "Installing Neovim"
             # Install Neovim via package manager
-            sudo pacman -S --noconfirm neovim
+            if [[ "$CI" == "true" ]]; then
+                pacman -S --noconfirm neovim
+            else
+                sudo pacman -S --noconfirm neovim
+            fi
         else
             echo "Neovim is already installed"
         fi
@@ -180,7 +200,11 @@ install_neovim() {
             # Extract the downloaded archive in the temporary directory
             tar -C "$nvim_tmpdir" -xzf "$nvim_tmpdir/$nvim_tarball_name"
             # Move the extracted directory to /opt
-            sudo mv "$nvim_tmpdir/nvim-linux64" $nvim_install_dir
+            if [[ "$CI" == "true" ]]; then
+                mv "$nvim_tmpdir/nvim-linux64" $nvim_install_dir
+            else
+                sudo mv "$nvim_tmpdir/nvim-linux64" $nvim_install_dir
+            fi
             # Remove the temporary directory
             rm -r "$nvim_tmpdir"
             # Add the bin directory of the extracted archive to the PATH in .zshrc if it's not already there
@@ -209,7 +233,11 @@ install_neovim() {
             # Make the binary executable
             chmod +x "$ts_binary_file_path"
             # Move the binary to /usr/local/bin
-            sudo mv "$ts_binary_file_path" /usr/local/bin/tree-sitter
+            if [[ "$CI" == "true" ]]; then
+                mv "$ts_binary_file_path" /usr/local/bin/tree-sitter
+            else
+                sudo mv "$ts_binary_file_path" /usr/local/bin/tree-sitter
+            fi
             # Remove the temporary directory
             rm -r "$ts_tmpdir"
 
@@ -222,7 +250,11 @@ install_neovim() {
         if ! yum list installed neovim &>/dev/null; then
             echo "Installing Neovim"
             # Install Neovim via package manager
-            sudo yum install -y neovim
+            if [[ "$CI" == "true" ]]; then
+                yum install -y neovim
+            else
+                sudo yum install -y neovim
+            fi
         else
             echo "Neovim is already installed"
         fi
@@ -232,7 +264,21 @@ install_neovim() {
         if ! dnf list installed neovim &>/dev/null; then
             echo "Installing Neovim"
             # Install Neovim via package manager
-            sudo dnf install -y neovim
+            if [[ "$CI" == "true" ]]; then
+                dnf install -y neovim
+            else
+                sudo dnf install -y neovim
+            fi
+        else
+            echo "Neovim is already installed"
+        fi
+        ;;
+    "brew")
+        # Check if Neovim is already installed
+        if ! brew list --versions neovim &>/dev/null; then
+            echo "Installing Neovim"
+            # Install Neovim via package manager
+            brew install neovim
         else
             echo "Neovim is already installed"
         fi
@@ -244,7 +290,11 @@ install_neovim() {
         cd neovim || exit
         # Build Neovim from source
         make CMAKE_BUILD_TYPE=Release
-        sudo make install
+        if [[ "$CI" == "true" ]]; then
+            make install
+        else
+            sudo make install
+        fi
         ;;
     esac
 
@@ -410,6 +460,19 @@ for pm in "${!pkg_managers[@]}"; do
         break
     fi
 done
+
+# Specific check for macOS and Homebrew
+if [[ "$OSTYPE" == "darwin"* ]] && [ -z "$pkg_manager" ]; then
+    if command -v /usr/local/bin/brew > /dev/null; then
+        echo "brew found"
+        pkg_manager="brew"
+        install_packages "$pkg_manager"
+    else
+        echo "No package manager found"
+    fi
+elif [ -z "$pkg_manager" ]; then
+    echo "No package manager found"
+fi
 
 # Check if zsh is installed
 if [ -n "$(command -v zsh)" ]; then
