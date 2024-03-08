@@ -1,3 +1,15 @@
+# [2.4.0](https://github.com/bartventer/dotfiles/compare/v2.3.1...v2.4.0) (2024-03-08)
+
+
+### Bug Fixes
+
+* **golang.sh:** add no-confirm install option ([8f37617](https://github.com/bartventer/dotfiles/commit/8f37617de392e67b1f561881d7799768a0891b78))
+
+
+### Features
+
+* **install.sh:** Enhance package installation, Neovim configuration, and shell detection ([834a5b2](https://github.com/bartventer/dotfiles/commit/834a5b2c8e7ff383f94ec5ed37ed6eee6e46c7ad))
+
 ## [2.3.1](https://github.com/bartventer/dotfiles/compare/v2.3.0...v2.3.1) (2024-03-08)
 
 
