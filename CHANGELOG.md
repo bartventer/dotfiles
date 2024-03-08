@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/bartventer/dotfiles/compare/v2.3.0...v2.3.1) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** remove printenv logs ([c058b7d](https://github.com/bartventer/dotfiles/commit/c058b7da61b1ae354bd45f41ef474e7fb2d958fb))
+
 # [2.3.0](https://github.com/bartventer/dotfiles/compare/v2.2.2...v2.3.0) (2024-03-08)
 
 
