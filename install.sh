@@ -365,7 +365,7 @@ configure_neovim() {
     if [ -n "$NVIM_LANGUAGE" ]; then
         echo "Configuring Neovim for $NVIM_LANGUAGE"
         # Skip if CI environment variable is true
-        if [ "$CI" = "true" ]; then
+        if [ "$CI" != "true" ]; then
             # shellcheck disable=SC1090
             zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
         fi
