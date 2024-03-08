@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/bartventer/dotfiles/compare/v2.2.1...v2.2.2) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Correct install_packages parsing ([571268b](https://github.com/bartventer/dotfiles/commit/571268b6472204c5088f5616cd04ebfd03442a61))
+
 ## [2.2.1](https://github.com/bartventer/dotfiles/compare/v2.2.0...v2.2.1) (2024-03-08)
 
 
