@@ -1,7 +1,6 @@
 #!/bin/bash
 
 echo "Installing dotfiles..."
-echo "Current printenv: $(printenv)"
 
 # List of common packages to install across all distros
 common_packages=("git" "tmux" "wget" "fontconfig")
