@@ -63,41 +63,27 @@ NVIM_LANGUAGE_SCRIPT="${NVIM_SCRIPTS_DIR}/lang"
 NVIM_LANGUAGE="golang"
 
 # Parse command-line options
-# Use -t or --theme to specify a custom theme name for oh-my-zsh
-# Use -r or --repo to specify a custom theme repository for oh-my-zsh
-# Use -c or --clipboard-config to specify a custom path to the configure_nvim_clipboard.sh script
-# Use -l or --language to specify a language
-# Example: ./install.sh --theme custom-theme --repo custom/repo --clipboard-config /path/to/configure_nvim_clipboard.sh --language python
-OPTIONS=t:r:c:l:
-LONGOPTS=theme:,repo:,clipboard-config:,language:
-PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
-eval set -- "$PARSED"
-
-# Parse command-line options
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -t|--theme)
-      OH_MY_ZSH_THEME_NAME="$2"
-      shift 2
+# Use -t to specify a custom theme name for oh-my-zsh
+# Use -r to specify a custom theme repository for oh-my-zsh
+# Use -c to specify a custom path to the configure_nvim_clipboard.sh script
+# Use -l to specify a language
+# Example: ./install.sh -t custom-theme -r custom/repo -c /path/to/configure_nvim_clipboard.sh -l python
+while getopts "t:r:c:l:" opt; do
+  case ${opt} in
+    t)
+      OH_MY_ZSH_THEME_NAME="$OPTARG"
       ;;
-    -r|--repo)
-      OH_MY_ZSH_THEME_REPO="$2"
-      shift 2
+    r)
+      OH_MY_ZSH_THEME_REPO="$OPTARG"
       ;;
-    -c|--clipboard-config)
-      CLIPBOARD_CONFIG_SCRIPT="$2"
-      shift 2
+    c)
+      CLIPBOARD_CONFIG_SCRIPT="$OPTARG"
       ;;
-    -l|--language)
-      NVIM_LANGUAGE="$2"
-      shift 2
+    l)
+      NVIM_LANGUAGE="$OPTARG"
       ;;
-    --)
-      shift
-      break
-      ;;
-    *)
-      echo "Invalid option: -$1" 1>&2
+    \?)
+      echo "Invalid option: -$OPTARG" 1>&2
       exit 1
       ;;
   esac

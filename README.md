@@ -46,10 +46,12 @@ The scipt performs the following steps:
 
 You can customize the installation using the following command-line options:
 
--   `t` or `--theme`: Specify a custom theme name for oh-my-zsh.
--   `r` or `--repo`: Specify a custom theme repository for oh-my-zsh.
--   `c` or `--clipboard`-config: Specify a custom path to the configure_nvim_clipboard.sh script.
--   `l` or `--language`: Specify a language for Neovim configuration.
+-   `-t`: Specify a custom theme name for oh-my-zsh.
+-   `-r`: Specify a custom theme repository for oh-my-zsh.
+-   `-c`: Specify a custom path to the configure_nvim_clipboard.sh script.
+-   `-l`: Specify a language for Neovim configuration.
+
+Example: `./install.sh -t custom-theme -r custom/repo -c /path/to/configure_nvim_clipboard.sh -l golang`
 
 ## Visual Studio Code Settings
 
