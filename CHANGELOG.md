@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/bartventer/dotfiles/compare/v2.4.0...v2.5.0) (2024-03-08)
+
+
+### Features
+
+* **install.sh:** update distro-specific packages parsing ([337057e](https://github.com/bartventer/dotfiles/commit/337057ebf7f84acdde942bdc7cd60eb16c9cc949))
+
 # [2.4.0](https://github.com/bartventer/dotfiles/compare/v2.3.1...v2.4.0) (2024-03-08)
 
 
