@@ -18,3 +18,17 @@ vim.cmd([[ set noswapfile ]])
 
 --Line numbers
 vim.wo.number = true
+
+-- Setting up clipboard configuration
+vim.g.clipboard = {
+  name = 'LinuxClipboard',
+  copy = {
+    ['+'] = 'xclip -selection clipboard -i',
+    ['*'] = 'xclip -selection clipboard -i',
+  },
+  paste = {
+    ['+'] = 'xclip -selection clipboard -o',
+    ['*'] = 'xclip -selection clipboard -o',
+  },
+  cache_enabled = 1,
+}

@@ -1,8 +1,13 @@
 #!/bin/bash
 
+# Options file path
+OPTIONS_FILE="$HOME/.config/nvim/lua/core/options.lua"
+
 # Check the operating system
 OS=$(uname -s)
+# Set the copy and paste commands
 COPY_CMD=""
+PASTE_CMD=""
 
 case $OS in
 Linux)
@@ -21,11 +26,14 @@ Darwin)
     ;;
 esac
 
+# Unique part of the configuration
+UNIQUE_CONFIG_PART="name = '${OS}Clipboard',"
+
 # Clipboard configuration
 CLIPBOARD_CONFIG="
 -- Setting up clipboard configuration
 vim.g.clipboard = {
-  name = '${OS}Clipboard',
+  ${UNIQUE_CONFIG_PART}
   copy = {
     ['+'] = ${COPY_CMD},
     ['*'] = ${COPY_CMD},
@@ -37,4 +45,31 @@ vim.g.clipboard = {
   cache_enabled = 1,
 }"
 
-echo "$CLIPBOARD_CONFIG" >> ~/.config/nvim/lua/core/options.lua
+# Check if the configuration already exists in the options file, by checking the unique part
+if ! grep -q "$UNIQUE_CONFIG_PART" "$OPTIONS_FILE"; then
+    # If the configuration does not exist, append it
+    echo "$CLIPBOARD_CONFIG" >> "$OPTIONS_FILE"
+    # If on Linux and in docker container; notify user that X11 forwarding is required from the host machine
+    if [ "$OS" = "Linux" ] && [ -f /.dockerenv ]; then
+        printf "
+        \033[1;33mWarning:\033[0m
+        You are running inside a docker container. In order to use the clipboard feature, you need to enable X11 forwarding from the host machine.
+        Please add the following lines to your docker-compose.yml file:
+
+        services:
+          your-service:
+            environment:
+              - DISPLAY=unix%s
+            volumes:
+              - /tmp/.X11-unix:/tmp/.X11-unix
+
+        And run the following command on your host machine:
+
+        xhost +local:docker
+
+        If you have already configured X11 forwarding, you can ignore this message.
+        " "$DISPLAY"
+    else
+        echo "Clipboard configuration added to $OPTIONS_FILE."
+    fi
+fi
