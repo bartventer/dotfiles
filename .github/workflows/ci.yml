@@ -38,10 +38,9 @@ jobs:
                   esac
 
             - name: Run Install Script
-              shell: zsh
               run: |
                   chmod +x install.sh
-                  ./install.sh
+                  zsh ./install.sh
 
     test-macos:
         runs-on: macos-latest
@@ -53,13 +52,12 @@ jobs:
             - name: Install Dependencies
               run: |
                   # You may need to adjust this command for macOS
-                  brew install git zsh
+                  brew install git zsh curl
 
             - name: Run Install Script
-              shell: zsh
               run: |
                   chmod +x install.sh
-                  ./install.sh
+                  zsh ./install.sh
 
     semantic-release:
         name: Semantic Release
