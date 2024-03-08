@@ -17,14 +17,14 @@ distro_packages=(
     ["macos"]="lua fd"
 )
 
-# Declare an associative array for package managers and their commands
-# The key is the package manager name and the value is a comma-separated string of commands for install, update, and check if installed
+# Declare an associative array for package managers and their update commands
+# The key is the package manager name and the value is the update command
 declare -A pkg_managers=(
-    ["apt-get"]="apt-get install -y,apt-get update,dpkg -s"
-    ["dnf"]="dnf install -y,dnf check-update,rpm -q"
-    ["yum"]="yum install -y,yum check-update,rpm -q"
-    ["pacman"]="pacman -S --noconfirm,pacman -Syu --noconfirm,pacman -Q"
-    ["brew"]="brew install,brew update,brew list --versions"
+    ["apt-get"]="apt-get update"
+    ["dnf"]="dnf check-update"
+    ["yum"]="yum check-update"
+    ["pacman"]="pacman -Syu --noconfirm"
+    ["brew"]="brew update"
 )
 
 # Define the repository directory for dotfiles
@@ -115,32 +115,6 @@ install_packages() {
     # Store the package manager passed as an argument
     local package_manager=$1
 
-    # Save the original IFS (Internal Field Separator)
-    old_IFS=$IFS
-
-    # Change the IFS to a comma for splitting the package manager commands
-    IFS=','
-    
-    # Split the package manager commands into an array
-    # shellcheck disable=SC2206
-    cmds=(${pkg_managers[$package_manager]})
-    
-    # Restore the original IFS
-    IFS=$old_IFS
-
-    # Store the individual commands for installing, updating and checking if a package is installed
-    IFS=' ' read -r -a install_cmd <<< "${cmds[0]}"
-    IFS=' ' read -r -a update_cmd <<< "${cmds[1]}"
-    IFS=' ' read -r -a is_installed_cmd <<< "${cmds[2]}"
-
-    # Update the package lists
-    echo "Updating package lists"
-    if [[ "$CI" == "true" ]]; then
-        "${update_cmd[@]}"
-    else
-        sudo sh -c "$(printf "%q " "${update_cmd[@]}")"
-    fi
-
     # Get the name of the current distribution
     local distro
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -153,25 +127,84 @@ install_packages() {
     local packages=("${common_packages[@]}")
 
     # Add the distribution-specific packages to the list
-    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
-    # shellcheck disable=SC2206
-    packages+=(${distro_specific_packages[@]})
+    distro_specific_packages=("${distro_packages[$distro]}")
+    packages=("${packages[@]}" "${distro_specific_packages[@]}")
+
+    # Get the update command for the package manager
+    update_cmd="${pkg_managers[$package_manager]}"
+
+    # Update the package lists
+    echo "Updating package lists"
+    if [[ "$CI" == "true" ]]; then
+        eval "$update_cmd"
+    else
+        sudo sh -c "$update_cmd"
+    fi
 
     # Loop through the list of packages
     for package in "${packages[@]}"; do
         # If the package is not installed
-        if ! "${is_installed_cmd[@]}" "$package" &>/dev/null; then
-            echo "Installing $package"
-            # Install the package
-            if [[ "$CI" == "true" ]]; then
-                "${install_cmd[@]}" "$package"
-            else
-                sudo sh -c "$(printf "%q " "${install_cmd[@]}") $package"
-            fi
-        else
-            # If the package is already installed, print a message
-            echo "$package is already installed"
-        fi
+        case $package_manager in
+            "apt-get")
+                if ! dpkg -s "$package" >/dev/null 2>&1; then
+                    echo "Installing $package"
+                    if [[ "$CI" == "true" ]]; then
+                        apt-get install -y "$package"
+                    else
+                        sudo apt-get install -y "$package"
+                    fi
+                else
+                    echo "$package is already installed"
+                fi
+                ;;
+            "dnf")
+                if ! rpm -q "$package" >/dev/null 2>&1; then
+                    echo "Installing $package"
+                    if [[ "$CI" == "true" ]]; then
+                        dnf install -y "$package"
+                    else
+                        sudo dnf install -y "$package"
+                    fi
+                else
+                    echo "$package is already installed"
+                fi
+                ;;
+            "yum")
+                if ! rpm -q "$package" >/dev/null 2>&1; then
+                    echo "Installing $package"
+                    if [[ "$CI" == "true" ]]; then
+                        yum install -y "$package"
+                    else
+                        sudo yum install -y "$package"
+                    fi
+                else
+                    echo "$package is already installed"
+                fi
+                ;;
+            "pacman")
+                if ! pacman -Q "$package" >/dev/null 2>&1; then
+                    echo "Installing $package"
+                    if [[ "$CI" == "true" ]]; then
+                        pacman -S --noconfirm "$package"
+                    else
+                        sudo pacman -S --noconfirm "$package"
+                    fi
+                else
+                    echo "$package is already installed"
+                fi
+                ;;
+            "brew")
+                if ! brew list --versions "$package" >/dev/null 2>&1; then
+                    echo "Installing $package"
+                    brew install "$package"
+                else
+                    echo "$package is already installed"
+                fi
+                ;;
+            *)
+                echo "Unsupported package manager: $package_manager"
+                ;;
+        esac
     done
 }
 
