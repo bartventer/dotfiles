@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/bartventer/dotfiles/compare/v2.2.2...v2.3.0) (2024-03-08)
+
+
+### Features
+
+* **install.sh:** Simplify package manager commands ([4f41db0](https://github.com/bartventer/dotfiles/commit/4f41db0b61d6ffb949695fc05168469ca1494f88))
+
 ## [2.2.2](https://github.com/bartventer/dotfiles/compare/v2.2.1...v2.2.2) (2024-03-08)
 
 
