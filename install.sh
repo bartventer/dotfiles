@@ -502,9 +502,22 @@ if [ -n "$(command -v zsh)" ]; then
     fi
 
     # Clone plugins and theme
-    for plugin in "${!plugins[@]}"; do
-        clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
-    done
+    # Clone plugins and theme
+    case $(ps -p $$ -ocomm=) in
+    *zsh*)
+        # Zsh syntax
+        # shellcheck disable=SC2296
+        for plugin in ${(k)plugins}; do
+            clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
+        done
+        ;;
+    *bash*)
+        # Bash syntax
+        for plugin in "${!plugins[@]}"; do
+            clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
+        done
+        ;;
+    esac
 
     # Check if the theme is already installed
     if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
