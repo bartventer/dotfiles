@@ -449,7 +449,7 @@ done
 pkg_manager=""
 
 # Check for package manager, install packages, and source .zshrc file
-case $0 in
+case $(ps -p $$ -ocomm=) in
   *zsh*)
     # Zsh syntax
     # shellcheck disable=SC2296
