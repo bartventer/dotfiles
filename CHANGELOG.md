@@ -1,3 +1,11 @@
+## [2.0.1](https://github.com/bartventer/dotfiles/compare/v2.0.0...v2.0.1) (2024-03-08)
+
+
+### Bug Fixes
+
+* **install.sh:** Add condition to check for CI environment variable before updating package lists ([682cb05](https://github.com/bartventer/dotfiles/commit/682cb057a65b22c7557c8e500bd92ace15d415e0))
+* **install.sh:** Use `$0` to determine shell type instead of 'ps' command ([af7b28b](https://github.com/bartventer/dotfiles/commit/af7b28b670631bcfe008e02038867d66457cb5dd))
+
 # [2.0.0](https://github.com/bartventer/dotfiles/compare/v1.2.0...v2.0.0) (2024-03-08)
 
 
