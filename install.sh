@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Installing dotfiles..."
+echo "Current PATH: $PATH"
+
 # List of common packages to install across all distros
 common_packages=("git" "tmux" "wget" "fontconfig")
 
@@ -101,13 +104,17 @@ install_packages() {
     # The package manager command to check if a package is installed
     local package_manager=$1
     # Split the package manager commands into an array
-    IFS=',' read -ra cmds <<< "${pkg_managers[$package_manager]}"
+    # shellcheck disable=SC2206
+    cmds=(${pkg_managers[$package_manager]//,/ })
     # The command to install a package
-    IFS=' ' read -ra install_cmd <<< "${cmds[0]}"
+    # shellcheck disable=SC2206
+    install_cmd=(${cmds[0]// / })
     # The command to update packages
-    IFS=' ' read -ra update_cmd <<< "${cmds[1]}"
+    # shellcheck disable=SC2206
+    update_cmd=(${cmds[1]// / })
     # The command to check if a package is installed
-    IFS=' ' read -ra is_installed_cmd <<< "${cmds[2]}"
+    # shellcheck disable=SC2206
+    is_installed_cmd=(${cmds[2]// / })
     
     # Update the package lists
     echo "Updating package lists"

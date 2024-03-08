@@ -150,5 +150,4 @@ POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.
 if [ -f "$POWERLEVEL10K_THEME" ]; then
     source "$POWERLEVEL10K_THEME"
 fi
-export PATH="$PATH:/opt/nvim-linux64/bin"
 export LC_ALL=en_US.UTF-8
