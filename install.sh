@@ -7,9 +7,10 @@ common_packages=("git" "tmux" "wget" "fontconfig")
 
 # Distro specific packages
 # An associative array where the key is the distro name and the value is a string of packages for that distro
+# Modfiy this array to add or remove packages for a specific distro as needed
 declare -A distro_packages
 distro_packages=(
-    ["arch"]="lua xclip tree-sitter ripgrep fd"
+    ["arch"]="lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd"
     ["debian"]="lua5.4 xclip ripgrep fd-find python3-venv"
     ["fedora"]="lua fd-find"
     ["ubuntu"]="lua5.4 fd-find python3-venv"
@@ -97,14 +98,20 @@ while getopts "t:r:c:l:" opt; do
   esac
 done
 
-# Function to source .zshrc
+# ******************
+# ** Source Zshrc **
+# ******************
+
 source_zshrc() {
     # Source .zshrc file to apply the changes
     echo "Sourcing .zshrc file"
     zsh -c "source $ZSHRC"
 }
 
-# Function to install packages
+# **********************
+# ** Install Packages **
+# **********************
+
 install_packages() {
     # Store the package manager passed as an argument
     local package_manager=$1
@@ -210,7 +217,10 @@ install_packages() {
     echo -e "\e[32mPackages installed successfully!\e[0m"
 }
 
-# Function to install Neovim
+# ********************
+# ** Install Neovim **
+# ********************
+
 install_neovim() {
     # Define local variables
     local package_manager=$1
@@ -355,10 +365,15 @@ install_neovim() {
 
 }
 
-# Function to append an environment variable to .zshrc
-# If the variable is already set but commented out, it will be uncommented
-# If the variable is not set, it will be added to the end of the file
+
+# *****************************
+# ** Add variables to .zshrc **
+# *****************************
+
 append_env_variable_to_zshrc() {
+    # If the variable is already set but commented out, it will be uncommented
+    # If the variable is not set, it will be added to the end of the file
+
     # Name of the environment variable
     local var_name="$1"
     # Value of the environment variable
@@ -375,7 +390,10 @@ append_env_variable_to_zshrc() {
     fi
 }
 
-# Function to configure Neovim
+# **********************
+# ** Configure Neovim **
+# **********************
+
 configure_neovim() {
     # Define local variables
     local package_manager=$1
@@ -427,9 +445,11 @@ configure_neovim() {
     # Source zshrc
     source_zshrc
 }
-    
 
-# Function to create symlinks from the source to the target
+# *********************
+# ** Create symlinks **
+# ********************* 
+
 create_symlink() {
     local source=$1
     local target=$2
@@ -442,7 +462,10 @@ create_symlink() {
     ln -sf "$source" "$target"
 }
 
-# Function to clone git repositories into the specified directory
+# *********************
+# ** Clone git repos **
+# *********************
+
 clone_git_repo() {
     local dir=$1
     local repo=$2
@@ -456,7 +479,10 @@ clone_git_repo() {
     fi
 }
 
-# Function to install powerlevel10k fonts
+# *********************************
+# ** Install powerlevel10k fonts **
+# *********************************
+
 # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
 install_powerlevel10k_fonts() {
     # Font file names
@@ -506,6 +532,10 @@ for relative_path in "${relative_paths[@]}"; do
     target="$HOME/$relative_path"
     create_symlink "$source" "$target"
 done
+
+# *******************
+# ** Main Section  **
+# *******************
 
 # Initialize pkg_manager variable
 pkg_manager=""
