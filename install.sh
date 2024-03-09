@@ -136,83 +136,55 @@ install_packages() {
     fi
     packages=("${packages[@]}" "${distro_specific_packages[@]}")
 
-    echo "Installing the following packages for $distro: ${packages[*]}..."
     # Get the update command for the package manager
     update_cmd="${pkg_managers[$package_manager]}"
 
     # Update the package lists
-    echo "Updating package lists"
+    echo "Updating package lists for $package_manager..."
     if [[ "$CI" == "true" ]]; then
         eval "$update_cmd"
     else
         sudo sh -c "$update_cmd"
     fi
 
-    # Loop through the list of packages
-    for package in "${packages[@]}"; do
-        # If the package is not installed
-        case $package_manager in
-            "apt-get")
-                if ! dpkg -s "$package" >/dev/null 2>&1; then
-                    echo "Installing $package"
-                    if [[ "$CI" == "true" ]]; then
-                        apt-get install -y "$package"
-                    else
-                        sudo apt-get install -y "$package"
-                    fi
-                else
-                    echo "$package is already installed"
-                fi
-                ;;
-            "dnf")
-                if ! rpm -q "$package" >/dev/null 2>&1; then
-                    echo "Installing $package"
-                    if [[ "$CI" == "true" ]]; then
-                        dnf install -y "$package"
-                    else
-                        sudo dnf install -y "$package"
-                    fi
-                else
-                    echo "$package is already installed"
-                fi
-                ;;
-            "yum")
-                if ! rpm -q "$package" >/dev/null 2>&1; then
-                    echo "Installing $package"
-                    if [[ "$CI" == "true" ]]; then
-                        yum install -y "$package"
-                    else
-                        sudo yum install -y "$package"
-                    fi
-                else
-                    echo "$package is already installed"
-                fi
-                ;;
-            "pacman")
-                if ! pacman -Q "$package" >/dev/null 2>&1; then
-                    echo "Installing $package"
-                    if [[ "$CI" == "true" ]]; then
-                        pacman -S --noconfirm "$package"
-                    else
-                        sudo pacman -S --noconfirm "$package"
-                    fi
-                else
-                    echo "$package is already installed"
-                fi
-                ;;
-            "brew")
-                if ! brew list --versions "$package" >/dev/null 2>&1; then
-                    echo "Installing $package"
-                    brew install "$package"
-                else
-                    echo "$package is already installed"
-                fi
-                ;;
-            *)
-                echo "Unsupported package manager: $package_manager"
-                ;;
-        esac
-    done
+    # Install all packages in one command
+    echo "Installing packages with $package_manager..."
+    case $package_manager in
+        "apt-get")
+            if [[ "$CI" == "true" ]]; then
+                apt-get install -y "${packages[@]}"
+            else
+                sudo apt-get install -y "${packages[@]}"
+            fi
+            ;;
+        "dnf")
+            if [[ "$CI" == "true" ]]; then
+                dnf install -y "${packages[@]}"
+            else
+                sudo dnf install -y "${packages[@]}"
+            fi
+            ;;
+        "yum")
+            if [[ "$CI" == "true" ]]; then
+                yum install -y "${packages[@]}"
+            else
+                sudo yum install -y "${packages[@]}"
+            fi
+            ;;
+        "pacman")
+            if [[ "$CI" == "true" ]]; then
+                pacman -S --noconfirm "${packages[@]}"
+            else
+                sudo pacman -S --noconfirm "${packages[@]}"
+            fi
+            ;;
+        "brew")
+            brew install "${packages[@]}"
+            ;;
+        *)
+            echo "Unsupported package manager: $package_manager"
+            ;;
+    esac
 
     echo -e "\e[32mPackages installed successfully!\e[0m"
 }
