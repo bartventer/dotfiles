@@ -108,6 +108,7 @@ source_zshrc() {
 install_packages() {
     # Store the package manager passed as an argument
     local package_manager=$1
+    local shell=$2
 
     # Get the name of the current distribution
     local distro
@@ -120,8 +121,12 @@ install_packages() {
     # Start with the common packages
     local packages=("${common_packages[@]}")
 
-    # Add the distribution-specific packages to the list
-    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
+    # Add the distro-specific packages to the list
+    if [[ "$shell" == *"zsh"* ]]; then
+        IFS=' ' read -r -A distro_specific_packages <<< "${distro_packages[$distro]}"
+    else
+        IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
+    fi
     packages=("${packages[@]}" "${distro_specific_packages[@]}")
 
     echo "Installing the following packages for $distro: ${packages[*]}..."
@@ -526,7 +531,7 @@ case $current_shell in
         if command -v "$pm" >/dev/null 2>&1; then
             echo "$pm found"
             pkg_manager=$pm
-            install_packages "$pkg_manager"
+            install_packages "$pkg_manager" "$current_shell"
             break
         fi
     done
@@ -537,7 +542,7 @@ case $current_shell in
         if command -v "$pm" >/dev/null 2>&1; then
             echo "$pm found"
             pkg_manager=$pm
-            install_packages "$pkg_manager"
+            install_packages "$pkg_manager" "$current_shell"
             break
         fi
     done
