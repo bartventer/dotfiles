@@ -5,14 +5,23 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 [![Release](https://img.shields.io/github/release/bartventer/dotfiles.svg)](https://github.com/bartventer/dotfiles/releases/latest)
 [![License](https://img.shields.io/github/license/bartventer/dotfiles.svg)](LICENSE)
 
+## Table of Contents
+
+-   [Prerequisites](#prerequisites)
+-   [Files and Directories](#files-and-directories)
+-   [Installation](#installation)
+-   [Visual Studio Code Settings](#visual-studio-code-settings)
+-   [License](#license)
+
 ## Prerequisites
 
 This setup is intended for use with any Unix-like system. You should have the following software installed:
 
-| Software | Description                   | Link                           |
-| -------- | ----------------------------- | ------------------------------ |
-| Zsh      | The Zsh shell with Oh My Zsh. | [Oh My Zsh](https://ohmyz.sh/) |
-| Node.js  | JavaScript runtime.           | [Node.js](https://nodejs.org/) |
+| Software                       | Description                   | Installation Command (Debian-based) |
+| ------------------------------ | ----------------------------- | ----------------------------------- |
+| [Zsh](http://www.zsh.org/)     | The Zsh shell with Oh My Zsh. | `sudo apt install zsh`              |
+| [Node.js](https://nodejs.org/) | JavaScript runtime.           | `sudo apt install nodejs`           |
+| [npm](https://www.npmjs.com/)  | Node.js package manager.      | `sudo apt install npm`              |
 
 ## Files and Directories
 
@@ -27,31 +36,38 @@ This setup is intended for use with any Unix-like system. You should have the fo
 To set up your system using the configurations in this repository, clone this repository and run the `install.sh` script:
 
 ```bash
-git clone https://github.com/<your-username>/dotfiles.git
+git clone https://github.com/bartventer/dotfiles.git
 cd dotfiles
 ./install.sh
 ```
 
 The scipt performs the following steps:
 
-1. Determines the package manager of your system (supports `apt-get`, `dnf`, `yum`, `pacman`, and `brew`).
-2. Updates the package lists for upgrades or new package installations.
-3. Installs a list of common packages (`git`, `tmux`, `wget`, `fontconfig`) and some distribution-specific packages.
-4. Installs `Neovim`. If the package manager is not supported for `Neovim` installation, it builds `Neovim` from source.
-5. Creates symbolic links from the home directory to the files in the repository. If a file already exists, it will be replaced by the symlink.
-6. If `zsh` is installed, it installs `oh-my-zsh` and a set of zsh plugins. It also clones the `powerlevel10k` theme for oh-my-zsh.
-7. If the `powerlevel10k` theme is successfully installed, it sources the `.zshrc` file to apply the changes.
-8. Configures `Neovim` by installing plugins, extra `tree-sitter` parsers, running `Mason` update, and installing `null-ls` executables.
-9. Calls the clipboard configuration script to configure clipboard support in `Neovim`.
+1. Checks and installs `zsh` and `oh-my-zsh`. If not installed, the script exits.
+2. Creates symbolic links for certain files from the repository to the home directory.
+3. Determines the current shell. If it's not `bash` or `zsh`, the script exits.
+4. Identifies the package manager and installs packages. If no package manager is found, the script exits.
+5. Clones `oh-my-zsh` plugins and theme.
+6. Installs `oh-my-zsh` theme if not already installed.
+7. Installs `powerlevel10k` fonts.
+8. Sources `.zshrc` file if the `oh-my-zsh` theme is installed. If not, the script exits.
+9. Installs and configures `Neovim`.
 
 You can customize the installation using the following command-line options:
 
--   `-t`: Specify a custom theme name for oh-my-zsh.
--   `-r`: Specify a custom theme repository for oh-my-zsh.
--   `-c`: Specify a custom path to the configure_nvim_clipboard.sh script.
--   `-l`: Specify a language for Neovim configuration.
+| Option | Description                                      | Default                 | Example             |
+| ------ | ------------------------------------------------ | ----------------------- | ------------------- |
+| `-t`   | Specify a custom theme name for oh-my-zsh.       | `powerlevel10k`         | `agnoster`          |
+| `-r`   | Specify a custom theme repository for oh-my-zsh. | `romkatv/powerlevel10k` | `agnoster/agnoster` |
+| `-l`   | Specify a language for Neovim configuration.     | `golang`                | `python`            |
 
-Example: `./install.sh -t custom-theme -r custom/repo -c /path/to/configure_nvim_clipboard.sh -l golang`
+You can also run the script in interactive mode with the `--it` or `--interactive` command-line arguments. In interactive mode, you will be prompted to enter the options.
+
+Example:
+
+```bash
+./install.sh -t powerlevel10k -r custom-theme-repo -l rust
+```
 
 ## Visual Studio Code Settings
 
@@ -59,7 +75,7 @@ If you are using Visual Studio Code, you can modify your settings to automatical
 
 ```json
 {
-    "dotfiles.repository": "<your-username>/dotfiles",
+    "dotfiles.repository": "bartventer/dotfiles",
     "dotfiles.targetPath": "~/dotfiles",
     "dotfiles.installCommand": "install.sh"
 }
