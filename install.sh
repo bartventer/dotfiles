@@ -177,11 +177,7 @@ install_packages() {
 
     # Update the package lists
     echo "Updating package lists for $package_manager..."
-    if [[ "$CI" == "true" ]]; then
-        eval "$update_cmd"
-    else
-        sudo sh -c "$update_cmd"
-    fi
+    run_sudo_cmd "$update_cmd"
 
     # Install all packages in one command
     echo "Installing packages with $package_manager..."
