@@ -399,9 +399,16 @@ configure_neovim() {
     local package_manager=$1
 
     echo "Configuring Neovim..."
-    treesitter_parsers="markdown_inline"
-    null_ls_executables="stylua eslint_d prettierd black goimports-reviser"
-    commands=('Lazy sync' "TSInstallSync! $treesitter_parsers" 'MasonUpdate' "MasonInstall $null_ls_executables")
+    # tree-sitter
+    parsers="markdown_inline"
+    # mason 
+    # TODO configure to allow dynamic installation based on the specified language
+    lsps="gopls lua-language-server pyright typescript-language-server"
+    daps="go-debug-adapter"
+    linters="eslint_d"
+    formatters="black goimports-reviser golines gomodifytags gotests prettierd stylua"
+    # nvim headless commands
+    commands=('Lazy sync' "TSInstallSync! $parsers" 'MasonUpdate' "MasonInstall $lsps $daps $linters $formatters")
     for cmd in "${commands[@]}"; do
         echo "Running command: $cmd..."
         # Skip if CI environment variable is true
