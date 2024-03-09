@@ -2,30 +2,56 @@
 
 echo "Installing dotfiles..."
 
-# List of common packages to install across all distros
-common_packages=("git" "tmux" "wget" "fontconfig")
+# Default to skipping prompts
+INTERACTIVE=false
 
-# Distro specific packages
-# An associative array where the key is the distro name and the value is a string of packages for that distro
-# Modfiy this array to add or remove packages for a specific distro as needed
-declare -A distro_packages
-distro_packages=(
-    ["arch"]="lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd"
-    ["debian"]="lua5.4 xclip ripgrep fd-find python3-venv"
-    ["fedora"]="lua fd-find"
-    ["ubuntu"]="lua5.4 fd-find python3-venv"
-    ["macos"]="lua fd"
-)
+# Check if the --it or --interactive argument was provided
+if [[ $1 == "--it" || $1 == "--interactive" ]]; then
+    INTERACTIVE=true
+fi
 
-# Declare an associative array for package managers and their update commands
-# The key is the package manager name and the value is the update command
-declare -A pkg_managers=(
-    ["apt-get"]="apt-get update"
-    ["dnf"]="dnf check-update"
-    ["yum"]="yum check-update"
-    ["pacman"]="pacman -Syu --noconfirm"
-    ["brew"]="brew update"
-)
+# Default values for the options
+OH_MY_ZSH_THEME_NAME="powerlevel10k"
+OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
+NVIM_LANGUAGE="golang"
+
+# If interactive mode is enabled, ask the user for the options
+if [ "$INTERACTIVE" = true ] ; then
+    echo "Enter the theme name for oh-my-zsh (default: powerlevel10k):"
+    read -r input
+    OH_MY_ZSH_THEME_NAME=${input:-$OH_MY_ZSH_THEME_NAME}
+
+    echo "Enter the theme repository for oh-my-zsh (default: romkatv/powerlevel10k):"
+    read -r input
+    OH_MY_ZSH_THEME_REPO=${input:-$OH_MY_ZSH_THEME_REPO}
+
+    echo "Enter the language (default: golang):"
+    read -r input
+    NVIM_LANGUAGE=${input:-$NVIM_LANGUAGE}
+fi
+
+# Parse command-line options
+# Use -t to specify a custom theme name for oh-my-zsh
+# Use -r to specify a custom theme repository for oh-my-zsh
+# Use -l to specify a language
+# Example: ./install.sh -t custom-theme -r custom/repo -l rust
+while getopts "t:r:l:" opt; do
+  case ${opt} in
+    t)
+      OH_MY_ZSH_THEME_NAME="$OPTARG"
+      ;;
+    r)
+      OH_MY_ZSH_THEME_REPO="$OPTARG"
+      ;;
+    l)
+      NVIM_LANGUAGE="$OPTARG"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" 1>&2
+      exit 1
+      ;;
+  esac
+done
 
 # Define the repository directory for dotfiles
 REPO_DIR="$HOME/dotfiles"
@@ -34,23 +60,6 @@ REPO_DIR="$HOME/dotfiles"
 if [ "$CI" = "true" ]; then
     REPO_DIR="$GITHUB_WORKSPACE"
 fi
-
-
-# Array of file paths relative to the repository directory
-# These are the files that will be symlinked to the home directory
-declare -a relative_paths=(
-    ".zshrc"
-    ".config/nvim"
-    ".tmux.conf"
-)
-
-# Associative array mapping the plugin names to their git repository URLs
-# These plugins will be cloned into the oh-my-zsh custom plugins directory
-declare -A plugins=(
-    ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-    ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
-    ["zsh-history-substring-search"]="https://github.com/zsh-users/zsh-history-substring-search.git"
-)
 
 # Default path to the .zshrc file
 ZSHRC="$HOME/.zshrc"
@@ -71,32 +80,46 @@ NVIM_LANGUAGE_SCRIPT="${NVIM_SCRIPTS_DIR}/lang"
 # Default language for Neovim configuration, defaults to golang
 NVIM_LANGUAGE="golang"
 
-# Parse command-line options
-# Use -t to specify a custom theme name for oh-my-zsh
-# Use -r to specify a custom theme repository for oh-my-zsh
-# Use -c to specify a custom path to the configure_nvim_clipboard.sh script
-# Use -l to specify a language
-# Example: ./install.sh -t custom-theme -r custom/repo -c /path/to/configure_nvim_clipboard.sh -l python
-while getopts "t:r:c:l:" opt; do
-  case ${opt} in
-    t)
-      OH_MY_ZSH_THEME_NAME="$OPTARG"
-      ;;
-    r)
-      OH_MY_ZSH_THEME_REPO="$OPTARG"
-      ;;
-    c)
-      CLIPBOARD_CONFIG_SCRIPT="$OPTARG"
-      ;;
-    l)
-      NVIM_LANGUAGE="$OPTARG"
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" 1>&2
-      exit 1
-      ;;
-  esac
-done
+# Declare an associative array for package managers and their update commands
+# The key is the package manager name and the value is the update command
+declare -A pkg_managers=(
+    ["apt-get"]="apt-get update"
+    ["dnf"]="dnf check-update"
+    ["yum"]="yum check-update"
+    ["pacman"]="pacman -Syu --noconfirm"
+    ["brew"]="brew update"
+)
+
+# Array of file paths relative to the repository directory
+# These are the files that will be symlinked to the home directory
+declare -a relative_paths=(
+    ".zshrc"
+    ".config/nvim"
+    ".tmux.conf"
+)
+
+# Associative array mapping the plugin names to their git repository URLs
+# These plugins will be cloned into the oh-my-zsh custom plugins directory
+declare -A plugins=(
+    ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
+    ["zsh-history-substring-search"]="https://github.com/zsh-users/zsh-history-substring-search.git"
+)
+
+# List of common packages to install across all distros
+common_packages=("git" "tmux" "wget" "fontconfig")
+
+# Distro specific packages
+# An associative array where the key is the distro name and the value is a string of packages for that distro
+# Modfiy this array to add or remove packages for a specific distro as needed
+declare -A distro_packages
+distro_packages=(
+    ["arch"]="lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd"
+    ["debian"]="lua5.4 xclip unzip ripgrep fd-find python3-venv"
+    ["fedora"]="lua fd-find"
+    ["ubuntu"]="lua5.4 fd-find python3-venv"
+    ["macos"]="lua fd"
+)
 
 # ******************
 # ** Source Zshrc **
