@@ -109,6 +109,19 @@ source_zshrc() {
 }
 
 # **********************
+# ** Run Sudo Command **
+# **********************
+
+run_sudo_cmd() {
+    if [[ "$CI" == "true" ]]; then
+        # Run the command as a regular user in the CI environment
+        eval "$1"
+    else
+        sudo sh -c "$1"
+    fi
+}
+
+# **********************
 # ** Install Packages **
 # **********************
 
@@ -151,32 +164,16 @@ install_packages() {
     echo "Installing packages with $package_manager..."
     case $package_manager in
         "apt-get")
-            if [[ "$CI" == "true" ]]; then
-                apt-get install -y "${packages[@]}"
-            else
-                sudo apt-get install -y "${packages[@]}"
-            fi
+            run_sudo_cmd "apt-get install -y ${packages[*]}"
             ;;
         "dnf")
-            if [[ "$CI" == "true" ]]; then
-                dnf install -y "${packages[@]}"
-            else
-                sudo dnf install -y "${packages[@]}"
-            fi
+            run_sudo_cmd "dnf install -y ${packages[*]}"
             ;;
         "yum")
-            if [[ "$CI" == "true" ]]; then
-                yum install -y "${packages[@]}"
-            else
-                sudo yum install -y "${packages[@]}"
-            fi
+            run_sudo_cmd "yum install -y ${packages[*]}"
             ;;
         "pacman")
-            if [[ "$CI" == "true" ]]; then
-                pacman -S --noconfirm "${packages[@]}"
-            else
-                sudo pacman -S --noconfirm "${packages[@]}"
-            fi
+            run_sudo_cmd "pacman -S --noconfirm ${packages[*]}"
             ;;
         "brew")
             brew install "${packages[@]}"
@@ -204,11 +201,7 @@ install_neovim() {
         if ! pacman -Q neovim &>/dev/null; then
             echo "Installing Neovim"
             # Install Neovim via package manager
-            if [[ "$CI" == "true" ]]; then
-                pacman -S --noconfirm neovim
-            else
-                sudo pacman -S --noconfirm neovim
-            fi
+            run_sudo_cmd "pacman -S --noconfirm neovim"
         else
             echo "Neovim is already installed"
         fi
@@ -231,11 +224,7 @@ install_neovim() {
             # Extract the downloaded archive in the temporary directory
             tar -C "$nvim_tmpdir" -xzf "$nvim_tmpdir/$nvim_tarball_name"
             # Move the extracted directory to /opt
-            if [[ "$CI" == "true" ]]; then
-                mv "$nvim_tmpdir/nvim-linux64" $nvim_install_dir
-            else
-                sudo mv "$nvim_tmpdir/nvim-linux64" $nvim_install_dir
-            fi
+            run_sudo_cmd "mv $nvim_tmpdir/nvim-linux64 $nvim_install_dir"
             # Remove the temporary directory
             rm -r "$nvim_tmpdir"
             # Add the bin directory of the extracted archive to the PATH in .zshrc if it's not already there
@@ -264,11 +253,7 @@ install_neovim() {
             # Make the binary executable
             chmod +x "$ts_binary_file_path"
             # Move the binary to /usr/local/bin
-            if [[ "$CI" == "true" ]]; then
-                mv "$ts_binary_file_path" /usr/local/bin/tree-sitter
-            else
-                sudo mv "$ts_binary_file_path" /usr/local/bin/tree-sitter
-            fi
+            run_sudo_cmd "mv $ts_binary_file_path /usr/local/bin/tree-sitter"
             # Remove the temporary directory
             rm -r "$ts_tmpdir"
 
@@ -281,11 +266,7 @@ install_neovim() {
         if ! yum list installed neovim &>/dev/null; then
             echo "Installing Neovim"
             # Install Neovim via package manager
-            if [[ "$CI" == "true" ]]; then
-                yum install -y neovim
-            else
-                sudo yum install -y neovim
-            fi
+            run_sudo_cmd "yum install -y neovim"
         else
             echo "Neovim is already installed"
         fi
@@ -295,11 +276,7 @@ install_neovim() {
         if ! dnf list installed neovim &>/dev/null; then
             echo "Installing Neovim"
             # Install Neovim via package manager
-            if [[ "$CI" == "true" ]]; then
-                dnf install -y neovim
-            else
-                sudo dnf install -y neovim
-            fi
+            run_sudo_cmd "dnf install -y neovim"
         else
             echo "Neovim is already installed"
         fi
@@ -321,11 +298,7 @@ install_neovim() {
         cd neovim || exit
         # Build Neovim from source
         make CMAKE_BUILD_TYPE=Release
-        if [[ "$CI" == "true" ]]; then
-            make install
-        else
-            sudo make install
-        fi
+        run_sudo_cmd "make install"
         ;;
     esac
 
@@ -333,10 +306,7 @@ install_neovim() {
 
     # Source zshrc
     source_zshrc
-
-
 }
-
 
 # *****************************
 # ** Add variables to .zshrc **
@@ -373,7 +343,7 @@ configure_neovim() {
     echo "Configuring Neovim..."
     # tree-sitter
     parsers="markdown_inline"
-    # mason 
+    # mason
     # TODO configure to allow dynamic installation based on the specified language
     lsps="gopls lua-language-server pyright typescript-language-server"
     daps="go-debug-adapter"
