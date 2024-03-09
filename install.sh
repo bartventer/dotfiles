@@ -2,6 +2,10 @@
 
 LOG_SCRIPT_PATH="./log.sh"
 REPO_DIR="$HOME/dotfiles"
+# If CI environment variable is true, override the REPO_DIR
+if [ "$CI" = "true" ]; then
+    REPO_DIR="$GITHUB_WORKSPACE"
+fi
 export LOG_SCRIPT="$REPO_DIR/$LOG_SCRIPT_PATH"
 
 # Colors
@@ -61,10 +65,7 @@ while getopts "t:r:l:" opt; do
   esac
 done
 
-# If CI environment variable is true, override the REPO_DIR
-if [ "$CI" = "true" ]; then
-    REPO_DIR="$GITHUB_WORKSPACE"
-fi
+
 
 # Default path to the .zshrc file
 ZSHRC="$HOME/.zshrc"
