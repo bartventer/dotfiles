@@ -1,3 +1,11 @@
+# [2.8.0](https://github.com/bartventer/dotfiles/compare/v2.7.1...v2.8.0) (2024-03-09)
+
+
+### Features
+
+* **install.sh:** expand Neovim configuration ([1a02c0d](https://github.com/bartventer/dotfiles/commit/1a02c0d55517c6e58fdb2d7c1e2d94033891e1da))
+* **install.sh:** Streamline package installation ([6b608b9](https://github.com/bartventer/dotfiles/commit/6b608b977e1ebe0a6f4015d713b1e11e5133f877))
+
 ## [2.7.1](https://github.com/bartventer/dotfiles/compare/v2.7.0...v2.7.1) (2024-03-09)
 
 
