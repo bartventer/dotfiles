@@ -1,3 +1,11 @@
+## [2.7.1](https://github.com/bartventer/dotfiles/compare/v2.7.0...v2.7.1) (2024-03-09)
+
+
+### Bug Fixes
+
+* **install.sh:** Reorder main section and refactor shell checks ([46864cb](https://github.com/bartventer/dotfiles/commit/46864cb595a03c7e94db20fdb98ea7ca61bc58d2))
+* **install.sh:** update archlinux distro specific dependencies ([a622504](https://github.com/bartventer/dotfiles/commit/a622504ddb7cc6de94149fc2479749af73b0b6a7))
+
 # [2.7.0](https://github.com/bartventer/dotfiles/compare/v2.6.0...v2.7.0) (2024-03-09)
 
 
