@@ -71,10 +71,6 @@ fi
 # Default path to the .zshrc file
 ZSHRC="$HOME/.zshrc"
 
-# Default theme name and repository for oh-my-zsh, defaults to powerlevel10k
-OH_MY_ZSH_THEME_NAME="powerlevel10k"
-OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
-
 # Default path to the scripts directory in nvim
 NVIM_SCRIPTS_DIR=".config/nvim/scripts"
 
@@ -83,9 +79,6 @@ CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 
 # Default path to the language-specific Neovim configure script
 NVIM_LANGUAGE_SCRIPT="${NVIM_SCRIPTS_DIR}/lang"
-
-# Default language for Neovim configuration, defaults to golang
-NVIM_LANGUAGE="golang"
 
 # Declare an associative array for package managers and their update commands
 # The key is the package manager name and the value is the update command
