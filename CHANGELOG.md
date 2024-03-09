@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/bartventer/dotfiles/compare/v2.6.0...v2.7.0) (2024-03-09)
+
+
+### Features
+
+* **install.sh:** add shell parameter to install_packages function ([26bd996](https://github.com/bartventer/dotfiles/commit/26bd9964db537ec9ffe694a480414fde051a75ea))
+
 # [2.6.0](https://github.com/bartventer/dotfiles/compare/v2.5.1...v2.6.0) (2024-03-08)
 
 
