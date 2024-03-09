@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/bartventer/dotfiles/compare/v3.1.0...v3.1.1) (2024-03-09)
+
+
+### Bug Fixes
+
+* **install.sh:** remove duplicate declared defaults ([8ce8365](https://github.com/bartventer/dotfiles/commit/8ce8365b9469a1e9953a8cc1fd183144202178e7))
+
 # [3.1.0](https://github.com/bartventer/dotfiles/compare/v3.0.0...v3.1.0) (2024-03-09)
 
 
