@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/bartventer/dotfiles/compare/v2.8.0...v3.0.0) (2024-03-09)
+
+
+### Features
+
+* **install.sh:** add interactive mode to installation script, remove clipboard config script path option ([1db271f](https://github.com/bartventer/dotfiles/commit/1db271f0eb8555178ed4cc80df7659930cdcebaa))
+
+
+### BREAKING CHANGES
+
+* **install.sh:** The option flag for setting the clipboard config script path has been removed. Interactive mode has been added, which allows users to specify custom options for the installation script. It can be enabled with the `--it` or `--interactive command`-line arguments. By default, the script runs in non-interactive mode.
+
 # [2.8.0](https://github.com/bartventer/dotfiles/compare/v2.7.1...v2.8.0) (2024-03-09)
 
 
