@@ -445,7 +445,7 @@ configure_neovim() {
     # Source zshrc
     source_zshrc
 }
-
+    
 # *********************
 # ** Create symlinks **
 # ********************* 
@@ -526,6 +526,33 @@ install_powerlevel10k_fonts() {
     echo -e "\e[32mPowerlevel10k fonts installed successfully!\e[0m"
 }
 
+# ******************
+# ** Main Section **
+# ******************
+
+# Check if zsh is installed
+ZSH_INSTALLED=false
+OH_MY_ZSH_INSTALLED=false
+if [ -n "$(command -v zsh)" ]; then
+    echo "zsh found"
+    ZSH_INSTALLED=true
+
+    # Install oh-my-zsh if it's not already installed
+    if [ ! -d "$HOME"/.oh-my-zsh ]; then
+        echo "Installing oh-my-zsh"
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+        OH_MY_ZSH_INSTALLED=true
+    else
+        OH_MY_ZSH_INSTALLED=true
+    fi
+fi
+
+# If either zsh or oh-my-zsh are not installed, exit the script
+if [ "$ZSH_INSTALLED" = false ] || [ "$OH_MY_ZSH_INSTALLED" = false ]; then
+    echo -e "\e[31mEither zsh or oh-my-zsh is not installed, cannot source .zshrc file\e[0m"
+    exit 1
+fi
+
 # Create symlinks for all files in the relative_paths array
 for relative_path in "${relative_paths[@]}"; do
     source="$REPO_DIR/$relative_path"
@@ -533,37 +560,38 @@ for relative_path in "${relative_paths[@]}"; do
     create_symlink "$source" "$target"
 done
 
-# *******************
-# ** Main Section  **
-# *******************
-
-# Initialize pkg_manager variable
-pkg_manager=""
-
-# Check for package manager, install packages, and source .zshrc file
-current_shell=""
 # Get the current shell
+CURRENT_SHELL=""
 if [ -n "$BASH" ]; then
-    current_shell="bash"
+    CURRENT_SHELL="bash"
 elif [ -n "$ZSH_NAME" ]; then
-    current_shell="zsh"
+    CURRENT_SHELL="zsh"
 else
-    echo "Unsupported shell for dotfiles installation ($current_shell)"
+    echo "Unsupported shell for dotfiles installation ($CURRENT_SHELL)"
     exit 1
 fi
 
 # Check for package manager and install packages
-case $current_shell in
+PKG_MANAGER=""
+msg_clone_plugins="Cloning oh-my-zsh plugins and theme..."
+case $CURRENT_SHELL in
   zsh)
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
         if command -v "$pm" >/dev/null 2>&1; then
             echo "$pm found"
-            pkg_manager=$pm
-            install_packages "$pkg_manager" "$current_shell"
+            PKG_MANAGER=$pm
+            install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
         fi
+    done
+
+    # Clone plugins and theme
+    echo "$msg_clone_plugins"
+    # shellcheck disable=SC2296
+    for plugin in ${(k)plugins}; do
+        clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
     done
     ;;
   bash)
@@ -571,80 +599,56 @@ case $current_shell in
     for pm in "${!pkg_managers[@]}"; do
         if command -v "$pm" >/dev/null 2>&1; then
             echo "$pm found"
-            pkg_manager=$pm
-            install_packages "$pkg_manager" "$current_shell"
+            PKG_MANAGER=$pm
+            install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
         fi
     done
+
+    # Clone plugins and theme
+    echo "$msg_clone_plugins"
+    for plugin in "${!plugins[@]}"; do
+        clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
+    done
+    ;;
+    *)
+    echo "Unsupported shell for package installation ($CURRENT_SHELL)"
+    exit 1
     ;;
 esac
 
 # Check if a package manager was found
-if [ -z "$pkg_manager" ]; then
+if [ -z "$PKG_MANAGER" ]; then
     echo -e "\e[31mNo package manager found, skipping package installation\e[0m"
     exit 1
 fi
 
-# Check if zsh is installed
-if [ -n "$(command -v zsh)" ]; then
-    echo "zsh found"
-
-    # Install oh-my-zsh if it's not already installed
-    if [ ! -d "$HOME"/.oh-my-zsh ]; then
-        echo "Installing oh-my-zsh"
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    fi
-
-    # Clone plugins and theme
-    echo "Cloning oh-my-zsh plugins and theme..."
-    case $current_shell in
-    *zsh*)
-        # Zsh syntax
-        # shellcheck disable=SC2296
-        for plugin in ${(k)plugins}; do
-            clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
-        done
-        ;;
-    *bash*)
-        # Bash syntax
-        for plugin in "${!plugins[@]}"; do
-            clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
-        done
-        ;;
-        
-    *)
-        echo -e "\e[31mUnsupported shell: $current_shell. Please run this script in bash or zsh.\e[0m"
-        exit 1
-        ;;
-    esac
-
-    # Check if the theme is already installed
-    if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-        echo "Installing $OH_MY_ZSH_THEME_NAME"
-        git clone --depth=1 https://github.com/"$OH_MY_ZSH_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
-    fi
-
-    # Install powerlevel10k fonts
-    install_powerlevel10k_fonts
-
-    # Source .zshrc file to apply the changes
-    if [ -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-        source_zshrc
-    else
-        echo -e "\e[31mCannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found\e[0m"
-        exit 1
-    fi
-
+# Install oh-my-zsh theme
+OH_MY_ZSH_THEME_INSTALLED=false
+if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
+    echo "Installing $OH_MY_ZSH_THEME_NAME"
+    git clone --depth=1 https://github.com/"$OH_MY_ZSH_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
+    OH_MY_ZSH_THEME_INSTALLED=true
 else
-    echo -e "\e[31mzsh not found, cannot source .zshrc file\e[0m"
+    OH_MY_ZSH_THEME_INSTALLED=true
+fi
+
+# Install powerlevel10k fonts
+install_powerlevel10k_fonts
+
+# Source .zshrc file to apply the changes
+if [ "$OH_MY_ZSH_THEME_INSTALLED" = true ]; then
+    source_zshrc
+else
+    echo -e "\e[31mCannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found\e[0m"
     exit 1
 fi
 
 # Install Neovim
-install_neovim "$pkg_manager"
+install_neovim "$PKG_MANAGER"
 
 # Configure Neovim
-configure_neovim "$pkg_manager"
+configure_neovim "$PKG_MANAGER"
 
 # Finish
 echo -e "\e[32mDotfiles installation complete!\e[0m"
