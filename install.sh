@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# Define colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-INFO='\033[0;36m'
-NC='\033[0m' # No Color
+LOG_SCRIPT_PATH="./log.sh"
+REPO_DIR="$HOME/dotfiles"
+export LOG_SCRIPT="$REPO_DIR/$LOG_SCRIPT_PATH"
 
-echo -e "${GREEN}Installing dotfiles...${NC}"
+# Colors
+# shellcheck disable=SC1091
+source LOG_SCRIPT_PATH
+
+log_info "This is a test message"
 
 # Default to skipping prompts
 INTERACTIVE=false
@@ -24,15 +25,15 @@ NVIM_LANGUAGE="golang"
 
 # If interactive mode is enabled, ask the user for the options
 if [ "$INTERACTIVE" = true ] ; then
-    echo -e "${YELLOW}Please enter the name of the theme you want to use for oh-my-zsh (default: ${OH_MY_ZSH_THEME_NAME}):${NC}"
+    log_warn "Please enter the name of the theme you want to use for oh-my-zsh (default: ${OH_MY_ZSH_THEME_NAME}):"
     read -r input
     OH_MY_ZSH_THEME_NAME=${input:-$OH_MY_ZSH_THEME_NAME}
 
-    echo -e "${YELLOW}Please enter the repository for the oh-my-zsh theme (default: ${OH_MY_ZSH_THEME_REPO}):${NC}"
+    log_warn "Please enter the repository for the oh-my-zsh theme (default: ${OH_MY_ZSH_THEME_REPO}):"
     read -r input
     OH_MY_ZSH_THEME_REPO=${input:-$OH_MY_ZSH_THEME_REPO}
 
-    echo -e "${YELLOW}Please enter the language (default: ${NVIM_LANGUAGE}):${NC}"
+    log_warn "Please enter the language (default: ${NVIM_LANGUAGE}):"
     read -r input
     NVIM_LANGUAGE=${input:-$NVIM_LANGUAGE}
 fi
@@ -54,14 +55,11 @@ while getopts "t:r:l:" opt; do
       NVIM_LANGUAGE="$OPTARG"
       ;;
     \?)
-      echo -e "${RED}Invalid option: -$OPTARG${NC}" 1>&2
-      exit 1
+        log_error "Invalid option: -$OPTARG"
+        exit 1
       ;;
   esac
 done
-
-# Define the repository directory for dotfiles
-REPO_DIR="$HOME/dotfiles"
 
 # If CI environment variable is true, override the REPO_DIR
 if [ "$CI" = "true" ]; then
@@ -127,7 +125,7 @@ distro_packages=(
 
 source_zshrc() {
     # Source .zshrc file to apply the changes
-    echo -e "${INFO}Sourcing .zshrc file${NC}"
+    log_info "Sourcing .zshrc file"
     zsh -c "source $ZSHRC"
 }
 
@@ -176,11 +174,11 @@ install_packages() {
     update_cmd="${pkg_managers[$package_manager]}"
 
     # Update the package lists
-    echo -e "${INFO}Updating package lists for $package_manager...${NC}"
+    log_info "Updating package lists for $package_manager"
     run_sudo_cmd "$update_cmd"
 
     # Install all packages in one command
-    echo -e "${INFO}Installing packages with $package_manager...${NC}"
+    log_info "Installing packages with $package_manager..."
     case $package_manager in
         "apt-get")
             run_sudo_cmd "apt-get install -y ${packages[*]}"
@@ -198,12 +196,12 @@ install_packages() {
             brew install "${packages[@]}"
             ;;
         *)
-            echo -e "${RED}Unsupported package manager: $package_manager${NC}"
+            log_error "Unsupported package manager: $package_manager"
             exit 1
             ;;
     esac
 
-    echo -e "${GREEN}Packages installed successfully!${NC}"
+    log_success "Packages installed successfully!"
 }
 
 # ********************
@@ -219,17 +217,17 @@ install_neovim() {
     "pacman")
         # Check if Neovim is already installed
         if ! pacman -Q neovim &>/dev/null; then
-            echo -e "${INFO}Installing Neovim${NC}"
+            log_info "Installing Neovim..."
             # Install Neovim via package manager
             run_sudo_cmd "pacman -S --noconfirm neovim"
         else
-            echo -e "${INFO}Neovim is already installed${NC}"
+            log_info "Neovim is already installed"
         fi
         ;;
     "apt-get")
         # Check if Neovim is already installed
         if ! dpkg -s neovim &>/dev/null; then
-            echo -e "${INFO}Installing Neovim${NC}"
+            log_info "Installing Neovim..."
 
             # Neovim variables
             nvim_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
@@ -255,7 +253,7 @@ install_neovim() {
             export PATH="$PATH:$nvim_bin_dir"
 
             # Install tree-sitter
-            echo -e "${INFO}Installing tree-sitter${NC}"
+            log_info "Installing tree-sitter..."
 
             # Create a temporary directory
             ts_tmpdir=$(mktemp -d)
@@ -278,42 +276,42 @@ install_neovim() {
             rm -r "$ts_tmpdir"
 
         else
-            echo -e "${INFO}Neovim is already installed${NC}"
+            log_info "Neovim is already installed"
         fi
         ;;
     "yum")
         # Check if Neovim is already installed
         if ! yum list installed neovim &>/dev/null; then
-            echo -e "${INFO}Installing Neovim${NC}"
+            log_info "Installing Neovim..."
             # Install Neovim via package manager
             run_sudo_cmd "yum install -y neovim"
         else
-            echo -e "${INFO}Neovim is already installed${NC}"
+            log_info "Neovim is already installed"
         fi
         ;;
     "dnf")
         # Check if Neovim is already installed
         if ! dnf list installed neovim &>/dev/null; then
-            echo -e "${INFO}Installing Neovim${NC}"
+            log_info "Installing Neovim..."
             # Install Neovim via package manager
             run_sudo_cmd "dnf install -y neovim"
         else
             # echo "Neovim is already installed"
-            echo -e "${INFO}Neovim is already installed${NC}"
+            log_info "Neovim is already installed"
         fi
         ;;
     "brew")
         # Check if Neovim is already installed
         if ! brew list --versions neovim &>/dev/null; then
-            echo -e "${INFO}Installing Neovim${NC}"
+            log_info "Installing Neovim..."
             # Install Neovim via package manager
             brew install neovim
         else
-            echo -e "${INFO}Neovim is already installed${NC}"
+            log_info "Neovim is already installed"
         fi
         ;;
     *)
-        echo -e "${YELLOW}Unsupported package manager for Neovim installation. Building from source instead.${NC}"
+        log_warn "Unsupported package manager for Neovim installation. Building from source instead."
         # Clone Neovim repository
         git clone https://github.com/neovim/neovim.git
         cd neovim || exit
@@ -323,8 +321,7 @@ install_neovim() {
         ;;
     esac
 
-    # echo -e "\e[32mNeovim installed successfully!\e[0m"
-    echo -e "${GREEN}Neovim installed successfully!${NC}"
+    log_success "Neovim installed successfully!"
 
     # Source zshrc
     source_zshrc
@@ -345,11 +342,11 @@ append_env_variable_to_zshrc() {
 
     # If the variable is already set but commented out, uncomment it
     if grep -q "^#.*export $var_name=$var_value" "$ZSHRC"; then
-        echo -e "${INFO}Uncommenting $var_name environment variable${NC}"
+        log_info "Uncommenting $var_name environment variable"
         sed -i "s/^#.*export $var_name=$var_value/export $var_name=$var_value/" "$ZSHRC"
     # If the variable is not set, add it to the end of the file
     elif ! grep -q "$var_name=$var_value" "$ZSHRC"; then
-        echo -e "${INFO}Setting $var_name environment variable${NC}"
+        log_info "Setting $var_name environment variable"
         echo -e "\nexport $var_name=$var_value" >> "$ZSHRC"
     fi
 }
@@ -362,7 +359,7 @@ configure_neovim() {
     # Define local variables
     local package_manager=$1
 
-    echo -e "${INFO}Configuring Neovim...${NC}"
+    log_info "Configuring Neovim..."
     # tree-sitter
     parsers="markdown_inline"
     # mason
@@ -374,7 +371,7 @@ configure_neovim() {
     # nvim headless commands
     commands=('Lazy sync' "TSInstallSync! $parsers" 'MasonUpdate' "MasonInstall $lsps $daps $linters $formatters")
     for cmd in "${commands[@]}"; do
-        echo -e "${INFO}Running command: $cmd...${NC}"
+        log_info "Running command: $cmd..."
         # Skip if CI environment variable is true
         if [ "$CI" != "true" ]; then
             zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
@@ -383,30 +380,27 @@ configure_neovim() {
 
     # Call the clipboard configuration script
     # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
-    echo -e "${INFO}Configuring Neovim clipboard...${NC}"
     # shellcheck disable=SC1090
     zsh -c "source $REPO_DIR/$CLIPBOARD_CONFIG_SCRIPT $package_manager"
 
     # CoPilot message
-    printf "\n%s[Neovim CoPilot]%s\nRemember to install CoPilot with :CoPilot setup\n" "${YELLOW}" "${NC}"
-
+    log_warn "[Neovim CoPilot] Remember to install CoPilot with :CoPilot setup"
 
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
-        echo -e "${INFO}Configuring Neovim for $NVIM_LANGUAGE...${NC}"
         # shellcheck disable=SC1090
         zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
     fi
 
     # Docker specific configuration
     if [ -f /.dockerenv ]; then
-        echo -e "${INFO}Docker detected. Configuring Neovim for Docker...${NC}"
+        log_info "Docker detected. Configuring Neovim for Docker..."
         # Set the language environment variables
         append_env_variable_to_zshrc "LANG" "en_US.UTF-8"
         append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
     fi
 
-    echo -e "${GREEN}Neovim configured successfully!${NC}"
+    log_success "Neovim configured successfully!"
     
     # Source zshrc
     source_zshrc
@@ -419,7 +413,7 @@ configure_neovim() {
 create_symlink() {
     local source=$1
     local target=$2
-    echo -e "${INFO}Creating symlink from $source to $target${NC}"
+    log_info "Creating symlink from $source to $target"
     mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
     # If the target is a directory, remove it
     if [ -d "$target" ]; then
@@ -435,10 +429,10 @@ create_symlink() {
 clone_git_repo() {
     local dir=$1
     local repo=$2
-    echo -e "${INFO}Cloning $repo into $dir${NC}"
+    log_info "Cloning $repo into $dir"
     mkdir -p "$dir" # Ensure the directory exists
     if [ -d "$dir/.git" ]; then
-        echo -e "${INFO}Directory $dir already exists. Pulling latest changes.${NC}"
+        log_info "Directory $dir already exists. Pulling latest changes..."
         git -C "$dir" pull
     else
         git clone --depth=1 "$repo" "$dir" # Clone the repository
@@ -452,7 +446,7 @@ clone_git_repo() {
 # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
 install_powerlevel10k_fonts() {
 
-    echo -e "${INFO}Installing Powerlevel10k fonts...${NC}"
+    log_info "Installing Powerlevel10k fonts..."
 
     # Font file names
     font_files=("Regular" "Bold" "Italic" "Bold%20Italic")
@@ -485,14 +479,15 @@ install_powerlevel10k_fonts() {
         mv "$tmp_dir"/MesloLGS*.ttf ~/Library/Fonts/
         ;;
     *)
-        echo "Unsupported OS for font installation"
+        log_error "Unsupported OS for font installation"
+        exit 1
         ;;
     esac
 
     # Remove the temporary directory
     rm -r "$tmp_dir"
 
-    echo -e "${GREEN}Powerlevel10k fonts installed successfully!${NC}"
+    log_success "Powerlevel10k fonts installed successfully!"
 }
 
 # ******************
@@ -503,12 +498,12 @@ install_powerlevel10k_fonts() {
 ZSH_INSTALLED=false
 OH_MY_ZSH_INSTALLED=false
 if [ -n "$(command -v zsh)" ]; then
-    echo -e "${INFO}zsh found${NC}"
+    log_info "zsh found"
     ZSH_INSTALLED=true
 
     # Install oh-my-zsh if it's not already installed
     if [ ! -d "$HOME"/.oh-my-zsh ]; then
-        echo -e "${INFO}Installing oh-my-zsh...${NC}"
+        log_info "Installing oh-my-zsh..."
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
         OH_MY_ZSH_INSTALLED=true
     else
@@ -518,7 +513,7 @@ fi
 
 # If either zsh or oh-my-zsh are not installed, exit the script
 if [ "$ZSH_INSTALLED" = false ] || [ "$OH_MY_ZSH_INSTALLED" = false ]; then
-    echo -e "${RED}Either zsh or oh-my-zsh is not installed, cannot source .zshrc file${NC}"
+    log_error "Either zsh or oh-my-zsh is not installed, cannot source .zshrc file"
     exit 1
 fi
 
@@ -536,7 +531,7 @@ if [ -n "$BASH" ]; then
 elif [ -n "$ZSH_NAME" ]; then
     CURRENT_SHELL="zsh"
 else
-    echo -e "${RED}Unsupported shell for dotfiles installation ($CURRENT_SHELL)${NC}"
+    log_error "Unsupported shell for dotfiles installation ($CURRENT_SHELL)"
     exit 1
 fi
 
@@ -549,7 +544,7 @@ case $CURRENT_SHELL in
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
         if command -v "$pm" >/dev/null 2>&1; then
-            echo -e "${INFO}$pm found${NC}"
+            log_info "$pm found"
             PKG_MANAGER=$pm
             install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
@@ -557,7 +552,7 @@ case $CURRENT_SHELL in
     done
 
     # Clone plugins and theme
-    echo -e "${INFO}$msg_clone_plugins${NC}"
+    log_info "$msg_clone_plugins"
     # shellcheck disable=SC2296
     for plugin in ${(k)plugins}; do
         clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
@@ -567,7 +562,7 @@ case $CURRENT_SHELL in
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
         if command -v "$pm" >/dev/null 2>&1; then
-            echo -e "${INFO}$pm found${NC}"
+            log_info "$pm found"
             PKG_MANAGER=$pm
             install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
@@ -575,27 +570,27 @@ case $CURRENT_SHELL in
     done
 
     # Clone plugins and theme
-    echo -e "${INFO}$msg_clone_plugins${NC}"
+    log_info "$msg_clone_plugins"
     for plugin in "${!plugins[@]}"; do
         clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
     done
     ;;
     *)
-    echo -e "${RED}Unsupported shell for package installation ($CURRENT_SHELL)${NC}"
+    log_error "Unsupported shell for package installation ($CURRENT_SHELL)"
     exit 1
     ;;
 esac
 
 # Check if a package manager was found
 if [ -z "$PKG_MANAGER" ]; then
-    echo -e "${RED}No package manager found, skipping package installation${NC}"
+    log_error "No package manager found, skipping package installation"
     exit 1
 fi
 
 # Install oh-my-zsh theme
 OH_MY_ZSH_THEME_INSTALLED=false
 if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-    echo -e "${INFO}Installing $OH_MY_ZSH_THEME_NAME theme...${NC}"
+    log_info "Installing $OH_MY_ZSH_THEME_NAME theme..."
     git clone --depth=1 https://github.com/"$OH_MY_ZSH_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
     OH_MY_ZSH_THEME_INSTALLED=true
 else
@@ -609,7 +604,7 @@ install_powerlevel10k_fonts
 if [ "$OH_MY_ZSH_THEME_INSTALLED" = true ]; then
     source_zshrc
 else
-    echo -e "${RED}Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found${NC}"
+    log_error "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
     exit 1
 fi
 
@@ -620,4 +615,4 @@ install_neovim "$PKG_MANAGER"
 configure_neovim "$PKG_MANAGER"
 
 # Finish
-echo -e "${GREEN}Dotfiles installation complete!${NC}"
+log_success "Dotfiles installation complete!"

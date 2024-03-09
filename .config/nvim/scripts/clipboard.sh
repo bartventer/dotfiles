@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# shellcheck disable=SC1090
+source "$LOG_SCRIPT"
+
+log_info "Setting up clipboard..."
+
 # Options file path
 OPTIONS_FILE="$HOME/.config/nvim/lua/core/options.lua"
 
@@ -26,7 +31,7 @@ Darwin)
     PASTE_CMD="pbpaste"
     ;;
 *)
-    echo "Unsupported operating system for clipboard configuration."
+    log_error "Unsupported operating system for clipboard configuration."
     exit 1
     ;;
 esac
@@ -75,8 +80,8 @@ if ! grep -q "$UNIQUE_CONFIG_PART" "$OPTIONS_FILE"; then
         If you have already configured X11 forwarding, you can ignore this message.
         " "$DISPLAY"
     else
-        echo "Clipboard configuration added to $OPTIONS_FILE."
+        log_success "Clipboard configuration added to $OPTIONS_FILE."
     fi
 fi
 
-echo -e "\e[32mClipboard setup complete\e[0m"
+log_success "Clipboard setup complete"
