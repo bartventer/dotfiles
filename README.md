@@ -8,6 +8,7 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 ## Table of Contents
 
 -   [Prerequisites](#prerequisites)
+-   [OS Support](#os-support)
 -   [Files and Directories](#files-and-directories)
 -   [Installation](#installation)
 -   [Visual Studio Code Settings](#visual-studio-code-settings)
@@ -17,19 +18,34 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 
 This setup is intended for use with any Unix-like system. You should have the following software installed:
 
-| Software                       | Description                   | Installation Command (Debian-based) |
-| ------------------------------ | ----------------------------- | ----------------------------------- |
-| [Zsh](http://www.zsh.org/)     | The Zsh shell with Oh My Zsh. | `sudo apt install zsh`              |
-| [Node.js](https://nodejs.org/) | JavaScript runtime.           | `sudo apt install nodejs`           |
-| [npm](https://www.npmjs.com/)  | Node.js package manager.      | `sudo apt install npm`              |
+| Software                       | Description                   | Installation Command (Arch-based) |
+| ------------------------------ | ----------------------------- | --------------------------------- |
+| [Zsh](http://www.zsh.org/)     | The Zsh shell with Oh My Zsh. | `sudo pacman -S zsh`              |
+| [Node.js](https://nodejs.org/) | JavaScript runtime.           | `sudo pacman -S nodejs`           |
+| [npm](https://www.npmjs.com/)  | Node.js package manager.      | `sudo pacman -S npm`              |
+
+## OS Support
+
+This script is designed to work on the following operating systems:
+
+-   Debian-based distributions (like Ubuntu)
+-   Red Hat-based distributions (like Fedora, RockyLinux)
+-   Arch Linux
+-   macOS
+
+The script uses different package managers depending on the OS, including `apt-get`, `dnf`, `yum`, `pacman`, and `brew`.
+
+The `install.sh` script handles the installation of necessary packages. It is designed to recognize the operating system and install the appropriate packages accordingly. For the detailed list of packages and the installation process, please refer to the [install.sh](install.sh) script.
+
+Please note that the script is designed to work with recent versions of these operating systems. If you encounter any issues, please open an issue on the GitHub repository.
 
 ## Files and Directories
 
-| File/Directory  | Description                                             |
-| --------------- | ------------------------------------------------------- |
-| `~/.zshrc`      | This file contains configuration for the Zsh shell.     |
-| `/.tmux.conf`   | This file contains configuration for tmux.              |
-| `/.config/nvim` | This directory contains configuration files for Neovim. |
+| File/Directory                 | Description                                             |
+| ------------------------------ | ------------------------------------------------------- |
+| [`.zshrc`](.zshrc)             | This file contains configuration for the Zsh shell.     |
+| [`.tmux.conf`](.tmux.conf)     | This file contains configuration for tmux.              |
+| [`.config/nvim`](.config/nvim) | This directory contains configuration files for Neovim. |
 
 ## Installation
 
