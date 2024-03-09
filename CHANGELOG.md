@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/bartventer/dotfiles/compare/v3.0.0...v3.1.0) (2024-03-09)
+
+
+### Features
+
+* **install.sh:** enhance user interface with colored prompts ([ffd1baa](https://github.com/bartventer/dotfiles/commit/ffd1baa282b48ba9efb4c4e6619f1734a7d5199f))
+
 # [3.0.0](https://github.com/bartventer/dotfiles/compare/v2.8.0...v3.0.0) (2024-03-09)
 
 
