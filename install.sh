@@ -72,13 +72,13 @@ done
 ZSHRC="$HOME/.zshrc"
 
 # Default path to the scripts directory in nvim
-NVIM_SCRIPTS_DIR=".config/nvim/scripts"
+NVIM_SCRIPTS_DIR="${REPO_DIR}/.config/nvim/scripts"
 
-# Default path to the configure_nvim_clipboard.sh script
+# Path to the clipboard configuration script
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 
-# Default path to the language-specific Neovim configure script
-NVIM_LANGUAGE_SCRIPT="${NVIM_SCRIPTS_DIR}/lang"
+# Path to the language-specific Neovim configure scripts directory
+NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Declare an associative array for package managers and their update commands
 # The key is the package manager name and the value is the update command
@@ -383,7 +383,7 @@ configure_neovim() {
     # Call the clipboard configuration script
     # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
     # shellcheck disable=SC1090
-    zsh -c "source $REPO_DIR/$CLIPBOARD_CONFIG_SCRIPT $package_manager"
+    zsh -c "source $CLIPBOARD_CONFIG_SCRIPT $package_manager"
 
     # CoPilot message
     log_warn "[Neovim CoPilot] Remember to install CoPilot with :CoPilot setup"
@@ -391,7 +391,7 @@ configure_neovim() {
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
         # shellcheck disable=SC1090
-        zsh -c "source $REPO_DIR/$NVIM_LANGUAGE_SCRIPT/${NVIM_LANGUAGE}.sh $package_manager"
+        zsh -c "source $NVIM_LANGUAGE_SCRIPT_DIR/${NVIM_LANGUAGE}.sh $package_manager"
     fi
 
     # Docker specific configuration
