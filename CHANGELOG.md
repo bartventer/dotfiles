@@ -1,3 +1,16 @@
+# [3.2.0](https://github.com/bartventer/dotfiles/compare/v3.1.1...v3.2.0) (2024-03-10)
+
+
+### Bug Fixes
+
+* **install.sh:** Correct sourcing of log script ([ad1edad](https://github.com/bartventer/dotfiles/commit/ad1edad492733bcc95ca7d0933e456bebd381c99))
+* **install.sh:** fix repo directory for CI ([15a258e](https://github.com/bartventer/dotfiles/commit/15a258e518d039d72bedd3db13f45fe1f20fdb5e))
+
+
+### Features
+
+* **logging:** add color logging with log.sh ([5dadd39](https://github.com/bartventer/dotfiles/commit/5dadd399000921c2067d4828e799aea544f9f1a4))
+
 ## [3.1.1](https://github.com/bartventer/dotfiles/compare/v3.1.0...v3.1.1) (2024-03-09)
 
 
