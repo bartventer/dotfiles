@@ -383,7 +383,7 @@ configure_neovim() {
     # Call the clipboard configuration script
     # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
     # shellcheck disable=SC1090
-    zsh -c "source $CLIPBOARD_CONFIG_SCRIPT $package_manager"
+    source "$CLIPBOARD_CONFIG_SCRIPT" "$package_manager"
 
     # CoPilot message
     log_warn "[Neovim CoPilot] Remember to install CoPilot with :CoPilot setup"
@@ -391,7 +391,7 @@ configure_neovim() {
     # Call the relevant language-specific Neovim configure script based on the flag that was passed
     if [ -n "$NVIM_LANGUAGE" ]; then
         # shellcheck disable=SC1090
-        zsh -c "source $NVIM_LANGUAGE_SCRIPT_DIR/${NVIM_LANGUAGE}.sh $package_manager"
+        source "$NVIM_LANGUAGE_SCRIPT_DIR/${NVIM_LANGUAGE}.sh" "$package_manager"
     fi
 
     # Docker specific configuration
