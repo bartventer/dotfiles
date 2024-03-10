@@ -1,18 +1,19 @@
 #!/bin/bash
 
-LOG_SCRIPT_PATH="./log.sh"
+LOG_SCRIPT_FILE="log.sh"
 REPO_DIR="$HOME/dotfiles"
 # If CI environment variable is true, override the REPO_DIR
 if [ "$CI" = "true" ]; then
     REPO_DIR="$GITHUB_WORKSPACE"
 fi
-export LOG_SCRIPT="$REPO_DIR/$LOG_SCRIPT_PATH"
+export LOG_SCRIPT="$REPO_DIR/$LOG_SCRIPT_FILE"
 
 # Colors
-# shellcheck disable=SC1091
-source LOG_SCRIPT_PATH
+# shellcheck disable=SC1090
+# shellcheck disable=SC2086
+source $LOG_SCRIPT
 
-log_info "This is a test message"
+log_info "Starting dotfiles installation..."
 
 # Default to skipping prompts
 INTERACTIVE=false
