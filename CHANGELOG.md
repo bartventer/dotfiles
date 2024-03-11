@@ -1,3 +1,17 @@
+# [3.4.0](https://github.com/bartventer/dotfiles/compare/v3.3.0...v3.4.0) (2024-03-11)
+
+
+### Bug Fixes
+
+* **init.sh:** add CI runner compatibility ([843d595](https://github.com/bartventer/dotfiles/commit/843d5954d50de7990fd62c687e252a390bbb583f))
+
+
+### Features
+
+* **ci.yml:** add glibc-all-langpacks installation for Fedora in GitHub Actions ([0bd46c7](https://github.com/bartventer/dotfiles/commit/0bd46c737cb2b9a13df20b7453867d9b5dfef346))
+* **init.sh:** add macOS compatibility for script directory resolution ([8064935](https://github.com/bartventer/dotfiles/commit/8064935431818dfa204367989e435954395d6226))
+* **log.sh:** enhance compatibility with both Bash and Zsh ([bb021c4](https://github.com/bartventer/dotfiles/commit/bb021c48b3513c697b8f6eda96b30e178e37d933))
+
 # [3.3.0](https://github.com/bartventer/dotfiles/compare/v3.2.0...v3.3.0) (2024-03-11)
 
 
