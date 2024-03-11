@@ -19,7 +19,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Install Dependencies
               run: |
@@ -47,10 +47,11 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Install Dependencies
               run: |
+                  brew unlink go || true
                   brew install gcc git zsh curl jq go node npm python3
 
             - name: Run Install Script
