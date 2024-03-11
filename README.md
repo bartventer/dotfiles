@@ -11,18 +11,32 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 -   [OS Support](#os-support)
 -   [Files and Directories](#files-and-directories)
 -   [Installation](#installation)
+-   [Font Update](#font-update)
 -   [Visual Studio Code Settings](#visual-studio-code-settings)
 -   [License](#license)
 
 ## Prerequisites
 
-This setup is intended for use with any Unix-like system. You should have the following software installed:
+### Main Script
 
-| Software                       | Description                   | Installation Command (Arch-based) |
-| ------------------------------ | ----------------------------- | --------------------------------- |
-| [Zsh](http://www.zsh.org/)     | The Zsh shell with Oh My Zsh. | `sudo pacman -S zsh`              |
-| [Node.js](https://nodejs.org/) | JavaScript runtime.           | `sudo pacman -S nodejs`           |
-| [npm](https://www.npmjs.com/)  | Node.js package manager.      | `sudo pacman -S npm`              |
+You should have the following software installed for the main script:
+
+| Software                             | Description                   | Installation Command (Arch-based) | Required For   |
+| ------------------------------------ | ----------------------------- | --------------------------------- | -------------- |
+| [Zsh](http://www.zsh.org/)           | The Zsh shell with Oh My Zsh. | `sudo pacman -S zsh`              | Shell setup    |
+| [Node.js](https://nodejs.org/)       | JavaScript runtime.           | `sudo pacman -S nodejs`           | Neovim plugins |
+| [npm](https://www.npmjs.com/)        | Node.js package manager.      | `sudo pacman -S npm`              | Neovim plugins |
+| [jq](https://stedolan.github.io/jq/) | Command-line JSON processor.  | `sudo pacman -S jq`               | Scripting      |
+
+### Font Scraping Script (Optional)
+
+For the optional `update_fonts.sh` script (detailed in the [Font Update](#font-update) section), you should have the following additional software installed:
+
+| Software                                            | Description                  | Installation Command (Arch-based) |
+| --------------------------------------------------- | ---------------------------- | --------------------------------- |
+| [Python3](https://www.python.org/)                  | Python programming language. | `sudo pacman -S python`           |
+| [pip](https://pip.pypa.io/en/stable/)               | Python package installer.    | `sudo pacman -S python-pip`       |
+| [venv](https://docs.python.org/3/library/venv.html) | Python virtual environment.  | Included with Python3             |
 
 ## OS Support
 
@@ -41,11 +55,14 @@ Please note that the script is designed to work with recent versions of these op
 
 ## Files and Directories
 
-| File/Directory                 | Description                                             |
-| ------------------------------ | ------------------------------------------------------- |
-| [`.zshrc`](.zshrc)             | This file contains configuration for the Zsh shell.     |
-| [`.tmux.conf`](.tmux.conf)     | This file contains configuration for tmux.              |
-| [`.config/nvim`](.config/nvim) | This directory contains configuration files for Neovim. |
+| File/Directory                       | Description                                             |
+| ------------------------------------ | ------------------------------------------------------- |
+| [`.zshrc`](.zshrc)                   | This file contains configuration for the Zsh shell.     |
+| [`.tmux.conf`](.tmux.conf)           | This file contains configuration for tmux.              |
+| [`.config/nvim`](.config/nvim)       | This directory contains configuration files for Neovim. |
+| [`install.sh`](install.sh)           | This script installs the dotfiles on your system.       |
+| [`update_fonts.sh`](update_fonts.sh) | This script updates the fonts.json file.                |
+| [`fonts.json`](fonts.json)           | This file contains a list of available fonts.           |
 
 ## Installation
 
@@ -57,32 +74,43 @@ cd dotfiles
 ./install.sh
 ```
 
-The scipt performs the following steps:
+The script performs the following steps:
 
-1. Checks and installs `zsh` and `oh-my-zsh`. If not installed, the script exits.
-2. Creates symbolic links for certain files from the repository to the home directory.
-3. Determines the current shell. If it's not `bash` or `zsh`, the script exits.
-4. Identifies the package manager and installs packages. If no package manager is found, the script exits.
+1. Checks and installs `zsh` and `oh-my-zsh`.
+2. Creates symbolic links for files from the repository to the home directory.
+3. Determines the current shell (exit if not `bash` or `zsh`).
+4. Identifies the package manager and installs packages.
 5. Clones `oh-my-zsh` plugins and theme.
-6. Installs `oh-my-zsh` theme if not already installed.
-7. Installs `powerlevel10k` fonts.
-8. Sources `.zshrc` file if the `oh-my-zsh` theme is installed. If not, the script exits.
+6. Installs `oh-my-zsh` theme.
+7. Installs fonts.
+8. Sources `.zshrc` file.
 9. Installs and configures `Neovim`.
 
 You can customize the installation using the following command-line options:
 
-| Option | Description                                      | Default                 | Example             |
-| ------ | ------------------------------------------------ | ----------------------- | ------------------- |
-| `-t`   | Specify a custom theme name for oh-my-zsh.       | `powerlevel10k`         | `agnoster`          |
-| `-r`   | Specify a custom theme repository for oh-my-zsh. | `romkatv/powerlevel10k` | `agnoster/agnoster` |
-| `-l`   | Specify a language for Neovim configuration.     | `golang`                | `python`            |
+| Option | Description                                                                                                                               | Default                                                                                                          | Example             |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `-r`   | Specify a custom theme repository for oh-my-zsh.                                                                                          | `romkatv/powerlevel10k`                                                                                          | `agnoster/agnoster` |
+| `-l`   | Specify a language for Neovim configuration.                                                                                              | `golang`                                                                                                         | `rust`              |
+| `-f`   | Specify a font name. See [fonts.json](./fonts.json) for available fonts.<br>See the [Font Update](#font-update) section for more details. | `MesloLGS NF` ([patched for `powerlevel10k`](https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts)) | `Source Code Pro`   |
 
 You can also run the script in interactive mode with the `--it` or `--interactive` command-line arguments. In interactive mode, you will be prompted to enter the options.
 
 Example:
 
 ```bash
-./install.sh -t powerlevel10k -r custom-theme-repo -l rust
+./install.sh \
+-r "agnoster/agnoster" \
+-l rust \
+-f "Source Code Pro"
+```
+
+## Font Update
+
+To update the fonts, run the `update_fonts.sh` script from the root of the repository. This script scrapes the latest fonts from the [Nerd Fonts](https://www.nerdfonts.com/) website and updates the `fonts.json` file.
+
+```bash
+./update_fonts.sh
 ```
 
 ## Visual Studio Code Settings
