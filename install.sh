@@ -431,8 +431,9 @@ configure_neovim() {
         if type locale-gen &>/dev/null; then
             echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
             run_sudo_cmd "locale-gen"
-        elif type localectl &>/dev/null; then
-            run_sudo_cmd "localectl set-locale LANG=en_US.UTF-8"
+        elif [ "$(uname)" == "Linux" ]; then
+            run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
+            run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
         elif [ "$(uname)" == "Darwin" ]; then
             defaults write -g AppleLocale -string "en_US"
         else
