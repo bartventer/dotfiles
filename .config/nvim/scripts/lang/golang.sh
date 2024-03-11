@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# shellcheck disable=SC1090
-source "$LOG_SCRIPT"
-
 log_info "Setting up GoLang..."
 
 # Get the package manager from the command-line arguments
@@ -27,6 +24,5 @@ pacman)
 esac
 
 # ... and other dependencies
-
 
 log_success "GoLang setup complete"

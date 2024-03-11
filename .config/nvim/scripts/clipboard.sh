@@ -1,17 +1,15 @@
 #!/bin/bash
 
-# shellcheck disable=SC1090
-source "$LOG_SCRIPT"
+# Check if an argument is provided
+if [ "$#" -ne 1 ]; then
+    log_error "Usage: $0 <path_to_options.lua>"
+    exit 1
+fi
 
 log_info "Setting up clipboard..."
 
-# Options file path
-OPTIONS_FILE="$HOME/.config/nvim/lua/core/options.lua"
-
-# If CI environment variable is true, override the OPTIONS_FILE
-if [ "$CI" = "true" ]; then
-    OPTIONS_FILE="$GITHUB_WORKSPACE/.config/nvim/lua/core/options.lua"
-fi
+# Target options file
+OPTIONS_FILE="$1"
 
 # Check the operating system
 OS=$(uname -s)
@@ -62,7 +60,7 @@ if ! grep -q "$UNIQUE_CONFIG_PART" "$OPTIONS_FILE"; then
     # If on Linux and in docker container; notify user that X11 forwarding is required from the host machine
     if [ "$OS" = "Linux" ] && [ -f /.dockerenv ]; then
         printf "
-        \033[1;33mWarning:\033[0m
+        ${YELLOW}Warning:${NC}
         You are running inside a docker container. In order to use the clipboard feature, you need to enable X11 forwarding from the host machine.
         Please add the following lines to your docker-compose.yml file:
 
