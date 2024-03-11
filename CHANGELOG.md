@@ -1,3 +1,21 @@
+# [3.3.0](https://github.com/bartventer/dotfiles/compare/v3.2.0...v3.3.0) (2024-03-11)
+
+
+### Bug Fixes
+
+* **golang.sh:** resolve sudo issue on CI ([2c26e79](https://github.com/bartventer/dotfiles/commit/2c26e793c43d22062ce9d86abd09596d7ba72292))
+* **install.sh:** resolve sudo issue on CI ([9707ff2](https://github.com/bartventer/dotfiles/commit/9707ff2f28fd71a8f98d6b3ca8e206005286a29a))
+
+
+### Features
+
+* **install.sh:** add enhancements for prompts, locale setup, and logging ([45705aa](https://github.com/bartventer/dotfiles/commit/45705aaa4526f7985a0ba6296a419a7c94f78288))
+* **install.sh:** add locale generation support for multiple platforms ([1c2b43f](https://github.com/bartventer/dotfiles/commit/1c2b43fcf4cce5ef6c33d98d3644ea14f672475b))
+* **install.sh:** enhance locale generation for Docker environments ([0779ca4](https://github.com/bartventer/dotfiles/commit/0779ca4bc6a306fe460fb91fd52d3d095bcf82b7))
+* **logging:** Enhance logging with levels and traceability ([4a50c8c](https://github.com/bartventer/dotfiles/commit/4a50c8caec29eb6715455ebb0d790e943e5226c5))
+* **scripts:** add init.sh for common initialization across scripts ([8179c4c](https://github.com/bartventer/dotfiles/commit/8179c4c243c88c8e7798a78c9e39c5f0734bf13a))
+* **update_fonts.sh:** add scripts for retrieving latest fonts ([47ce66d](https://github.com/bartventer/dotfiles/commit/47ce66dd305e8d6794c922a548b07a3eddc757b9))
+
 # [3.2.0](https://github.com/bartventer/dotfiles/compare/v3.1.1...v3.2.0) (2024-03-10)
 
 
