@@ -151,3 +151,5 @@ if [ -f "$POWERLEVEL10K_THEME" ]; then
     source "$POWERLEVEL10K_THEME"
 fi
 export LC_ALL=en_US.UTF-8
+
+export LANG=C.UTF-8

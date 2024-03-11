@@ -1,78 +1,100 @@
 #!/bin/bash
 
-LOG_SCRIPT_FILE="log.sh"
-REPO_DIR="$HOME/dotfiles"
-# If CI environment variable is true, override the REPO_DIR
-if [ "$CI" = "true" ]; then
-    REPO_DIR="$GITHUB_WORKSPACE"
-fi
-export LOG_SCRIPT="$REPO_DIR/$LOG_SCRIPT_FILE"
-
-# Colors
-# shellcheck disable=SC1090
-# shellcheck disable=SC2086
-source $LOG_SCRIPT
+# Initialization
+# shellcheck disable=SC1091
+source "init.sh" 
 
 log_info "Starting dotfiles installation..."
 
-# Default to skipping prompts
-INTERACTIVE=false
+# Default values for the options
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
+OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
+NVIM_LANGUAGE="golang"
+FONT_NAME="MesloLGS NF"
+FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
+
+# Load the fonts dictionary from the fonts.json file
+declare -A fonts
+while IFS=":" read -r key value; do
+    fonts[$key]=$value
+done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' fonts.json)
 
 # Check if the --it or --interactive argument was provided
 if [[ $1 == "--it" || $1 == "--interactive" ]]; then
-    INTERACTIVE=true
-fi
 
-# Default values for the options
-OH_MY_ZSH_THEME_NAME="powerlevel10k"
-OH_MY_ZSH_THEME_REPO="romkatv/powerlevel10k"
-NVIM_LANGUAGE="golang"
-
-# If interactive mode is enabled, ask the user for the options
-if [ "$INTERACTIVE" = true ] ; then
-    log_warn "Please enter the name of the theme you want to use for oh-my-zsh (default: ${OH_MY_ZSH_THEME_NAME}):"
+    # theme repository
+    log_warn "Please enter the repository for the oh-my-zsh theme (default: ${OH_MY_ZSH_CUSTOM_THEME_REPO}):"
     read -r input
-    OH_MY_ZSH_THEME_NAME=${input:-$OH_MY_ZSH_THEME_NAME}
+    OH_MY_ZSH_CUSTOM_THEME_REPO=${input:-$OH_MY_ZSH_CUSTOM_THEME_REPO}
 
-    log_warn "Please enter the repository for the oh-my-zsh theme (default: ${OH_MY_ZSH_THEME_REPO}):"
-    read -r input
-    OH_MY_ZSH_THEME_REPO=${input:-$OH_MY_ZSH_THEME_REPO}
+    # font name
+    font_playground_link=https://www.programmingfonts.org/
+    log_warn "Please enter the number corresponding to the font you want to use (default: ${FONT_NAME}):\n
+    (visit ${font_playground_link} to see the fonts in action)\n
+    "
 
+    # Print the font options
+    font_keys=("${!fonts[@]}")
+    printf '%s\n' "${font_keys[@]}" | awk '{print NR, $0}' | column
+
+    choice=""
+    while [[ ! $choice =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#font_keys[@]})); do
+        read -rp "Your choice: " choice
+        if [[ -z $choice ]]; then
+            log_warn "No selection made. Using default font: ${FONT_NAME}"
+            FONT_URL=${fonts[$FONT_NAME]}
+            break
+        elif ((choice >= 1 && choice <= ${#font_keys[@]})); then
+            FONT_NAME=${font_keys[$((choice-1))]}
+            FONT_URL=${fonts[$FONT_NAME]}
+            log_warn "Selected font: ${FONT_NAME}"
+            break
+        else
+            log_warn "Invalid selection. Please select a number from the list."
+        fi
+    done
+
+    # language
     log_warn "Please enter the language (default: ${NVIM_LANGUAGE}):"
     read -r input
     NVIM_LANGUAGE=${input:-$NVIM_LANGUAGE}
+else
+    # Parse command-line options
+    # -t: oh-my-zsh theme name
+    # -r: oh-my-zsh theme repository
+    # -l: Neovim language
+    # -f: font name
+    while getopts "r:l:f" opt; do
+      case ${opt} in
+        r)
+            OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
+            ;;
+        l)
+            NVIM_LANGUAGE="$OPTARG"
+            ;;
+        f)
+            FONT_NAME="$OPTARG"
+            FONT_URL=${fonts[$FONT_NAME]}
+            ;;
+        \?)
+            log_error "Invalid option: -$OPTARG"
+            exit 1
+            ;;
+      esac
+    done
 fi
-
-# Parse command-line options
-# Use -t to specify a custom theme name for oh-my-zsh
-# Use -r to specify a custom theme repository for oh-my-zsh
-# Use -l to specify a language
-# Example: ./install.sh -t custom-theme -r custom/repo -l rust
-while getopts "t:r:l:" opt; do
-  case ${opt} in
-    t)
-      OH_MY_ZSH_THEME_NAME="$OPTARG"
-      ;;
-    r)
-      OH_MY_ZSH_THEME_REPO="$OPTARG"
-      ;;
-    l)
-      NVIM_LANGUAGE="$OPTARG"
-      ;;
-    \?)
-        log_error "Invalid option: -$OPTARG"
-        exit 1
-      ;;
-  esac
-done
-
-
 
 # Default path to the .zshrc file
 ZSHRC="$HOME/.zshrc"
 
+# Default path to nvim configuration directory
+NVIM_CONFIG_DIR="$REPO_DIR/.config/nvim"
+
 # Default path to the scripts directory in nvim
-NVIM_SCRIPTS_DIR="${REPO_DIR}/.config/nvim/scripts"
+NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
+
+# Path to the nvim options.lua file
+NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
 
 # Path to the clipboard configuration script
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
@@ -206,6 +228,31 @@ install_packages() {
     log_success "Packages installed successfully!"
 }
 
+
+# *****************************
+# ** Add variables to .zshrc **
+# *****************************
+
+append_env_variable_to_zshrc() {
+    # If the variable is already set but commented out, it will be uncommented
+    # If the variable is not set, it will be added to the end of the file
+
+    # Name of the environment variable
+    local var_name="$1"
+    # Value of the environment variable
+    local var_value="$2"
+
+    # If the variable is already set but commented out, uncomment it
+    if grep -q "^#.*export $var_name=$var_value" "$ZSHRC"; then
+        log_info "Uncommenting $var_name environment variable"
+        sed -i "s/^#.*export $var_name=$var_value/export $var_name=$var_value/" "$ZSHRC"
+    # If the variable is not set, add it to the end of the file
+    elif ! grep -q "$var_name=$var_value" "$ZSHRC"; then
+        log_info "Setting $var_name environment variable"
+        echo -e "\nexport $var_name=$var_value" >> "$ZSHRC"
+    fi
+}
+
 # ********************
 # ** Install Neovim **
 # ********************
@@ -329,30 +376,6 @@ install_neovim() {
     source_zshrc
 }
 
-# *****************************
-# ** Add variables to .zshrc **
-# *****************************
-
-append_env_variable_to_zshrc() {
-    # If the variable is already set but commented out, it will be uncommented
-    # If the variable is not set, it will be added to the end of the file
-
-    # Name of the environment variable
-    local var_name="$1"
-    # Value of the environment variable
-    local var_value="$2"
-
-    # If the variable is already set but commented out, uncomment it
-    if grep -q "^#.*export $var_name=$var_value" "$ZSHRC"; then
-        log_info "Uncommenting $var_name environment variable"
-        sed -i "s/^#.*export $var_name=$var_value/export $var_name=$var_value/" "$ZSHRC"
-    # If the variable is not set, add it to the end of the file
-    elif ! grep -q "$var_name=$var_value" "$ZSHRC"; then
-        log_info "Setting $var_name environment variable"
-        echo -e "\nexport $var_name=$var_value" >> "$ZSHRC"
-    fi
-}
-
 # **********************
 # ** Configure Neovim **
 # **********************
@@ -362,14 +385,17 @@ configure_neovim() {
     local package_manager=$1
 
     log_info "Configuring Neovim..."
+
     # tree-sitter
     parsers="markdown_inline"
+
     # mason
     # TODO configure to allow dynamic installation based on the specified language
     lsps="gopls lua-language-server pyright typescript-language-server"
     daps="go-debug-adapter"
     linters="eslint_d"
     formatters="black goimports-reviser golines gomodifytags gotests prettierd stylua"
+    
     # nvim headless commands
     commands=('Lazy sync' "TSInstallSync! $parsers" 'MasonUpdate' "MasonInstall $lsps $daps $linters $formatters")
     for cmd in "${commands[@]}"; do
@@ -383,7 +409,7 @@ configure_neovim() {
     # Call the clipboard configuration script
     # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
     # shellcheck disable=SC1090
-    source "$CLIPBOARD_CONFIG_SCRIPT" "$package_manager"
+    source "$CLIPBOARD_CONFIG_SCRIPT" "$NVIM_OPTIONS_FILE"
 
     # CoPilot message
     log_warn "[Neovim CoPilot] Remember to install CoPilot with :CoPilot setup"
@@ -398,8 +424,13 @@ configure_neovim() {
     if [ -f /.dockerenv ]; then
         log_info "Docker detected. Configuring Neovim for Docker..."
         # Set the language environment variables
-        append_env_variable_to_zshrc "LANG" "en_US.UTF-8"
+        append_env_variable_to_zshrc "LANG" "C.UTF-8"
         append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
+        
+        # Generate locale
+        log_info "Generating locale..."
+        echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
+        sudo locale-gen
     fi
 
     log_success "Neovim configured successfully!"
@@ -415,6 +446,7 @@ configure_neovim() {
 create_symlink() {
     local source=$1
     local target=$2
+    source=$(realpath "$source")
     log_info "Creating symlink from $source to $target"
     mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
     # If the target is a directory, remove it
@@ -441,25 +473,36 @@ clone_git_repo() {
     fi
 }
 
-# *********************************
-# ** Install powerlevel10k fonts **
-# *********************************
+# *******************
+# ** Install fonts **
+# *******************
 
-# See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
-install_powerlevel10k_fonts() {
-
-    log_info "Installing Powerlevel10k fonts..."
-
-    # Font file names
-    font_files=("Regular" "Bold" "Italic" "Bold%20Italic")
+install_fonts() {
+    log_info "Installing ${FONT_NAME} fonts..."
 
     # Create a temporary directory
     tmp_dir=$(mktemp -d)
 
-    # Download the font files
-    for font_file in "${font_files[@]}"; do
-        wget -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${font_file}.ttf"
-    done
+    # Check if the font starts with MesloLG and OH_MY_ZSH_CUSTOM_THEME_REPO equals OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
+    if [[ "$FONT_NAME" = MesloLG* ]] && [[ "$OH_MY_ZSH_CUSTOM_THEME_REPO" = "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" ]]; then
+        # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
+        # Font file names
+        font_files=("Regular" "Bold" "Italic" "Bold%20Italic")
+
+        # Download the font files
+        for font_file in "${font_files[@]}"; do
+            log_info "Downloading MesloLGS NF ${font_file}.ttf..."
+            wget -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${font_file}.ttf"
+        done
+    else
+        # Download the font file from the URL
+        log_info "Downloading ${FONT_NAME} font..."
+        wget -P "$tmp_dir" "$FONT_URL"
+
+        # Unzip the font file
+        unzip "$tmp_dir"/*.zip -d "$tmp_dir"
+        font_files=("$tmp_dir"/*.ttf)
+    fi
 
     # Determine the OS and move the font files to the correct directory
     case "$(uname)" in
@@ -468,7 +511,9 @@ install_powerlevel10k_fonts() {
         mkdir -p ~/.fonts
 
         # Move the font files to the correct directory
-        mv "$tmp_dir"/MesloLGS*.ttf ~/.fonts/
+        for font_file in "${font_files[@]}"; do
+            mv "$font_file" ~/.fonts/
+        done
 
         # Update the font cache
         fc-cache -fv
@@ -478,7 +523,9 @@ install_powerlevel10k_fonts() {
         mkdir -p ~/Library/Fonts
 
         # Move the font files to the correct directory
-        mv "$tmp_dir"/MesloLGS*.ttf ~/Library/Fonts/
+        for font_file in "${font_files[@]}"; do
+            mv "$font_file" ~/Library/Fonts/
+        done
         ;;
     *)
         log_error "Unsupported OS for font installation"
@@ -489,7 +536,7 @@ install_powerlevel10k_fonts() {
     # Remove the temporary directory
     rm -r "$tmp_dir"
 
-    log_success "Powerlevel10k fonts installed successfully!"
+    log_success "${FONT_NAME} fonts installed successfully!"
 }
 
 # ******************
@@ -499,8 +546,9 @@ install_powerlevel10k_fonts() {
 # Check if zsh is installed
 ZSH_INSTALLED=false
 OH_MY_ZSH_INSTALLED=false
+log_info "Checking if zsh is installed..."
 if [ -n "$(command -v zsh)" ]; then
-    log_info "zsh found"
+    log_info "check: zsh is installed"
     ZSH_INSTALLED=true
 
     # Install oh-my-zsh if it's not already installed
@@ -521,12 +569,13 @@ fi
 
 # Create symlinks for all files in the relative_paths array
 for relative_path in "${relative_paths[@]}"; do
-    source="$REPO_DIR/$relative_path"
+    src=$relative_path
     target="$HOME/$relative_path"
-    create_symlink "$source" "$target"
+    create_symlink "$src" "$target"
 done
 
 # Get the current shell
+log_info "Detecting current shell..."
 CURRENT_SHELL=""
 if [ -n "$BASH" ]; then
     CURRENT_SHELL="bash"
@@ -540,13 +589,14 @@ fi
 # Check for package manager and install packages
 PKG_MANAGER=""
 msg_clone_plugins="Cloning oh-my-zsh plugins and theme..."
+log_info "Detecting package manager for $CURRENT_SHELL..."
 case $CURRENT_SHELL in
   zsh)
     # Zsh syntax
     # shellcheck disable=SC2296
     for pm in ${(k)pkg_managers}; do
         if command -v "$pm" >/dev/null 2>&1; then
-            log_info "$pm found"
+            log_info "Detected package manager: $pm"
             PKG_MANAGER=$pm
             install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
@@ -564,7 +614,7 @@ case $CURRENT_SHELL in
     # Bash syntax
     for pm in "${!pkg_managers[@]}"; do
         if command -v "$pm" >/dev/null 2>&1; then
-            log_info "$pm found"
+            log_info "Detected package manager: $pm"
             PKG_MANAGER=$pm
             install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
@@ -591,16 +641,22 @@ fi
 
 # Install oh-my-zsh theme
 OH_MY_ZSH_THEME_INSTALLED=false
+# Extract the theme name from the repository URL to use as custom theme name
+OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
+if [ -z "$OH_MY_ZSH_THEME_NAME" ]; then
+    log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
+    exit 1
+fi
 if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
     log_info "Installing $OH_MY_ZSH_THEME_NAME theme..."
-    git clone --depth=1 https://github.com/"$OH_MY_ZSH_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
+    git clone --depth=1 https://github.com/"$OH_MY_ZSH_CUSTOM_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
     OH_MY_ZSH_THEME_INSTALLED=true
 else
     OH_MY_ZSH_THEME_INSTALLED=true
 fi
 
-# Install powerlevel10k fonts
-install_powerlevel10k_fonts
+# Install fonts
+install_fonts
 
 # Source .zshrc file to apply the changes
 if [ "$OH_MY_ZSH_THEME_INSTALLED" = true ]; then
