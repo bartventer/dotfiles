@@ -40,7 +40,7 @@ jobs:
             - name: Run Install Script
               run: |
                   chmod +x install.sh
-                  zsh ./install.sh
+                  bash ./install.sh
 
     test-macos:
         runs-on: macos-latest
@@ -51,13 +51,12 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  brew unlink go@1.20 || true
-                  brew install gcc git zsh curl jq go node npm python3
+                  brew install gcc git zsh curl jq node npm python3
 
             - name: Run Install Script
               run: |
                   chmod +x install.sh
-                  zsh ./install.sh
+                  bash ./install.sh
 
     semantic-release:
         name: Semantic Release
