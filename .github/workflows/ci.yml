@@ -27,7 +27,7 @@ jobs:
                   case "${{ matrix.image }}" in
                       debian:*|ubuntu:*)
                           apt-get update
-                          apt-get install -y golang-go zsh vim git gdb build-essential jq nodejs npm python3 python3-pip
+                          apt-get install -y golang-go zsh vim git gdb build-essential jq nodejs npm python3 python3-pip locales
                           ;;
                       fedora:*)
                           dnf install -y golang zsh vim git gdb gcc jq nodejs npm python3 python3-pip
@@ -56,7 +56,7 @@ jobs:
             - name: Run Install Script
               run: |
                   chmod +x install.sh
-                  bash ./install.sh
+                  zsh ./install.sh
 
     semantic-release:
         name: Semantic Release
