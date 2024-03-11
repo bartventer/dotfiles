@@ -51,7 +51,7 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  brew unlink go || true
+                  brew unlink go@1.20 || true
                   brew install gcc git zsh curl jq go node npm python3
 
             - name: Run Install Script
