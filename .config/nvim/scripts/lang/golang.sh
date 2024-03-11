@@ -16,7 +16,11 @@ log_info "Installing delve"
 
 case $PACKAGE_MANAGER in
 pacman)
-    sudo pacman -S delve --noconfirm
+    if [ "$CI" = "true" ]; then
+        pacman -S delve --noconfirm
+    else
+        sudo pacman -S delve --noconfirm
+    fi
     ;;
 *)
     go install github.com/go-delve/delve/cmd/dlv@latest
