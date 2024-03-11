@@ -27,13 +27,13 @@ jobs:
                   case "${{ matrix.image }}" in
                       debian:*|ubuntu:*)
                           apt-get update
-                          apt-get install -y build-essential git zsh curl procps
+                          apt-get install -y golang-go zsh vim git gdb build-essential jq nodejs npm python3 python3-pip
                           ;;
                       fedora:*)
-                          dnf install -y gcc git zsh curl procps-ng
+                          dnf install -y golang zsh vim git gdb gcc jq nodejs npm python3 python3-pip
                           ;;
                       archlinux:*)
-                          pacman -Syu --noconfirm base-devel git zsh curl procps-ng
+                          pacman -Syu --noconfirm go zsh vim git gdb gcc nodejs npm jq python python-pip
                           ;;
                   esac
 
@@ -51,7 +51,7 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  brew install gcc git zsh curl
+                  brew install gcc git zsh curl jq go node npm python3
 
             - name: Run Install Script
               run: |
