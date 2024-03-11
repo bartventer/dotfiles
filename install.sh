@@ -60,7 +60,6 @@ if [[ $1 == "--it" || $1 == "--interactive" ]]; then
     NVIM_LANGUAGE=${input:-$NVIM_LANGUAGE}
 else
     # Parse command-line options
-    # -t: oh-my-zsh theme name
     # -r: oh-my-zsh theme repository
     # -l: Neovim language
     # -f: font name
@@ -429,8 +428,8 @@ configure_neovim() {
         
         # Generate locale
         log_info "Generating locale..."
-        echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
-        sudo locale-gen
+        echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
+        run_sudo_cmd "locale-gen"
     fi
 
     log_success "Neovim configured successfully!"
