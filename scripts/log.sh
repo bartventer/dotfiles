@@ -9,6 +9,17 @@ NC='\033[0m' # No Color
 
 LOG_LEVEL=0
 
+# Determine shell and adjust array indices
+if [ -n "$ZSH_VERSION" ]; then
+    FUNCNAME_INDEX=2
+    LINENO_INDEX=1
+    SOURCE_INDEX=2
+else
+    FUNCNAME_INDEX=1
+    LINENO_INDEX=0
+    SOURCE_INDEX=1
+fi
+
 log_message() {
     local level=$1
     local color=$2
@@ -30,21 +41,21 @@ log_message() {
 }
 
 log_success() {
-    log_message 0 "$GREEN" "$1" "${FUNCNAME[1]}" "${BASH_LINENO[0]}" "${BASH_SOURCE[1]}"
+    log_message 0 "$GREEN" "$1" "${FUNCNAME[$FUNCNAME_INDEX]}" "${BASH_LINENO[$LINENO_INDEX]}" "${BASH_SOURCE[$SOURCE_INDEX]}"
 }
 
 log_info() {
-    log_message 1 "$INFO" "$1" "${FUNCNAME[1]}" "${BASH_LINENO[0]}" "${BASH_SOURCE[1]}"
+    log_message 1 "$INFO" "$1" "${FUNCNAME[$FUNCNAME_INDEX]}" "${BASH_LINENO[$LINENO_INDEX]}" "${BASH_SOURCE[$SOURCE_INDEX]}"
 }
 
 log_warn() {
-    log_message 2 "$YELLOW" "$1" "${FUNCNAME[1]}" "${BASH_LINENO[0]}" "${BASH_SOURCE[1]}"
+    log_message 2 "$YELLOW" "$1" "${FUNCNAME[$FUNCNAME_INDEX]}" "${BASH_LINENO[$LINENO_INDEX]}" "${BASH_SOURCE[$SOURCE_INDEX]}"
 }
 
 log_error() {
-    log_message 3 "$RED" "$1" "${FUNCNAME[1]}" "${BASH_LINENO[0]}" "${BASH_SOURCE[1]}"
+    log_message 3 "$RED" "$1" "${FUNCNAME[$FUNCNAME_INDEX]}" "${BASH_LINENO[$LINENO_INDEX]}" "${BASH_SOURCE[$SOURCE_INDEX]}"
 }
 
 log_trace() {
-    log_message 4 "$TRACE" "$1" "${FUNCNAME[1]}" "${BASH_LINENO[0]}" "${BASH_SOURCE[1]}"
+    log_message 4 "$TRACE" "$1" "${FUNCNAME[$FUNCNAME_INDEX]}" "${BASH_LINENO[$LINENO_INDEX]}" "${BASH_SOURCE[$SOURCE_INDEX]}"
 }
