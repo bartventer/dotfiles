@@ -25,7 +25,7 @@
     "distro_packages": {
         "arch": "lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd",
         "debian": "lua5.4 xclip unzip ripgrep fd-find python3-venv curl locales",
-        "fedora": "lua fd-find python3-devel",
+        "fedora": "lua fd-find python3-devel glibc-langpack-en",
         "ubuntu": "lua5.4 fd-find python3-venv locales",
         "macos": "lua fd"
     },

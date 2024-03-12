@@ -751,12 +751,15 @@ if [ -f /.dockerenv ]; then
     # Generate locale
     log_info "Generating locale..."
     if type locale-gen &>/dev/null; then
+        echo "Running locale-gen..."
         echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
         run_sudo_cmd "locale-gen"
     elif type localedef &>/dev/null; then
+        echo "Running localedef..."
         run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
         run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
     elif [ "$(uname)" == "Darwin" ]; then
+        echo "Running defaults write..."
         defaults write -g AppleLocale -string "en_US"
     else
         log_error "No supported method for generating locale found"
