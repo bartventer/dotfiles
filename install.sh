@@ -28,7 +28,13 @@ OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' "$CONFIG_FILE")")
 NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
+
+# Fonts
 FONT_NAME="$(jq -r '.FONT_NAME' "$CONFIG_FILE")"
+FONT_MESLOLGS_NF="MesloLGS NF"
+if [[ -z "$FONT_NAME" || "$FONT_NAME" == "null" ]]; then
+    FONT_NAME="$FONT_MESLOLGS_NF"
+fi
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
 
 # Package managers
@@ -69,9 +75,11 @@ while IFS=$'\n' read -r key; do
 done < <(jq -r 'keys[]' <<< "$distro_packages")
 
 # Load the fonts dictionary from the fonts.json file
-declare -A fonts
+font_names=()
+font_urls=()
 while IFS=":" read -r key value; do
-    fonts[$key]=$value
+    font_names+=("$key")
+    font_urls+=("$value")
 done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$FONT_FILE")
 
 # Check if the --it or --interactive argument was provided
@@ -89,23 +97,22 @@ if [[ $1 == "--it" || $1 == "--interactive" ]]; then
     "
 
     # Print the font options
-    font_keys=("${!fonts[@]}")
-    printf '%s\n' "${font_keys[@]}" | awk '{print NR, $0}' | column
+    printf '%s\n' "${font_names[@]}" | awk '{print NR, $0}' | column
 
     choice=""
-    while [[ ! $choice =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#font_keys[@]})); do
+    while true; do
         read -rp "Your choice: " choice
         if [[ -z $choice ]]; then
             log_warn "No selection made. Using default font: ${FONT_NAME}"
-            FONT_URL=${fonts[$FONT_NAME]}
-            break
-        elif ((choice >= 1 && choice <= ${#font_keys[@]})); then
-            FONT_NAME=${font_keys[$((choice-1))]}
-            FONT_URL=${fonts[$FONT_NAME]}
-            log_warn "Selected font: ${FONT_NAME}"
             break
         else
-            log_warn "Invalid selection. Please select a number from the list."
+            if [[ ! $choice =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#font_names[@]})); then
+                log_warn "Invalid selection: $choice. Please select a number from the list."
+            else
+                FONT_NAME=${font_names[$((choice-1))]}
+                FONT_URL=${font_urls[$((choice-1))]}
+                break
+            fi
         fi
     done
 
@@ -161,7 +168,15 @@ else
             ;;
         f)
             FONT_NAME="$OPTARG"
-            FONT_URL=${fonts[$FONT_NAME]}
+            if [[ "$FONT_NAME" == "${FONT_MESLOLGS_NF}" ]] || printf '%s\n' "${font_names[@]}" | grep -q -F "$FONT_NAME"; then
+                if [[ "$FONT_NAME" != "${FONT_MESLOLGS_NF}" ]]; then
+                    FONT_INDEX=$(printf '%s\n' "${font_names[@]}" | grep -n -F "$FONT_NAME" | cut -d: -f1)
+                    FONT_URL=${font_urls[$((FONT_INDEX-1))]}
+                fi
+            else
+                log_error "Invalid font name: $FONT_NAME. Please provide a valid font name."
+                exit 1
+            fi
             ;;
         \?)
             log_error "Invalid option: -$OPTARG"
@@ -172,7 +187,7 @@ else
 fi
 
 # if debug is true
-if [[ "$DEBUG" == "true" ]]; then
+if [[ "$CI" == "true" ]]; then
     log_info "
     Paths:
     ZSHRC: $ZSHRC
@@ -182,27 +197,27 @@ if [[ "$DEBUG" == "true" ]]; then
     CLIPBOARD_CONFIG_SCRIPT: $CLIPBOARD_CONFIG_SCRIPT
     NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
 
-    Configuration file: $CONFIG_FILE
+    \nConfiguration file: $CONFIG_FILE
     Font file: $FONT_FILE
 
-    Options:
+    \nOptions:
     OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
     OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
     NVIM_LANGUAGES: ${NVIM_LANGUAGES[*]}
     FONT_NAME: $FONT_NAME
     FONT_URL: $FONT_URL
 
-    Package managers:
+    \nPackage managers:
     pkg_managers_keys: ${pkg_managers_keys[*]}
 
-    Relative paths: ${relative_paths[*]}
+    \nRelative paths: ${relative_paths[*]}
 
-    Plugins:
+    \nPlugins:
     plugins_keys: ${plugins_keys[*]}
 
-    Common packages: $common_packages
+    \nCommon packages: $common_packages
 
-    Distro packages:
+    \nDistro packages:
     distro_packages_keys: ${distro_packages_keys[*]}
     "
 fi
