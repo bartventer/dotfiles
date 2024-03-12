@@ -8,6 +8,7 @@ env:
 jobs:
     test-linux:
         runs-on: ubuntu-latest
+        name: Test on Linux
         strategy:
             matrix:
                 image:
@@ -48,30 +49,22 @@ jobs:
 
     test-macos:
         runs-on: macos-latest
-
+        name: Test on macOS
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
             - name: Install Dependencies
               run: |
-                  #   Install Homebrew
-                  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                  #   Add Homebrew to PATH
-                  echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> $HOME/.bashrc
-                  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-                  #   Install Dependencies
-                  brew install gcc git zsh curl jq node npm python3 go
-
+                  brew install gcc git zsh curl jq node npm python3 procps go gdb
             - name: Run Install Script
               shell: bash
               run: |
-                  source $HOME/.bashrc
                   chmod +x install.sh
                   ./install.sh
 
     semantic-release:
-        name: Semantic Release
+        name: Release
         needs: [test-linux, test-macos]
         runs-on: ubuntu-latest
         permissions:
