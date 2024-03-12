@@ -547,7 +547,6 @@ configure_neovim() {
 create_symlink() {
     local src=$1
     local target=$2
-    src=$REPO_DIR/$src
     log_info "Creating symlink from ${src} to ${target}"
     mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
     # If the target is a directory, remove it
