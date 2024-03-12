@@ -28,6 +28,7 @@ You should have the following software installed for the main script:
 | [npm](https://www.npmjs.com/)                         | Node.js package manager.      | `sudo pacman -S npm`              | Neovim plugins  |
 | [jq](https://stedolan.github.io/jq/)                  | Command-line JSON processor.  | `sudo pacman -S jq`               | Scripting       |
 | [ps](https://man7.org/linux/man-pages/man1/ps.1.html) | Process status.               | `sudo pacman -S procps-ng`        | Shell detection |
+| [make](https://www.gnu.org/software/make/)            | Build automation tool.        | `sudo pacman -S make`             | Optional        |
 
 ### Font Scraping Script (Optional)
 
@@ -76,6 +77,12 @@ cd dotfiles
 ./install.sh
 ```
 
+Or with `make`:
+
+```bash
+make install
+```
+
 The script performs the following steps:
 
 1. Check and install `zsh` and `oh-my-zsh`.
@@ -108,12 +115,24 @@ Example:
 -f "Source Code Pro"
 ```
 
+Or with `make`:
+
+```bash
+make install r="agnoster/agnoster" l="golang,rust" f="Source Code Pro"
+```
+
 ## Font Update
 
 To update the fonts, run the `update_fonts.sh` script from the root of the repository. This script scrapes the latest fonts from the [Nerd Fonts](https://www.nerdfonts.com/) website and updates the `fonts.json` file.
 
 ```bash
 ./update_fonts.sh
+```
+
+Or with `make`:
+
+```bash
+make update_fonts
 ```
 
 ## Visual Studio Code Settings
