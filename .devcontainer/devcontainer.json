@@ -1,0 +1,34 @@
+{
+    "name": "Go Cloud Development Container",
+    "dockerComposeFile": [
+        "docker-compose.yml"
+    ],
+    "service": "app",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "http.proxySupport": "off"
+            },
+            "extensions": [
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "golang.go",
+                "github.vscode-github-actions",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "installOhMyZsh": true,
+            "installOhMyZshConfig": false,
+            "upgradePackages": true
+        }
+    },
+    "remoteEnv": {
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    }
+}
