@@ -427,6 +427,13 @@ install_neovim() {
 # ** Configure Neovim **
 # **********************
 
+parse_neovim_config() {
+    local key=$1
+    local values
+    values=("$(jq -r ".neovim.${key}[]" config.json)")
+    echo "${values[*]}"
+}
+
 configure_neovim() {
     # Define local variables
     local package_manager=$1
@@ -439,15 +446,13 @@ configure_neovim() {
         exit 1
     fi
 
-    # tree-sitter
-    parsers="markdown_inline"
-    # mason
-    # TODO configure to allow dynamic installation based on the specified language
-    lsps="gopls lua-language-server pyright typescript-language-server"
-    daps="go-debug-adapter"
-    linters="eslint_d"
-    formatters="black goimports-reviser golines gomodifytags gotests prettierd stylua"
-    
+    # Parse variables from config.json
+    parsers=$(parse_neovim_config "parsers")
+    lsps=$(parse_neovim_config "lsps")
+    daps=$(parse_neovim_config "daps")
+    linters=$(parse_neovim_config "linters")
+    formatters=$(parse_neovim_config "formatters")
+
     # nvim headless commands
     commands=('Lazy sync' "TSInstallSync! $parsers" 'MasonUpdate' "MasonInstall $lsps $daps $linters $formatters")
     if [ "$CI" = "true" ]; then
