@@ -42,7 +42,10 @@ while IFS=$'\n' read -r key; do
 done < <(jq -r 'keys[]' <<< "$pkg_managers")
 
 # Relative paths
-relative_paths=("$(jq -r '.relative_paths[]' "$CONFIG_FILE")")
+relative_paths=()
+while IFS= read -r line; do
+    relative_paths+=("$line")
+done < <(jq -r '.relative_paths[]' "$CONFIG_FILE")
 
 # Plugins, common packages, distro-specific packages
 plugins=$(jq -r '.plugins' "$CONFIG_FILE")
