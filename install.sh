@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Initialization
 # shellcheck disable=SC1091
@@ -6,12 +7,21 @@ source "init.sh"
 
 log_info "Starting dotfiles installation..."
 
+# Paths
+ZSHRC="$HOME/.zshrc"
+NVIM_CONFIG_DIR="$REPO_DIR/.config/nvim"
+NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
+NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
+CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
+NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
+
 # Default values for the options
 OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 NVIM_LANGUAGE="golang"
 FONT_NAME="MesloLGS NF"
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
+
 
 # Load the fonts dictionary from the fonts.json file
 declare -A fonts
@@ -55,21 +65,55 @@ if [[ $1 == "--it" || $1 == "--interactive" ]]; then
     done
 
     # language
-    log_warn "Please enter the language (default: ${NVIM_LANGUAGE}):"
-    read -r input
-    NVIM_LANGUAGE=${input:-$NVIM_LANGUAGE}
+    log_warn "Please select the language scripts to install (separate multiple choices with spaces):"
+
+    # Get the list of available language scripts
+    language_scripts=("$(ls "${NVIM_LANGUAGE_SCRIPT_DIR}")")
+
+    # Print the language script options
+    printf '%s\n' "${language_scripts[@]}" | awk '{print NR, $0}' | column
+
+    choice=""
+    while true; do
+        read -rp "Your choices: " choice
+        if [[ -z $choice ]]; then
+            log_warn "No selection made. Using default language: ${NVIM_LANGUAGE}"
+            NVIM_LANGUAGES=("$NVIM_LANGUAGE")
+            break
+        else
+            # Split the choice into an array of selected indices
+            IFS=' ' read -ra selected_indices <<< "$choice"
+            # Validate each selected index
+            for index in "${selected_indices[@]}"; do
+                if [[ ! $index =~ ^[0-9]+$ ]] || ((index < 1 || index > ${#language_scripts[@]})); then
+                    log_warn "Invalid selection: $index. Please select numbers from the list."
+                    continue 2
+                fi
+            done
+            # If all selected indices are valid, break the loop
+            break
+        fi
+    done
+
+    # Get the selected language scripts
+    NVIM_LANGUAGES=()
+    for index in "${selected_indices[@]}"; do
+        NVIM_LANGUAGES+=("${language_scripts[$((index-1))]}")
+    done
+
+    log_warn "Selected languages: ${NVIM_LANGUAGES[*]}"
 else
     # Parse command-line options
     # -r: oh-my-zsh theme repository
-    # -l: Neovim language
+    # -l: Neovim languages (comma-separated)
     # -f: font name
-    while getopts "r:l:f" opt; do
+    while getopts "r:l:f:" opt; do
       case ${opt} in
         r)
             OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
             ;;
         l)
-            NVIM_LANGUAGE="$OPTARG"
+            IFS=',' read -ra NVIM_LANGUAGES <<< "$OPTARG"
             ;;
         f)
             FONT_NAME="$OPTARG"
@@ -83,23 +127,6 @@ else
     done
 fi
 
-# Default path to the .zshrc file
-ZSHRC="$HOME/.zshrc"
-
-# Default path to nvim configuration directory
-NVIM_CONFIG_DIR="$REPO_DIR/.config/nvim"
-
-# Default path to the scripts directory in nvim
-NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
-
-# Path to the nvim options.lua file
-NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
-
-# Path to the clipboard configuration script
-CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
-
-# Path to the language-specific Neovim configure scripts directory
-NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Declare an associative array for package managers and their update commands
 # The key is the package manager name and the value is the update command
@@ -136,9 +163,9 @@ common_packages=("git" "tmux" "wget" "fontconfig")
 declare -A distro_packages
 distro_packages=(
     ["arch"]="lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd"
-    ["debian"]="lua5.4 xclip unzip ripgrep fd-find python3-venv"
-    ["fedora"]="lua fd-find"
-    ["ubuntu"]="lua5.4 fd-find python3-venv"
+    ["debian"]="lua5.4 xclip unzip ripgrep fd-find python3-venv curl locales"
+    ["fedora"]="lua fd-find python3-venv"
+    ["ubuntu"]="lua5.4 fd-find python3-venv locales"
     ["macos"]="lua fd"
 )
 
@@ -147,7 +174,6 @@ distro_packages=(
 # ******************
 
 source_zshrc() {
-    # Source .zshrc file to apply the changes
     log_info "Sourcing .zshrc file"
     zsh -c "source $ZSHRC"
 }
@@ -165,15 +191,11 @@ run_sudo_cmd() {
     fi
 }
 
-# **********************
-# ** Install Packages **
-# **********************
+# *******************
+# ** Detect distro **
+# *******************
 
-install_packages() {
-    # Store the package manager passed as an argument
-    local package_manager=$1
-    local shell=$2
-
+detect_distro() {
     # Get the name of the current distribution
     local distro
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -181,16 +203,32 @@ install_packages() {
     else
         distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
     fi
+    echo "$distro"
+}
+
+# **********************
+# ** Install Packages **
+# **********************
+
+install_packages() {
+    
+    # Store the package manager passed as an argument
+    local package_manager=$1
+
+    log_info "Installing packages..."
+
+    # Get the name of the current distribution
+    echo "Detecting distribution..."
+    local distro=""
+    distro=$(detect_distro)
+    echo "Detected distribution: $distro"
 
     # Start with the common packages
     local packages=("${common_packages[@]}")
 
     # Add the distro-specific packages to the list
-    if [[ "$shell" == *"zsh"* ]]; then
-        IFS=' ' read -r -A distro_specific_packages <<< "${distro_packages[$distro]}"
-    else
-        IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
-    fi
+    # Add the distro-specific packages to the list
+    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
     packages=("${packages[@]}" "${distro_specific_packages[@]}")
 
     # Get the update command for the package manager
@@ -259,13 +297,13 @@ append_env_variable_to_zshrc() {
 install_neovim() {
     # Define local variables
     local package_manager=$1
+    log_info "Installing Neovim..."
 
     # Determine package manager and corresponding commands
     case "$package_manager" in
     "pacman")
         # Check if Neovim is already installed
         if ! pacman -Q neovim &>/dev/null; then
-            log_info "Installing Neovim..."
             # Install Neovim via package manager
             run_sudo_cmd "pacman -S --noconfirm neovim"
         else
@@ -275,7 +313,6 @@ install_neovim() {
     "apt-get")
         # Check if Neovim is already installed
         if ! dpkg -s neovim &>/dev/null; then
-            log_info "Installing Neovim..."
 
             # Neovim variables
             nvim_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
@@ -289,6 +326,10 @@ install_neovim() {
             curl -L $nvim_url -o "$nvim_tmpdir/$nvim_tarball_name"
             # Extract the downloaded archive in the temporary directory
             tar -C "$nvim_tmpdir" -xzf "$nvim_tmpdir/$nvim_tarball_name"
+            # Remove the existing directory if it exists
+            if [ -d "$nvim_install_dir" ]; then
+                run_sudo_cmd "rm -r $nvim_install_dir"
+            fi
             # Move the extracted directory to /opt
             run_sudo_cmd "mv $nvim_tmpdir/nvim-linux64 $nvim_install_dir"
             # Remove the temporary directory
@@ -301,7 +342,7 @@ install_neovim() {
             export PATH="$PATH:$nvim_bin_dir"
 
             # Install tree-sitter
-            log_info "Installing tree-sitter..."
+            echo "Installing tree-sitter..."
 
             # Create a temporary directory
             ts_tmpdir=$(mktemp -d)
@@ -330,7 +371,6 @@ install_neovim() {
     "yum")
         # Check if Neovim is already installed
         if ! yum list installed neovim &>/dev/null; then
-            log_info "Installing Neovim..."
             # Install Neovim via package manager
             run_sudo_cmd "yum install -y neovim"
         else
@@ -340,7 +380,6 @@ install_neovim() {
     "dnf")
         # Check if Neovim is already installed
         if ! dnf list installed neovim &>/dev/null; then
-            log_info "Installing Neovim..."
             # Install Neovim via package manager
             run_sudo_cmd "dnf install -y neovim"
         else
@@ -351,7 +390,6 @@ install_neovim() {
     "brew")
         # Check if Neovim is already installed
         if ! brew list --versions neovim &>/dev/null; then
-            log_info "Installing Neovim..."
             # Install Neovim via package manager
             brew install neovim
         else
@@ -385,9 +423,14 @@ configure_neovim() {
 
     log_info "Configuring Neovim..."
 
+    # Ensure node and npm are installed, otherwise exit
+    if ! command -v node &>/dev/null || ! command -v npm &>/dev/null; then
+        log_error "Node.js and npm are required for Neovim configuration. Please install them and run this script again."
+        exit 1
+    fi
+
     # tree-sitter
     parsers="markdown_inline"
-
     # mason
     # TODO configure to allow dynamic installation based on the specified language
     lsps="gopls lua-language-server pyright typescript-language-server"
@@ -397,50 +440,40 @@ configure_neovim() {
     
     # nvim headless commands
     commands=('Lazy sync' "TSInstallSync! $parsers" 'MasonUpdate' "MasonInstall $lsps $daps $linters $formatters")
-    for cmd in "${commands[@]}"; do
-        log_info "Running command: $cmd..."
-        # Skip if CI environment variable is true
-        if [ "$CI" != "true" ]; then
-            zsh -c "nvim --headless -c \"$cmd\" -c \"quitall\""
-        fi
-    done
+    if [ "$CI" = "true" ]; then
+        # do nothing
+        log_info "CI environment detected. Skipping headless commands."
+    else
+        # Run commands
+        for cmd in "${commands[@]}"; do
+            log_info "Running command: $cmd..."
+            nvim --headless -c "$cmd" -c "quitall"
+        done
+    fi
 
     # Call the clipboard configuration script
-    # If no -c flag is provided, the script will use the default path "./configure_nvim_clipboard.sh"
     # shellcheck disable=SC1090
     source "$CLIPBOARD_CONFIG_SCRIPT" "$NVIM_OPTIONS_FILE"
 
     # CoPilot message
     log_warn "[Neovim CoPilot] Remember to install CoPilot with :CoPilot setup"
 
-    # Call the relevant language-specific Neovim configure script based on the flag that was passed
-    if [ -n "$NVIM_LANGUAGE" ]; then
-        # shellcheck disable=SC1090
-        source "$NVIM_LANGUAGE_SCRIPT_DIR/${NVIM_LANGUAGE}.sh" "$package_manager"
-    fi
-
-    # Docker specific configuration
-    if [ -f /.dockerenv ]; then
-        log_info "Docker detected. Configuring Neovim for Docker..."
-        # Set the language environment variables
-        append_env_variable_to_zshrc "LANG" "C.UTF-8"
-        append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
-        
-        # Generate locale
-        log_info "Generating locale..."
-        if type locale-gen &>/dev/null; then
-            echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
-            run_sudo_cmd "locale-gen"
-        elif [ "$(uname)" == "Linux" ]; then
-            run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
-            run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
-        elif [ "$(uname)" == "Darwin" ]; then
-            defaults write -g AppleLocale -string "en_US"
-        else
-            log_error "No supported method for generating locale found"
-            exit 1
+    # Call the relevant language-specific Neovim configure script for each selected language
+    for language in "${NVIM_LANGUAGES[@]}"; do
+        if [ -n "$language" ]; then
+            language=${language%.sh} # Remove the .sh extension if it's present
+            script="$NVIM_LANGUAGE_SCRIPT_DIR/${language}.sh"
+            log_info "Checking for configuration script: $script"
+            if [ -f "$script" ]; then
+                echo "Configuring Neovim for $language..."
+                # shellcheck disable=SC1090
+                source "$script" "$package_manager"
+            else
+                log_error "No configuration script found for $language"
+                exit 1
+            fi
         fi
-    fi
+    done
 
     log_success "Neovim configured successfully!"
     
@@ -465,23 +498,6 @@ create_symlink() {
     ln -sf "$source" "$target"
 }
 
-# *********************
-# ** Clone git repos **
-# *********************
-
-clone_git_repo() {
-    local dir=$1
-    local repo=$2
-    log_info "Cloning $repo into $dir"
-    mkdir -p "$dir" # Ensure the directory exists
-    if [ -d "$dir/.git" ]; then
-        log_info "Directory $dir already exists. Pulling latest changes..."
-        git -C "$dir" pull
-    else
-        git clone --depth=1 "$repo" "$dir" # Clone the repository
-    fi
-}
-
 # *******************
 # ** Install fonts **
 # *******************
@@ -495,18 +511,20 @@ install_fonts() {
     # Check if the font starts with MesloLG and OH_MY_ZSH_CUSTOM_THEME_REPO equals OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
     if [[ "$FONT_NAME" = MesloLG* ]] && [[ "$OH_MY_ZSH_CUSTOM_THEME_REPO" = "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" ]]; then
         # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
-        # Font file names
-        font_files=("Regular" "Bold" "Italic" "Bold%20Italic")
-
         # Download the font files
-        for font_file in "${font_files[@]}"; do
+        font_files=()  # Clear the array
+        for font_file in "Regular" "Bold" "Italic" "Bold Italic"; do
+            # Replace spaces in font_file with %20 for the URL
+            url_font_file=${font_file// /%20}
             log_info "Downloading MesloLGS NF ${font_file}.ttf..."
-            wget -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${font_file}.ttf"
+            wget -nv -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${url_font_file}.ttf"
+            # Add the full path to the downloaded file to the array
+            font_files+=("$tmp_dir/MesloLGS NF $font_file.ttf")
         done
     else
         # Download the font file from the URL
         log_info "Downloading ${FONT_NAME} font..."
-        wget -P "$tmp_dir" "$FONT_URL"
+        wget -nv -P "$tmp_dir" "$FONT_URL"
 
         # Unzip the font file
         unzip "$tmp_dir"/*.zip -d "$tmp_dir"
@@ -555,17 +573,26 @@ install_fonts() {
 # Check if zsh is installed
 ZSH_INSTALLED=false
 OH_MY_ZSH_INSTALLED=false
+OH_MY_ZSH_DIR="$HOME"/.oh-my-zsh
 log_info "Checking if zsh is installed..."
 if [ -n "$(command -v zsh)" ]; then
-    log_info "check: zsh is installed"
+    echo "zsh is installed"
     ZSH_INSTALLED=true
 
-    # Install oh-my-zsh if it's not already installed
-    if [ ! -d "$HOME"/.oh-my-zsh ]; then
-        log_info "Installing oh-my-zsh..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    # Check if oh-my-zsh.sh is present
+    if [ ! -f "$OH_MY_ZSH_DIR"/oh-my-zsh.sh ]; then
+        # Backup existing oh-my-zsh installation if it exists
+        if [ -d "$OH_MY_ZSH_DIR" ]; then
+            echo "Backing up existing oh-my-zsh installation..."
+            mv "$OH_MY_ZSH_DIR" "$OH_MY_ZSH_DIR".bak
+        fi
+
+        # Install oh-my-zsh
+        echo "Installing oh-my-zsh..."
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         OH_MY_ZSH_INSTALLED=true
     else
+        echo "oh-my-zsh is already installed"
         OH_MY_ZSH_INSTALLED=true
     fi
 fi
@@ -585,55 +612,47 @@ done
 
 # Get the current shell
 log_info "Detecting current shell..."
-CURRENT_SHELL=""
-if [ -n "$BASH" ]; then
-    CURRENT_SHELL="bash"
-elif [ -n "$ZSH_NAME" ]; then
-    CURRENT_SHELL="zsh"
+if command -v ps >/dev/null 2>&1; then
+    CURRENT_SHELL=$(basename "$(ps -p $PPID -ocomm=)") # Get the parent process name
 else
-    log_error "Unsupported shell for dotfiles installation ($CURRENT_SHELL)"
-    exit 1
+    CURRENT_SHELL=$(basename "$0")
 fi
+echo "Detected shell: $CURRENT_SHELL"
 
 # Check for package manager and install packages
 PKG_MANAGER=""
-msg_clone_plugins="Cloning oh-my-zsh plugins and theme..."
-log_info "Detecting package manager for $CURRENT_SHELL..."
+log_info "Detecting package manager..."
 case $CURRENT_SHELL in
-  zsh)
-    # Zsh syntax
-    # shellcheck disable=SC2296
-    for pm in ${(k)pkg_managers}; do
-        if command -v "$pm" >/dev/null 2>&1; then
-            log_info "Detected package manager: $pm"
-            PKG_MANAGER=$pm
-            install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
-            break
-        fi
-    done
-
-    # Clone plugins and theme
-    log_info "$msg_clone_plugins"
-    # shellcheck disable=SC2296
-    for plugin in ${(k)plugins}; do
-        clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
-    done
-    ;;
-  bash)
-    # Bash syntax
+  zsh|bash)
     for pm in "${!pkg_managers[@]}"; do
         if command -v "$pm" >/dev/null 2>&1; then
-            log_info "Detected package manager: $pm"
+            echo "Detected package manager: $pm"
             PKG_MANAGER=$pm
             install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
             break
         fi
     done
 
+    # Check if a package manager was found
+    if [ -z "$PKG_MANAGER" ]; then
+        log_error "No package manager found"
+        exit 1
+    fi
+
     # Clone plugins and theme
-    log_info "$msg_clone_plugins"
+    log_info "Cloning oh-my-zsh plugins and theme..."
     for plugin in "${!plugins[@]}"; do
-        clone_git_repo "$HOME/.oh-my-zsh/custom/plugins/$plugin" "${plugins[$plugin]}"
+        dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
+        url="${plugins[$plugin]}"
+        log_info "Checking $dir..."
+        mkdir -p "$dir" # Ensure the directory exists
+        if [ -d "$dir/.git" ]; then
+            echo "Directory $dir already exists. Pulling latest changes..."
+            git -C "$dir" pull
+        else
+            echo "Cloning $url into $dir"
+            git clone --depth=1 "$url" "$dir" # Clone the repository
+        fi
     done
     ;;
     *)
@@ -642,38 +661,46 @@ case $CURRENT_SHELL in
     ;;
 esac
 
-# Check if a package manager was found
-if [ -z "$PKG_MANAGER" ]; then
-    log_error "No package manager found, skipping package installation"
-    exit 1
+# Docker specific configuration
+if [ -f /.dockerenv ]; then
+    log_info "Docker detected. Configuring environment for Docker..."
+    # Set the language environment variables
+    append_env_variable_to_zshrc "LANG" "C.UTF-8"
+    append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
+    
+    # Generate locale
+    log_info "Generating locale..."
+    if type locale-gen &>/dev/null; then
+        echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
+        run_sudo_cmd "locale-gen"
+    elif type localedef &>/dev/null; then
+        run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
+        run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
+    elif [ "$(uname)" == "Darwin" ]; then
+        defaults write -g AppleLocale -string "en_US"
+    else
+        log_error "No supported method for generating locale found"
+        exit 1
+    fi
 fi
 
 # Install oh-my-zsh theme
-OH_MY_ZSH_THEME_INSTALLED=false
-# Extract the theme name from the repository URL to use as custom theme name
-OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
+OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO") # Extract the theme name from the repository URL
 if [ -z "$OH_MY_ZSH_THEME_NAME" ]; then
     log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
     exit 1
-fi
-if [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
+elif [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
     log_info "Installing $OH_MY_ZSH_THEME_NAME theme..."
     git clone --depth=1 https://github.com/"$OH_MY_ZSH_CUSTOM_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
-    OH_MY_ZSH_THEME_INSTALLED=true
 else
-    OH_MY_ZSH_THEME_INSTALLED=true
+    log_info "$OH_MY_ZSH_THEME_NAME theme is already installed"
 fi
 
 # Install fonts
 install_fonts
 
 # Source .zshrc file to apply the changes
-if [ "$OH_MY_ZSH_THEME_INSTALLED" = true ]; then
-    source_zshrc
-else
-    log_error "Cannot source .zshrc file because $OH_MY_ZSH_THEME_NAME theme was not found"
-    exit 1
-fi
+source_zshrc
 
 # Install Neovim
 install_neovim "$PKG_MANAGER"
