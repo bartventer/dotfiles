@@ -4,9 +4,9 @@
 ACT_FLAGS=-P macos-latest=sickcodes/docker-osx:latest
 
 # Install script variables
-REPO ?= "default_repo"
-LANGUAGES ?= "default_languages"
-FONT ?= "default_font"
+REPO ?= "romkatv/powerlevel10k"
+LANGUAGES ?= "golang"
+FONT ?= "MesloLGS NF"
 
 test-linux:
 	act -j test-linux
