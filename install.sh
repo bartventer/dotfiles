@@ -16,10 +16,10 @@ CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Configuration file
-CONFIG_FILE="config.json"
+CONFIG_FILE="$REPO_DIR/config.json"
 
 # Options
-OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT=$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT' $CONFIG_FILE)
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT=$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO' $CONFIG_FILE)
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' $CONFIG_FILE)")
 NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
@@ -430,7 +430,7 @@ install_neovim() {
 parse_neovim_config() {
     local key=$1
     local values
-    values=("$(jq -r ".neovim.${key}[]" $CONFIG_FILE)")
+    values=("$(jq -r ".neovim.${key}[]" "$CONFIG_FILE")")
     echo "${values[*]}"
 }
 
