@@ -430,7 +430,10 @@ install_neovim() {
 parse_neovim_config() {
     local key=$1
     local values
-    values=("$(jq -r ".neovim.${key}[]" "$CONFIG_FILE")")
+    # shellcheck disable=SC2207
+    # shellcheck disable=SC2086
+    # shellcheck disable=SC1087
+    values=($(jq -r ".neovim.$key[]" $CONFIG_FILE))
     echo "${values[*]}"
 }
 
