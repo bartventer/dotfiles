@@ -15,13 +15,32 @@ NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
-# Default values for the options
-OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
+# Configuration file
+CONFIG_FILE="config.json"
+
+# Options
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT=$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT' $CONFIG_FILE)
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-NVIM_LANGUAGE="golang"
-FONT_NAME="MesloLGS NF"
+NVIM_LANGUAGES_DEFAULT=$(jq -r '.NVIM_LANGUAGES[]' $CONFIG_FILE)
+NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
+FONT_NAME=$(jq -r '.FONT_NAME' $CONFIG_FILE)
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
 
+# Package managers
+pkg_managers_keys=("$(jq -r '.pkg_managers | keys[]' $CONFIG_FILE)")
+pkg_managers_values=("$(jq -r '.pkg_managers | .[]' $CONFIG_FILE)")
+
+# Relative paths
+relative_paths=("$(jq -r '.relative_paths[]' $CONFIG_FILE)")
+
+# Plugins, common packages, distro-specific packages
+plugins_keys=("$(jq -r '.plugins | keys[]' $CONFIG_FILE)")
+plugins_values=("$(jq -r '.plugins | .[]' $CONFIG_FILE)")
+
+common_packages=("$(jq -r '.common_packages[]' $CONFIG_FILE)")
+
+distro_packages_keys=("$(jq -r '.distro_packages | keys[]' $CONFIG_FILE)")
+distro_packages_values=("$(jq -r '.distro_packages | .[]' $CONFIG_FILE)")
 
 # Load the fonts dictionary from the fonts.json file
 declare -A fonts
@@ -77,8 +96,7 @@ if [[ $1 == "--it" || $1 == "--interactive" ]]; then
     while true; do
         read -rp "Your choices: " choice
         if [[ -z $choice ]]; then
-            log_warn "No selection made. Using default language: ${NVIM_LANGUAGE}"
-            NVIM_LANGUAGES=("$NVIM_LANGUAGE")
+            log_warn "No selection made. Using default languages: ${NVIM_LANGUAGES[*]}"
             break
         else
             # Split the choice into an array of selected indices
@@ -96,7 +114,6 @@ if [[ $1 == "--it" || $1 == "--interactive" ]]; then
     done
 
     # Get the selected language scripts
-    NVIM_LANGUAGES=()
     for index in "${selected_indices[@]}"; do
         NVIM_LANGUAGES+=("${language_scripts[$((index-1))]}")
     done
@@ -113,7 +130,8 @@ else
             OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
             ;;
         l)
-            IFS=',' read -ra NVIM_LANGUAGES <<< "$OPTARG"
+            IFS=',' read -ra NVIM_LANGUAGES_USER <<< "$OPTARG"
+            NVIM_LANGUAGES+=("${NVIM_LANGUAGES_USER[@]}")
             ;;
         f)
             FONT_NAME="$OPTARG"
@@ -126,48 +144,6 @@ else
       esac
     done
 fi
-
-
-# Declare an associative array for package managers and their update commands
-# The key is the package manager name and the value is the update command
-declare -A pkg_managers=(
-    ["apt-get"]="apt-get update"
-    ["dnf"]="dnf check-update"
-    ["yum"]="yum check-update"
-    ["pacman"]="pacman -Syu --noconfirm"
-    ["brew"]="brew update"
-)
-
-# Array of file paths relative to the repository directory
-# These are the files that will be symlinked to the home directory
-declare -a relative_paths=(
-    ".zshrc"
-    ".config/nvim"
-    ".tmux.conf"
-)
-
-# Associative array mapping the plugin names to their git repository URLs
-# These plugins will be cloned into the oh-my-zsh custom plugins directory
-declare -A plugins=(
-    ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-    ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
-    ["zsh-history-substring-search"]="https://github.com/zsh-users/zsh-history-substring-search.git"
-)
-
-# List of common packages to install across all distros
-common_packages=("git" "tmux" "wget" "fontconfig")
-
-# Distro specific packages
-# An associative array where the key is the distro name and the value is a string of packages for that distro
-# Modfiy this array to add or remove packages for a specific distro as needed
-declare -A distro_packages
-distro_packages=(
-    ["arch"]="lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd"
-    ["debian"]="lua5.4 xclip unzip ripgrep fd-find python3-venv curl locales"
-    ["fedora"]="lua fd-find python3-venv"
-    ["ubuntu"]="lua5.4 fd-find python3-venv locales"
-    ["macos"]="lua fd"
-)
 
 # ******************
 # ** Source Zshrc **
@@ -211,7 +187,6 @@ detect_distro() {
 # **********************
 
 install_packages() {
-    
     # Store the package manager passed as an argument
     local package_manager=$1
 
@@ -227,12 +202,15 @@ install_packages() {
     local packages=("${common_packages[@]}")
 
     # Add the distro-specific packages to the list
-    # Add the distro-specific packages to the list
-    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages[$distro]}"
+    local distro_index
+    distro_index=$(printf "%s\n" "${distro_packages_keys[@]}" | grep -n -x "$distro" | cut -d: -f1)
+    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages_values[$((distro_index-1))]}"
     packages=("${packages[@]}" "${distro_specific_packages[@]}")
 
     # Get the update command for the package manager
-    update_cmd="${pkg_managers[$package_manager]}"
+    local pkg_manager_index
+    pkg_manager_index=$(printf "%s\n" "${pkg_managers_keys[@]}" | grep -n -x "$package_manager" | cut -d: -f1)
+    update_cmd="${pkg_managers_values[$((pkg_manager_index-1))]}"
 
     # Update the package lists
     log_info "Updating package lists for $package_manager"
@@ -624,7 +602,8 @@ PKG_MANAGER=""
 log_info "Detecting package manager..."
 case $CURRENT_SHELL in
   zsh|bash)
-    for pm in "${!pkg_managers[@]}"; do
+    for index in "${!pkg_managers_keys[@]}"; do
+        pm="${pkg_managers_keys[$index]}"
         if command -v "$pm" >/dev/null 2>&1; then
             echo "Detected package manager: $pm"
             PKG_MANAGER=$pm
@@ -640,10 +619,12 @@ case $CURRENT_SHELL in
     fi
 
     # Clone plugins and theme
+    # Clone plugins and theme
     log_info "Cloning oh-my-zsh plugins and theme..."
-    for plugin in "${!plugins[@]}"; do
+    for index in "${!plugins_keys[@]}"; do
+        plugin="${plugins_keys[$index]}"
+        url="${plugins_values[$index]}"
         dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
-        url="${plugins[$plugin]}"
         log_info "Checking $dir..."
         mkdir -p "$dir" # Ensure the directory exists
         if [ -d "$dir/.git" ]; then
