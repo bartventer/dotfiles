@@ -57,7 +57,7 @@ jobs:
             - name: Install Dependencies
               run: |
                   brew unlink go@1.20 || true # Unlink existing Go installation, if any
-                  brew unlink go || true # Unlink existing Go installation, if any
+                  brew link --overwrite go || true
                   brew install gcc git zsh curl jq node npm python3 go
             - name: Run Install Script
               shell: bash
