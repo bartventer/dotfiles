@@ -1,3 +1,36 @@
+# [3.5.0](https://github.com/bartventer/dotfiles/compare/v3.4.0...v3.5.0) (2024-03-12)
+
+
+### Bug Fixes
+
+* **ci:** resolve Go installation symlink issue in GitHub Actions workflow ([20b4724](https://github.com/bartventer/dotfiles/commit/20b47249787ada37d729794cbb81f7319e007c70))
+* **config.json:** add `glibc-langpack-en` to fedora dependencies ([ce2fc3a](https://github.com/bartventer/dotfiles/commit/ce2fc3ac4ca0e450b0acde32c79bea908992f200))
+* **config.json:** add `glibc-locale-source` to fedora dependencies ([67e75a0](https://github.com/bartventer/dotfiles/commit/67e75a011f3b636e36a2f3969324d1206f570ef6))
+* **config.json:** update fedora dependencies ([915632d](https://github.com/bartventer/dotfiles/commit/915632da30bb6b7dcbb9e50842cd755324086f9a))
+* **install.sh:** add debug logging ([c8e5805](https://github.com/bartventer/dotfiles/commit/c8e5805a2b65aead0010fcb8742729d680e5c7ee))
+* **install.sh:** add default value handling for OH_MY_ZSH_CUSTOM_THEME_REPO ([3dcd46f](https://github.com/bartventer/dotfiles/commit/3dcd46fdffb147f2d3f45fa58086978109de6829))
+* **install.sh:** change font data structure from associative array to two indexed arrays ([9f29ca0](https://github.com/bartventer/dotfiles/commit/9f29ca04dbc5de63678136a7435f69f258cd8b65))
+* **install.sh:** correct Homebrew package installation ([561e2f5](https://github.com/bartventer/dotfiles/commit/561e2f5a29ec4eac468f4c7fe7da30d6e0a8fbae))
+* **install.sh:** correct parsing of dictionaries from config.json in install.sh ([0523659](https://github.com/bartventer/dotfiles/commit/052365917198f303919c2a619bb0e80f5f107e58))
+* **install.sh:** correct path for CONFIG_FILE ([8c57025](https://github.com/bartventer/dotfiles/commit/8c570252ee009271a9a8257b6e780db54c40b2c3))
+* **install.sh:** correct shellcheck formatting ([cf0c303](https://github.com/bartventer/dotfiles/commit/cf0c3033a1bffe3d68c8668b61310579f4cc322a))
+* **install.sh:** correct source path in `create_symlink` function ([e8f675b](https://github.com/bartventer/dotfiles/commit/e8f675b4f27de8e18969353a7b2fe2574245aee7))
+* **install.sh:** correct the Homebrew package installation ([144fa31](https://github.com/bartventer/dotfiles/commit/144fa316ef7e493810c425ca846458f6e290a37d))
+* **install.sh:** handle package installation for Homebrew correctly ([e257e45](https://github.com/bartventer/dotfiles/commit/e257e45ef5b4ae18ec8ba2965b028261a9f58f30))
+* **install.sh:** modify brew package installation in install.sh ([4fb271d](https://github.com/bartventer/dotfiles/commit/4fb271db67585f6ed9243f62cae22200e7462855))
+* **install.sh:** Update `create_symlink` function for cross-platform compatibility ([c882f4c](https://github.com/bartventer/dotfiles/commit/c882f4ce80a1355946437a4eb42c4cd2f7fa4e5c))
+* **install.sh:** update `run_sudo_cmd` to handle `dnf check-update` exit code ([8e632a1](https://github.com/bartventer/dotfiles/commit/8e632a17d38f4e3e6c27b1ba7d9bde48900cf667))
+* **install.sh:** Update default values for OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT and FONT_NAME ([340cd08](https://github.com/bartventer/dotfiles/commit/340cd08800177bacb8b65938f7e41c6b51aaab5b))
+* **install.sh:** update relative_paths population for compatibility with bash and zsh ([1c75cba](https://github.com/bartventer/dotfiles/commit/1c75cbab97a2a86a923c9ad7ddbf4016d835a04d))
+
+
+### Features
+
+* **install.sh:** Add Neovim configuration to config.json and parse into configure_neovim ([967443f](https://github.com/bartventer/dotfiles/commit/967443ff2c535fdb5df5845d7e69af1782b36770))
+* Add Makefile for automating local act runner testing ([e203d0f](https://github.com/bartventer/dotfiles/commit/e203d0fb0488b8fd383bde3c28961b17b630ba4e))
+* **install.sh:** Refactor data structures and configuration handling ([30e134a](https://github.com/bartventer/dotfiles/commit/30e134a875deb09370077ae7399b77fff3a81c30))
+* **install.sh:** update -l option and refactor code ([2e8f11c](https://github.com/bartventer/dotfiles/commit/2e8f11c60e893ab52a10fc56fbd8277621c5d1b8))
+
 # [3.4.0](https://github.com/bartventer/dotfiles/compare/v3.3.0...v3.4.0) (2024-03-11)
 
 
