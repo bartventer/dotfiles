@@ -430,7 +430,7 @@ install_neovim() {
 parse_neovim_config() {
     local key=$1
     local values
-    values=("$(jq -r ".neovim.${key}[]" config.json)")
+    values=("$(jq -r ".neovim.${key}[]" $CONFIG_FILE)")
     echo "${values[*]}"
 }
 
