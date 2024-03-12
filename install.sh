@@ -305,7 +305,7 @@ install_packages() {
     echo "Detected distribution: $distro"
 
     # Start with the common packages
-    local packages=("$common_packages")
+    local packages=("${common_packages[@]}")
 
     # Add the distro-specific packages to the list
     local distro_index
@@ -338,6 +338,7 @@ install_packages() {
             run_sudo_cmd "pacman -S --needed --noconfirm ${packages[*]}"
             ;;
         "brew")
+            # Iterate over the packages for Homebrew
             for package in "${packages[@]}"; do
                 brew install "$package"
             done
