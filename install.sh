@@ -464,16 +464,16 @@ configure_neovim() {
 # ********************* 
 
 create_symlink() {
-    local source=$1
+    local src=$1
     local target=$2
-    source=$(realpath "$source")
-    log_info "Creating symlink from $source to $target"
+    src=$(cd "$src"; pwd -P)
+    log_info "Creating symlink from $src to $target"
     mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
     # If the target is a directory, remove it
     if [ -d "$target" ]; then
         rm -rf "$target"
     fi
-    ln -sf "$source" "$target"
+    ln -sf "$src" "$target"
 }
 
 # *******************
