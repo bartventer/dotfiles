@@ -1,8 +1,8 @@
 {
     "pkg_managers": {
-        "apt-get": "apt-get update",
-        "dnf": "dnf check-update",
-        "yum": "yum check-update",
+        "apt-get": "apt-get update -y",
+        "dnf": "dnf check-update -y",
+        "yum": "yum check-update -y",
         "pacman": "pacman -Syu --noconfirm",
         "brew": "brew update"
     },
@@ -25,13 +25,39 @@
     "distro_packages": {
         "arch": "lua xclip tree-sitter tree-sitter-cli unzip ripgrep fd",
         "debian": "lua5.4 xclip unzip ripgrep fd-find python3-venv curl locales",
-        "fedora": "lua fd-find python3-venv",
+        "fedora": "lua fd-find python3-devel",
         "ubuntu": "lua5.4 fd-find python3-venv locales",
         "macos": "lua fd"
     },
-    "OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT": "romkatv/powerlevel10k",
+    "OH_MY_ZSH_CUSTOM_THEME_REPO": "romkatv/powerlevel10k",
     "NVIM_LANGUAGES": [
         "golang"
     ],
-    "FONT_NAME": "MesloLGS NF"
+    "FONT_NAME": "MesloLGS NF",
+    "neovim": {
+        "parsers": [
+            "markdown_inline"
+        ],
+        "lsps": [
+            "gopls",
+            "lua-language-server",
+            "pyright",
+            "typescript-language-server"
+        ],
+        "daps": [
+            "go-debug-adapter"
+        ],
+        "linters": [
+            "eslint_d"
+        ],
+        "formatters": [
+            "black",
+            "goimports-reviser",
+            "golines",
+            "gomodifytags",
+            "gotests",
+            "prettierd",
+            "stylua"
+        ]
+    }
 }
