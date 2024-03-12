@@ -338,7 +338,9 @@ install_packages() {
             run_sudo_cmd "pacman -S --needed --noconfirm ${packages[*]}"
             ;;
         "brew")
-            brew install "${packages[@]}"
+            for package in "${packages[@]}"; do
+                brew install "$package"
+            done
             ;;
         *)
             log_error "Unsupported package manager: $package_manager"
