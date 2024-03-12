@@ -17,23 +17,24 @@ NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Configuration file
 CONFIG_FILE="$REPO_DIR/config.json"
+FONT_FILE="$REPO_DIR/fonts.json"
 
 # Options
-OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT=$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO' $CONFIG_FILE)
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO' $CONFIG_FILE)"
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' $CONFIG_FILE)")
 NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
-FONT_NAME=$(jq -r '.FONT_NAME' $CONFIG_FILE)
+FONT_NAME="$(jq -r '.FONT_NAME' $CONFIG_FILE)"
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
 
 # Package managers
 # Parse the pkg_managers object from the config.json file
-pkg_managers=$(jq -r '.pkg_managers' config.json)
+pkg_managers=$(jq -r '.pkg_managers' $CONFIG_FILE)
 pkg_managers_keys=()
 pkg_managers_values=()
 while IFS=$'\n' read -r key; do
     pkg_managers_keys+=("$key")
-    pkg_managers_values+=("$(jq -r ".pkg_managers.\"$key\"" config.json)")
+    pkg_managers_values+=("$(jq -r ".pkg_managers.\"$key\"" $CONFIG_FILE)")
 done < <(jq -r 'keys[]' <<< "$pkg_managers")
 
 # Relative paths
@@ -64,7 +65,7 @@ done < <(jq -r 'keys[]' <<< "$distro_packages")
 declare -A fonts
 while IFS=":" read -r key value; do
     fonts[$key]=$value
-done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' fonts.json)
+done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' $FONT_FILE)
 
 # Check if the --it or --interactive argument was provided
 if [[ $1 == "--it" || $1 == "--interactive" ]]; then
@@ -625,7 +626,7 @@ fi
 
 # Create symlinks for all files in the relative_paths array
 for relative_path in "${relative_paths[@]}"; do
-    src=$relative_path
+    src="${REPO_DIR}/${relative_path}"
     target="$HOME/$relative_path"
     create_symlink "$src" "$target"
 done
@@ -707,7 +708,14 @@ if [ -f /.dockerenv ]; then
 fi
 
 # Install oh-my-zsh theme
-OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO") # Extract the theme name from the repository URL
+if command -v basename &> /dev/null
+then
+    OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
+else
+    # Use parameter expansion as a fallback
+    OH_MY_ZSH_THEME_NAME=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
+fi
+
 if [ -z "$OH_MY_ZSH_THEME_NAME" ]; then
     log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
     exit 1
