@@ -56,14 +56,15 @@ Please note that the script is designed to work with recent versions of these op
 
 ## Files and Directories
 
-| File/Directory                       | Description                                             |
-| ------------------------------------ | ------------------------------------------------------- |
-| [`.zshrc`](.zshrc)                   | This file contains configuration for the Zsh shell.     |
-| [`.tmux.conf`](.tmux.conf)           | This file contains configuration for tmux.              |
-| [`.config/nvim`](.config/nvim)       | This directory contains configuration files for Neovim. |
-| [`install.sh`](install.sh)           | This script installs the dotfiles on your system.       |
-| [`update_fonts.sh`](update_fonts.sh) | This script updates the fonts.json file.                |
-| [`fonts.json`](fonts.json)           | This file contains a list of available fonts.           |
+| File/Directory                       | Description                                                           |
+| ------------------------------------ | --------------------------------------------------------------------- |
+| [`.zshrc`](.zshrc)                   | This file contains configuration for the Zsh shell.                   |
+| [`.tmux.conf`](.tmux.conf)           | This file contains configuration for tmux.                            |
+| [`.config/nvim`](.config/nvim)       | This directory contains configuration files for Neovim.               |
+| [`install.sh`](install.sh)           | This script installs the dotfiles on your system.                     |
+| [`update_fonts.sh`](update_fonts.sh) | This script updates the fonts.json file.                              |
+| [`fonts.json`](fonts.json)           | This file contains a list of available fonts.                         |
+| [`config.json`](config.json)         | This file contains configuration options for the installation script. |
 
 ## Installation
 
@@ -77,15 +78,16 @@ cd dotfiles
 
 The script performs the following steps:
 
-1. Checks and installs `zsh` and `oh-my-zsh`.
-2. Creates symbolic links for files from the repository to the home directory.
-3. Determines the current shell (exit if not `bash` or `zsh`).
-4. Identifies the package manager and installs packages.
-5. Clones `oh-my-zsh` plugins and theme.
-6. Installs `oh-my-zsh` theme.
-7. Installs fonts.
-8. Sources `.zshrc` file.
-9. Installs and configures `Neovim`.
+1. Check and install `zsh` and `oh-my-zsh`.
+2. Create symbolic links for files from the repository to the home directory.
+3. Determine the current shell (exit if not `bash` or `zsh`).
+4. Identify the package manager and install packages.
+5. Clone `oh-my-zsh` plugins and theme.
+6. Install `oh-my-zsh` theme.
+7. Install fonts.
+8. Source `.zshrc` file.
+9. Parse `config.json` for Neovim configuration and apply it.
+10. Install and configure `Neovim`.
 
 You can customize the installation using the following command-line options:
 
