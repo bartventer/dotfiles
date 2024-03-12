@@ -21,26 +21,44 @@ CONFIG_FILE="config.json"
 # Options
 OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT=$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT' $CONFIG_FILE)
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-NVIM_LANGUAGES_DEFAULT=$(jq -r '.NVIM_LANGUAGES[]' $CONFIG_FILE)
+NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' $CONFIG_FILE)")
 NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
 FONT_NAME=$(jq -r '.FONT_NAME' $CONFIG_FILE)
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
 
 # Package managers
-pkg_managers_keys=("$(jq -r '.pkg_managers | keys[]' $CONFIG_FILE)")
-pkg_managers_values=("$(jq -r '.pkg_managers | .[]' $CONFIG_FILE)")
+# Parse the pkg_managers object from the config.json file
+pkg_managers=$(jq -r '.pkg_managers' config.json)
+pkg_managers_keys=()
+pkg_managers_values=()
+while IFS=$'\n' read -r key; do
+    pkg_managers_keys+=("$key")
+    pkg_managers_values+=("$(jq -r ".pkg_managers.\"$key\"" config.json)")
+done < <(jq -r 'keys[]' <<< "$pkg_managers")
 
 # Relative paths
 relative_paths=("$(jq -r '.relative_paths[]' $CONFIG_FILE)")
 
 # Plugins, common packages, distro-specific packages
-plugins_keys=("$(jq -r '.plugins | keys[]' $CONFIG_FILE)")
-plugins_values=("$(jq -r '.plugins | .[]' $CONFIG_FILE)")
+plugins=$(jq -r '.plugins' $CONFIG_FILE)
+plugins_keys=()
+plugins_values=()
+while IFS=$'\n' read -r key; do
+    plugins_keys+=("$key")
+    plugins_values+=("$(jq -r ".plugins.\"$key\"" $CONFIG_FILE)")
+done < <(jq -r 'keys[]' <<< "$plugins")
 
-common_packages=("$(jq -r '.common_packages[]' $CONFIG_FILE)")
+# Parse the common_packages array from the config.json file into a space-separated string
+common_packages=$(jq -r '.common_packages[]' $CONFIG_FILE | tr '\n' ' ')
 
-distro_packages_keys=("$(jq -r '.distro_packages | keys[]' $CONFIG_FILE)")
-distro_packages_values=("$(jq -r '.distro_packages | .[]' $CONFIG_FILE)")
+# Parse the distro_packages object from the config.json file
+distro_packages=$(jq -r '.distro_packages' $CONFIG_FILE)
+distro_packages_keys=()
+distro_packages_values=()
+while IFS=$'\n' read -r key; do
+    distro_packages_keys+=("$key")
+    distro_packages_values+=("$(jq -r ".distro_packages.\"$key\"" $CONFIG_FILE)")
+done < <(jq -r 'keys[]' <<< "$distro_packages")
 
 # Load the fonts dictionary from the fonts.json file
 declare -A fonts
@@ -167,6 +185,20 @@ run_sudo_cmd() {
     fi
 }
 
+# *********************
+# ** Get Index Value **
+# *********************
+
+get_index() {
+    local value=$1
+    for i in "${!pkg_managers_keys[@]}"; do
+        if [[ "${pkg_managers_keys[$i]}" == "$value" ]]; then
+            echo "$i"
+            return
+        fi
+    done
+}
+
 # *******************
 # ** Detect distro **
 # *******************
@@ -199,7 +231,7 @@ install_packages() {
     echo "Detected distribution: $distro"
 
     # Start with the common packages
-    local packages=("${common_packages[@]}")
+    local packages=("$common_packages")
 
     # Add the distro-specific packages to the list
     local distro_index
@@ -209,11 +241,11 @@ install_packages() {
 
     # Get the update command for the package manager
     local pkg_manager_index
-    pkg_manager_index=$(printf "%s\n" "${pkg_managers_keys[@]}" | grep -n -x "$package_manager" | cut -d: -f1)
-    update_cmd="${pkg_managers_values[$((pkg_manager_index-1))]}"
+    pkg_manager_index=$(get_index "$package_manager")
+    update_cmd="${pkg_managers_values[$pkg_manager_index]}"
 
     # Update the package lists
-    log_info "Updating package lists for $package_manager"
+    log_info "Updating package lists for $package_manager with $update_cmd..."
     run_sudo_cmd "$update_cmd"
 
     # Install all packages in one command
@@ -466,8 +498,8 @@ configure_neovim() {
 create_symlink() {
     local src=$1
     local target=$2
-    src=$(cd "$src"; pwd -P)
-    log_info "Creating symlink from $src to $target"
+    src=$REPO_DIR/$src
+    log_info "Creating symlink from ${src} to ${target}"
     mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
     # If the target is a directory, remove it
     if [ -d "$target" ]; then
@@ -544,6 +576,8 @@ install_fonts() {
     log_success "${FONT_NAME} fonts installed successfully!"
 }
 
+
+
 # ******************
 # ** Main Section **
 # ******************
@@ -619,7 +653,6 @@ case $CURRENT_SHELL in
     fi
 
     # Clone plugins and theme
-    # Clone plugins and theme
     log_info "Cloning oh-my-zsh plugins and theme..."
     for index in "${!plugins_keys[@]}"; do
         plugin="${plugins_keys[$index]}"
@@ -631,7 +664,7 @@ case $CURRENT_SHELL in
             echo "Directory $dir already exists. Pulling latest changes..."
             git -C "$dir" pull
         else
-            echo "Cloning $url into $dir"
+            echo "Cloning $url into $dir..."
             git clone --depth=1 "$url" "$dir" # Clone the repository
         fi
     done
