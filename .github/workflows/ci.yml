@@ -56,7 +56,7 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  brew install gcc git zsh curl jq node npm python3 procps go gdb
+                  brew install gcc git zsh curl jq node npm python3 go
             - name: Run Install Script
               shell: bash
               run: |
