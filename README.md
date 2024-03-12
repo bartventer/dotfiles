@@ -21,12 +21,13 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 
 You should have the following software installed for the main script:
 
-| Software                             | Description                   | Installation Command (Arch-based) | Required For   |
-| ------------------------------------ | ----------------------------- | --------------------------------- | -------------- |
-| [Zsh](http://www.zsh.org/)           | The Zsh shell with Oh My Zsh. | `sudo pacman -S zsh`              | Shell setup    |
-| [Node.js](https://nodejs.org/)       | JavaScript runtime.           | `sudo pacman -S nodejs`           | Neovim plugins |
-| [npm](https://www.npmjs.com/)        | Node.js package manager.      | `sudo pacman -S npm`              | Neovim plugins |
-| [jq](https://stedolan.github.io/jq/) | Command-line JSON processor.  | `sudo pacman -S jq`               | Scripting      |
+| Software                                              | Description                   | Installation Command (Arch-based) | Required For    |
+| ----------------------------------------------------- | ----------------------------- | --------------------------------- | --------------- |
+| [Zsh](http://www.zsh.org/)                            | The Zsh shell with Oh My Zsh. | `sudo pacman -S zsh`              | Shell setup     |
+| [Node.js](https://nodejs.org/)                        | JavaScript runtime.           | `sudo pacman -S nodejs`           | Neovim plugins  |
+| [npm](https://www.npmjs.com/)                         | Node.js package manager.      | `sudo pacman -S npm`              | Neovim plugins  |
+| [jq](https://stedolan.github.io/jq/)                  | Command-line JSON processor.  | `sudo pacman -S jq`               | Scripting       |
+| [ps](https://man7.org/linux/man-pages/man1/ps.1.html) | Process status.               | `sudo pacman -S procps-ng`        | Shell detection |
 
 ### Font Scraping Script (Optional)
 
@@ -91,7 +92,7 @@ You can customize the installation using the following command-line options:
 | Option | Description                                                                                                                               | Default                                                                                                          | Example             |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `-r`   | Specify a custom theme repository for oh-my-zsh.                                                                                          | `romkatv/powerlevel10k`                                                                                          | `agnoster/agnoster` |
-| `-l`   | Specify a language for Neovim configuration.                                                                                              | `golang`                                                                                                         | `rust`              |
+| `-l`   | Specify one or more languages for Neovim configuration (comma-separated).                                                                 | `golang`                                                                                                         | `golang,rust`       |
 | `-f`   | Specify a font name. See [fonts.json](./fonts.json) for available fonts.<br>See the [Font Update](#font-update) section for more details. | `MesloLGS NF` ([patched for `powerlevel10k`](https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts)) | `Source Code Pro`   |
 
 You can also run the script in interactive mode with the `--it` or `--interactive` command-line arguments. In interactive mode, you will be prompted to enter the options.
@@ -101,7 +102,7 @@ Example:
 ```bash
 ./install.sh \
 -r "agnoster/agnoster" \
--l rust \
+-l "golang,rust" \
 -f "Source Code Pro"
 ```
 
