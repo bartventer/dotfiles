@@ -310,8 +310,8 @@ install_packages() {
     # Add the distro-specific packages to the list
     local distro_index
     distro_index=$(printf "%s\n" "${distro_packages_keys[@]}" | grep -n -x "$distro" | cut -d: -f1)
-    IFS=' ' read -r -a distro_specific_packages <<< "${distro_packages_values[$((distro_index-1))]}"
-    packages=("${packages[@]}" "${distro_specific_packages[@]}")
+    local distro_specific_packages="${distro_packages_values[$((distro_index-1))]}"
+    packages=("${packages[@]}" "$distro_specific_packages")
 
     # Get the update command for the package manager
     local pkg_manager_index
@@ -326,24 +326,21 @@ install_packages() {
     log_info "Installing packages with $package_manager..."
     case $package_manager in
         "apt-get")
-            # shellcheck disable=SC2145
-            run_sudo_cmd "apt-get install -y ${packages[@]}"
+            run_sudo_cmd "apt-get install -y ${packages[*]}"
             ;;
         "dnf")
-            # shellcheck disable=SC2145
-            run_sudo_cmd "dnf install -y ${packages[@]}"
+            run_sudo_cmd "dnf install -y ${packages[*]}"
             ;;
         "yum")
-            # shellcheck disable=SC2145
-            run_sudo_cmd "yum install -y ${packages[@]}"
+            run_sudo_cmd "yum install -y ${packages[*]}"
             ;;
         "pacman")
-            # shellcheck disable=SC2145
-            run_sudo_cmd "pacman -S --needed --noconfirm ${packages[@]}"
+            run_sudo_cmd "pacman -S --needed --noconfirm ${packages[*]}"
             ;;
         "brew")
-            # Iterate over the packages for Homebrew
-            for package in "${packages[@]}"; do
+            # Convert the space-separated string to an array for Homebrew
+            IFS=' ' read -r -a brew_packages <<< "${packages[*]}"
+            for package in "${brew_packages[@]}"; do
                 brew install "$package"
             done
             ;;
