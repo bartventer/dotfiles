@@ -20,52 +20,56 @@ CONFIG_FILE="$REPO_DIR/config.json"
 FONT_FILE="$REPO_DIR/fonts.json"
 
 # Options
-OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO' $CONFIG_FILE)"
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO' "$CONFIG_FILE")"
+if [[ -z "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" || "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" == "null" ]]; then
+    OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
+fi
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' $CONFIG_FILE)")
+OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
+NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' "$CONFIG_FILE")")
 NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
-FONT_NAME="$(jq -r '.FONT_NAME' $CONFIG_FILE)"
+FONT_NAME="$(jq -r '.FONT_NAME' "$CONFIG_FILE")"
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
 
 # Package managers
 # Parse the pkg_managers object from the config.json file
-pkg_managers=$(jq -r '.pkg_managers' $CONFIG_FILE)
+pkg_managers=$(jq -r '.pkg_managers' "$CONFIG_FILE")
 pkg_managers_keys=()
 pkg_managers_values=()
 while IFS=$'\n' read -r key; do
     pkg_managers_keys+=("$key")
-    pkg_managers_values+=("$(jq -r ".pkg_managers.\"$key\"" $CONFIG_FILE)")
+    pkg_managers_values+=("$(jq -r ".pkg_managers.\"$key\"" "$CONFIG_FILE")")
 done < <(jq -r 'keys[]' <<< "$pkg_managers")
 
 # Relative paths
-relative_paths=("$(jq -r '.relative_paths[]' $CONFIG_FILE)")
+relative_paths=("$(jq -r '.relative_paths[]' "$CONFIG_FILE")")
 
 # Plugins, common packages, distro-specific packages
-plugins=$(jq -r '.plugins' $CONFIG_FILE)
+plugins=$(jq -r '.plugins' "$CONFIG_FILE")
 plugins_keys=()
 plugins_values=()
 while IFS=$'\n' read -r key; do
     plugins_keys+=("$key")
-    plugins_values+=("$(jq -r ".plugins.\"$key\"" $CONFIG_FILE)")
+    plugins_values+=("$(jq -r ".plugins.\"$key\"" "$CONFIG_FILE")")
 done < <(jq -r 'keys[]' <<< "$plugins")
 
 # Parse the common_packages array from the config.json file into a space-separated string
-common_packages=$(jq -r '.common_packages[]' $CONFIG_FILE | tr '\n' ' ')
+common_packages=$(jq -r '.common_packages[]' "$CONFIG_FILE" | tr '\n' ' ')
 
 # Parse the distro_packages object from the config.json file
-distro_packages=$(jq -r '.distro_packages' $CONFIG_FILE)
+distro_packages=$(jq -r '.distro_packages' "$CONFIG_FILE")
 distro_packages_keys=()
 distro_packages_values=()
 while IFS=$'\n' read -r key; do
     distro_packages_keys+=("$key")
-    distro_packages_values+=("$(jq -r ".distro_packages.\"$key\"" $CONFIG_FILE)")
+    distro_packages_values+=("$(jq -r ".distro_packages.\"$key\"" "$CONFIG_FILE")")
 done < <(jq -r 'keys[]' <<< "$distro_packages")
 
 # Load the fonts dictionary from the fonts.json file
 declare -A fonts
 while IFS=":" read -r key value; do
     fonts[$key]=$value
-done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' $FONT_FILE)
+done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$FONT_FILE")
 
 # Check if the --it or --interactive argument was provided
 if [[ $1 == "--it" || $1 == "--interactive" ]]; then
@@ -179,6 +183,7 @@ if [[ "$DEBUG" == "true" ]]; then
     Font file: $FONT_FILE
 
     Options:
+    OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
     OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
     NVIM_LANGUAGES: ${NVIM_LANGUAGES[*]}
     FONT_NAME: $FONT_NAME
