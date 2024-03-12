@@ -164,6 +164,41 @@ else
     done
 fi
 
+# if debug is true
+if [[ "$DEBUG" == "true" ]]; then
+    log_info "
+    Paths:
+    ZSHRC: $ZSHRC
+    NVIM_CONFIG_DIR: $NVIM_CONFIG_DIR
+    NVIM_SCRIPTS_DIR: $NVIM_SCRIPTS_DIR
+    NVIM_OPTIONS_FILE: $NVIM_OPTIONS_FILE
+    CLIPBOARD_CONFIG_SCRIPT: $CLIPBOARD_CONFIG_SCRIPT
+    NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
+
+    Configuration file: $CONFIG_FILE
+    Font file: $FONT_FILE
+
+    Options:
+    OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
+    NVIM_LANGUAGES: ${NVIM_LANGUAGES[*]}
+    FONT_NAME: $FONT_NAME
+    FONT_URL: $FONT_URL
+
+    Package managers:
+    pkg_managers_keys: ${pkg_managers_keys[*]}
+
+    Relative paths: ${relative_paths[*]}
+
+    Plugins:
+    plugins_keys: ${plugins_keys[*]}
+
+    Common packages: $common_packages
+
+    Distro packages:
+    distro_packages_keys: ${distro_packages_keys[*]}
+    "
+fi
+
 # ******************
 # ** Source Zshrc **
 # ******************

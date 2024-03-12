@@ -2,6 +2,9 @@ name: Test Installation
 
 on: [push, pull_request]
 
+env:
+    DEBUG: true
+
 jobs:
     test-linux:
         runs-on: ubuntu-latest
