@@ -221,11 +221,26 @@ source_zshrc() {
 # **********************
 
 run_sudo_cmd() {
+    # Helper function to run the command and handle "dnf check-update"
+    run_cmd() {
+        if [[ "$1" == "dnf check-update"* ]]; then
+            # dnf check-update returns a non-zero exit code when updates are available.
+            # This is expected behavior and not an error. However, it can cause issues
+            # if you're using set -e or set -o errexit in your script, which cause the
+            # script to exit when any command returns a non-zero exit code. To handle this,
+            # we ignore the exit code of dnf check-update.
+            eval "$1" || true
+        else
+            eval "$1"
+        fi
+    }
+
     if [[ "$CI" == "true" ]]; then
         # Run the command as a regular user in the CI environment
-        eval "$1"
+        run_cmd "$1"
     else
-        sudo sh -c "$1"
+        # Run the command as root in a non-CI environment
+        sudo sh -c "$(declare -f run_cmd); run_cmd '$1'"
     fi
 }
 
@@ -305,7 +320,7 @@ install_packages() {
             run_sudo_cmd "yum install -y ${packages[*]}"
             ;;
         "pacman")
-            run_sudo_cmd "pacman -S --noconfirm ${packages[*]}"
+            run_sudo_cmd "pacman -S --needed --noconfirm ${packages[*]}"
             ;;
         "brew")
             brew install "${packages[@]}"
