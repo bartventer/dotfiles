@@ -326,16 +326,20 @@ install_packages() {
     log_info "Installing packages with $package_manager..."
     case $package_manager in
         "apt-get")
-            run_sudo_cmd "apt-get install -y ${packages[*]}"
+            # shellcheck disable=SC2145
+            run_sudo_cmd "apt-get install -y ${packages[@]}"
             ;;
         "dnf")
-            run_sudo_cmd "dnf install -y ${packages[*]}"
+            # shellcheck disable=SC2145
+            run_sudo_cmd "dnf install -y ${packages[@]}"
             ;;
         "yum")
-            run_sudo_cmd "yum install -y ${packages[*]}"
+            # shellcheck disable=SC2145
+            run_sudo_cmd "yum install -y ${packages[@]}"
             ;;
         "pacman")
-            run_sudo_cmd "pacman -S --needed --noconfirm ${packages[*]}"
+            # shellcheck disable=SC2145
+            run_sudo_cmd "pacman -S --needed --noconfirm ${packages[@]}"
             ;;
         "brew")
             # Iterate over the packages for Homebrew
