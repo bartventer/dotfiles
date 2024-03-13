@@ -62,6 +62,18 @@ act-list-tests: ## List available test jobs
 	@echo "Available test jobs:"
 	@act -l || (echo "Failed to list act tests" && exit 1)
 
+# Displays a series of colored squares if true color is supported
+.PHONY: true-color
+true-color: ## Displays a series of colored squares if true color is supported
+	@echo "True color test:"
+	@echo -e "\n\n   24-bit color test"
+	@/bin/bash -c 'for i in {0..255}; do \
+		printf "\x1b[48;2;%d;0;0m \x1b[0m" "$$i"; \
+		if (( i == 15 )) || (( i > 15 )) && (( (i-15) % 6 == 0 )); then \
+			echo; \
+		fi; \
+	done'
+
 # Display help message
 .PHONY: help
 help: ## Display this help message

@@ -136,6 +136,9 @@ alias brc="nvim ~/.bashrc"
 alias zrc="nvim ~/.zshrc"
 alias nv="nvim"
 alias lc='colorls -lA --sd'
+alias dotfiles="cd ~/dotfiles"
+alias tmux_source="tmux source-file ~/.tmux.conf"
+alias zsh_source="source ~/.zshrc"
 
 # Locally defined aliases
 if [ -f ~/.aliases ]; then

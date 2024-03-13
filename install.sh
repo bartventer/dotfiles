@@ -9,6 +9,7 @@ log_info "Starting dotfiles installation..."
 
 # Paths
 ZSHRC="$HOME/.zshrc"
+TMUX_CONF="$HOME/.tmux.conf"
 NVIM_CONFIG_DIR="$REPO_DIR/.config/nvim"
 NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
 NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
@@ -61,6 +62,15 @@ while IFS=$'\n' read -r key; do
     plugins_keys+=("$key")
     plugins_values+=("$(jq -r ".plugins.\"$key\"" "$CONFIG_FILE")")
 done < <(jq -r 'keys[]' <<< "$plugins")
+
+# Tmux plugins
+tmux_plugins=$(jq -r '.tmux_plugins' "$CONFIG_FILE")
+tmux_plugins_keys=()
+tmux_plugins_values=()
+while IFS=$'\n' read -r key; do
+    tmux_plugins_keys+=("$key")
+    tmux_plugins_values+=("$(jq -r ".tmux_plugins.\"$key\"" "$CONFIG_FILE")")
+done < <(jq -r 'keys[]' <<< "$tmux_plugins")
 
 # Parse the common_packages array from the config.json file into a space-separated string
 common_packages=$(jq -r '.common_packages[]' "$CONFIG_FILE" | tr '\n' ' ')
@@ -758,6 +768,29 @@ case $CURRENT_SHELL in
             git clone --depth=1 "$url" "$dir" # Clone the repository
         fi
     done
+
+    # Clone tmux plugins
+    log_info "Cloning tmux plugins..."
+    for index in "${!tmux_plugins_keys[@]}"; do
+        plugin="${tmux_plugins_keys[$index]}"
+        url="${tmux_plugins_values[$index]}"
+        dir="$HOME/.tmux/plugins/$plugin"
+        log_info "Checking $dir..."
+        mkdir -p "$dir" # Ensure the directory exists
+        if [ -d "$dir/.git" ]; then
+            echo "Directory $dir already exists. Pulling latest changes..."
+            git -C "$dir" pull
+        else
+            echo "Cloning $url into $dir..."
+            git clone --depth=1 "$url" "$dir" # Clone the repository
+        fi
+    done
+    # Source tmux.conf
+    log_info "Sourcing .tmux.conf file"
+    tmux source-file "$TMUX_CONF"
+    # Install tmux plugins
+    log_info "Installing tmux plugins..."
+    tmux run-shell "$HOME/.tmux/plugins/tpm/bindings/install_plugins"
     ;;
     *)
     log_error "Unsupported shell for package installation ($CURRENT_SHELL)"

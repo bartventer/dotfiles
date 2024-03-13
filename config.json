@@ -16,6 +16,9 @@
         "zsh-autosuggestions": "https://github.com/zsh-users/zsh-autosuggestions.git",
         "zsh-history-substring-search": "https://github.com/zsh-users/zsh-history-substring-search.git"
     },
+    "tmux_plugins": {
+        "dracula": "https://github.com/dracula/tmux.git"
+    },
     "common_packages": [
         "git",
         "tmux",
