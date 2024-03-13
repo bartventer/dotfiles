@@ -1,3 +1,12 @@
+# [3.7.0](https://github.com/bartventer/dotfiles/compare/v3.6.0...v3.7.0) (2024-03-13)
+
+
+### Features
+
+* **.tmux.conf:** add dynamic terminal feature setting based on $TERM variable ([f8017eb](https://github.com/bartventer/dotfiles/commit/f8017eb560c3446a3691688ac5ed0cbc482cd2cf))
+* **install.sh:** add `tmux` plugins installation ([881d9ed](https://github.com/bartventer/dotfiles/commit/881d9edd7f06399ceceb71c789be8ce76bca39bd))
+* **install.sh:** add tpm installation check and improve tmux plugin installation process ([cfdd225](https://github.com/bartventer/dotfiles/commit/cfdd225187cbd9e317ecf68b122f132d345dbed3))
+
 # [3.6.0](https://github.com/bartventer/dotfiles/compare/v3.5.1...v3.6.0) (2024-03-13)
 
 
