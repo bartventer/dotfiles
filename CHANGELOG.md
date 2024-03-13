@@ -1,3 +1,11 @@
+## [3.7.1](https://github.com/bartventer/dotfiles/compare/v3.7.0...v3.7.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* **install.sh:** add default value for `TERM_COLOR` ([1b01468](https://github.com/bartventer/dotfiles/commit/1b01468a65d5eca7b103c9d821d1489e71efe623))
+* **install.sh:** add parsing of `term_color`from config.json ([5dababd](https://github.com/bartventer/dotfiles/commit/5dababdb5df8c892b5f530ca7383015198d7009d))
+
 # [3.7.0](https://github.com/bartventer/dotfiles/compare/v3.6.0...v3.7.0) (2024-03-13)
 
 
