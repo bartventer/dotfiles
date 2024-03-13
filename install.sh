@@ -22,6 +22,9 @@ FONT_FILE="$REPO_DIR/fonts.json"]
 
 # Options
 TERM_COLOR="$(jq -r '.term_color' "$CONFIG_FILE")"
+if [[ -z "$TERM_COLOR" || "$TERM_COLOR" == "null" ]]; then
+    TERM_COLOR="xterm-256color"
+fi
 OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.oh_my_zsh_custom_theme_repo' "$CONFIG_FILE")"
 if [[ -z "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" || "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" == "null" ]]; then
     OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
@@ -228,6 +231,8 @@ if [[ "$CI" == "true" ]]; then
 
     Tmux plugins:
         tmux_plugins_keys: ${tmux_plugins_keys[*]}
+
+    Terminal color: $TERM_COLOR
 
     Common packages: $common_packages
 
