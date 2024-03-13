@@ -22,19 +22,36 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '21.x'
+                  check-latest: true
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.x'
+                  cache: 'pip'
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: latest
+
             - name: Install Dependencies
               run: |
                   # Determine package manager based on image name
                   case "${{ matrix.image }}" in
                       debian*|ubuntu*)
                           apt-get update
-                          apt-get install -y zsh curl git gdb build-essential jq nodejs npm python3 python3-pip locales procps golang-go
+                          apt-get install -y zsh curl git gdb build-essential jq procps locales
                           ;;
                       fedora*)
-                          dnf install -y zsh curl git gdb gcc jq nodejs npm python3 python3-pip glibc-all-langpacks procps-ng golang
+                          dnf install -y zsh curl git gdb gcc jq procps-ng glibc-all-langpacks
                           ;;
                       archlinux*)
-                          pacman -Syu --noconfirm zsh curl git gdb gcc nodejs npm jq python python-pip procps-ng go
+                          pacman -Syu --noconfirm zsh curl git gdb gcc jq procps-ng
                           ;;
                   esac
 
@@ -51,10 +68,27 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '21.x'
+                  check-latest: true
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.x'
+                  cache: 'pip'
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: latest
+
             - name: Install Dependencies
               run: |
                   brew update
-                  brew install git zsh node npm go
+                  brew install git zsh
 
             - name: Run Install Script
               shell: bash
