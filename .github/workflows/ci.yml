@@ -54,7 +54,7 @@ jobs:
             - name: Install Dependencies
               run: |
                   brew update
-                  brew install gcc git zsh curl jq node npm python3 go
+                  brew install git zsh node npm go
 
             - name: Run Install Script
               shell: bash
