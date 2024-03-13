@@ -33,11 +33,12 @@
         "ubuntu": "lua5.4 fd-find python3-venv locales",
         "macos": "lua fd"
     },
-    "OH_MY_ZSH_CUSTOM_THEME_REPO": "romkatv/powerlevel10k",
-    "NVIM_LANGUAGES": [
+    "term_color:": "xterm-256color",
+    "oh_my_zsh_custom_theme_repo": "romkatv/powerlevel10k",
+    "nvim_languages": [
         "golang"
     ],
-    "FONT_NAME": "MesloLGS NF",
+    "font_name": "MesloLGS NF",
     "neovim": {
         "parsers": [
             "markdown_inline"

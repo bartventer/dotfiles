@@ -18,20 +18,21 @@ NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Configuration file
 CONFIG_FILE="$REPO_DIR/config.json"
-FONT_FILE="$REPO_DIR/fonts.json"
+FONT_FILE="$REPO_DIR/fonts.json"]
 
 # Options
-OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.OH_MY_ZSH_CUSTOM_THEME_REPO' "$CONFIG_FILE")"
+TERM_COLOR="$(jq -r '.term_color' "$CONFIG_FILE")"
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.oh_my_zsh_custom_theme_repo' "$CONFIG_FILE")"
 if [[ -z "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" || "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" == "null" ]]; then
     OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
 fi
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-NVIM_LANGUAGES_DEFAULT=("$(jq -r '.NVIM_LANGUAGES[]' "$CONFIG_FILE")")
+NVIM_LANGUAGES_DEFAULT=("$(jq -r '.nvim_languages[]' "$CONFIG_FILE")")
 NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
 
 # Fonts
-FONT_NAME="$(jq -r '.FONT_NAME' "$CONFIG_FILE")"
+FONT_NAME="$(jq -r '.font_name' "$CONFIG_FILE")"
 FONT_MESLOLGS_NF="MesloLGS NF"
 if [[ -z "$FONT_NAME" || "$FONT_NAME" == "null" ]]; then
     FONT_NAME="$FONT_MESLOLGS_NF"
@@ -810,6 +811,8 @@ case $CURRENT_SHELL in
     else
         log_error "Failed to create new tmux session"
     fi
+    append_env_variable_to_zshrc "TERM" "$TERM_COLOR"
+
     ;;
     *)
     log_error "Unsupported shell for package installation ($CURRENT_SHELL)"
