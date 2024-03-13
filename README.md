@@ -47,7 +47,7 @@ For the optional `update_fonts.sh` script (detailed in the [Font Update](#font-u
 This script is designed to work on the following operating systems:
 
 -   Debian-based distributions (like Ubuntu)
--   Red Hat-based distributions (like Fedora, RockyLinux)
+-   Red Hat-based distributions (like Fedora)
 -   Arch Linux
 -   macOS
 
