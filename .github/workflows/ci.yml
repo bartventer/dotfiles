@@ -22,22 +22,8 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '21.x'
-                  check-latest: true
-
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: '3.x'
-                  cache: 'pip'
-
-            - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: latest
+            - name: Setup Environments
+              uses: ./.github/actions/setup-environments
 
             - name: Install Dependencies
               run: |
@@ -68,22 +54,8 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '21.x'
-                  check-latest: true
-
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: '3.x'
-                  cache: 'pip'
-
-            - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: latest
+            - name: Setup Environments
+              uses: ./.github/actions/setup-environments
 
             - name: Install Dependencies
               run: |
