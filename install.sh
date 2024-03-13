@@ -190,35 +190,35 @@ fi
 if [[ "$CI" == "true" ]]; then
     log_info "
     Paths:
-    ZSHRC: $ZSHRC
-    NVIM_CONFIG_DIR: $NVIM_CONFIG_DIR
-    NVIM_SCRIPTS_DIR: $NVIM_SCRIPTS_DIR
-    NVIM_OPTIONS_FILE: $NVIM_OPTIONS_FILE
-    CLIPBOARD_CONFIG_SCRIPT: $CLIPBOARD_CONFIG_SCRIPT
-    NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
+        ZSHRC: $ZSHRC
+        NVIM_CONFIG_DIR: $NVIM_CONFIG_DIR
+        NVIM_SCRIPTS_DIR: $NVIM_SCRIPTS_DIR
+        NVIM_OPTIONS_FILE: $NVIM_OPTIONS_FILE
+        CLIPBOARD_CONFIG_SCRIPT: $CLIPBOARD_CONFIG_SCRIPT
+        NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
 
-    \nConfiguration file: $CONFIG_FILE
+    Configuration file: $CONFIG_FILE
     Font file: $FONT_FILE
 
-    \nOptions:
-    OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-    OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
-    NVIM_LANGUAGES: ${NVIM_LANGUAGES[*]}
-    FONT_NAME: $FONT_NAME
-    FONT_URL: $FONT_URL
+    Options:
+        OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
+        OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
+        NVIM_LANGUAGES: ${NVIM_LANGUAGES[*]}
+        FONT_NAME: $FONT_NAME
+        FONT_URL: $FONT_URL
 
-    \nPackage managers:
-    pkg_managers_keys: ${pkg_managers_keys[*]}
+    Package managers:
+        pkg_managers_keys: ${pkg_managers_keys[*]}
 
-    \nRelative paths: ${relative_paths[*]}
+    Relative paths: ${relative_paths[*]}
 
-    \nPlugins:
-    plugins_keys: ${plugins_keys[*]}
+    Plugins:
+        plugins_keys: ${plugins_keys[*]}
 
-    \nCommon packages: $common_packages
+    Common packages: $common_packages
 
-    \nDistro packages:
-    distro_packages_keys: ${distro_packages_keys[*]}
+    Distro packages:
+        distro_packages_keys: ${distro_packages_keys[*]}
     "
 fi
 
@@ -320,7 +320,11 @@ install_packages() {
 
     # Update the package lists
     log_info "Updating package lists for $package_manager with $update_cmd..."
-    run_sudo_cmd "$update_cmd"
+    if [[ "$CI" == "true" ]]; then
+        echo "Skipping package list update in CI environment"
+    else
+        run_sudo_cmd "$update_cmd"
+    fi
 
     # Install all packages in one command
     log_info "Installing packages with $package_manager..."
