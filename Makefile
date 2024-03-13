@@ -22,6 +22,11 @@ install: $(DOTFILES_COMMON_DEPS) .config config.json fonts.json install.sh .tmux
 	chmod +x install.sh || (echo "Failed to make install.sh executable" && exit 1)
 	./install.sh -r $(DOTFILES_REPO) -l $(DOTFILES_LANGUAGES) -f $(DOTFILES_FONT) || (echo "Failed to run install.sh" && exit 1)
 
+# Pull the latest changes from the repository
+.PHONY: update
+update: ## Pull the latest changes from the repository
+	git pull origin master
+
 # Run the update_fonts.sh script
 update-fonts: $(DOTFILES_COMMON_DEPS) update_fonts.sh requirements.txt ## Run the update_fonts.sh script
 	chmod +x update_fonts.sh || (echo "Failed to make update_fonts.sh executable" && exit 1)
