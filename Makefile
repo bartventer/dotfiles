@@ -27,6 +27,18 @@ install: $(DOTFILES_COMMON_DEPS) .config config.json fonts.json install.sh .tmux
 update: ## Pull the latest changes from the repository
 	git pull origin master
 
+# Install tmux plugins
+.PHONY: install-tmux-plugins
+install-tmux-plugins: ## Install tmux plugins
+	@echo "Installing tmux plugins..."
+	@if ! tmux has-session 2>/dev/null; then \
+		tmux new-session -d; \
+		tmux run-shell "$HOME/.tmux/plugins/tpm/bindings/install_plugins"; \
+		tmux kill-server; \
+	else \
+		tmux run-shell "$HOME/.tmux/plugins/tpm/bindings/install_plugins"; \
+	fi
+
 # Run the update_fonts.sh script
 update-fonts: $(DOTFILES_COMMON_DEPS) update_fonts.sh requirements.txt ## Run the update_fonts.sh script
 	chmod +x update_fonts.sh || (echo "Failed to make update_fonts.sh executable" && exit 1)

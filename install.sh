@@ -788,12 +788,28 @@ case $CURRENT_SHELL in
             git clone --depth=1 "$url" "$dir" # Clone the repository
         fi
     done
-    # Source tmux.conf
-    log_info "Sourcing .tmux.conf file"
-    tmux source-file "$TMUX_CONF"
+
+    # Ensure tpm is installed
+    TPM_DIR="$HOME/.tmux/plugins/tpm"
+    if [ ! -d "$TPM_DIR" ]; then
+        log_info "Tmux Plugin Manager not found. Cloning..."
+        git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+    fi
+
     # Install tmux plugins
     log_info "Installing tmux plugins..."
-    tmux run-shell "$HOME/.tmux/plugins/tpm/bindings/install_plugins"
+    SESSION_NAME="temp_$(date +%s)"
+    if tmux new-session -d -s "$SESSION_NAME"; then
+        if ! tmux source-file "$TMUX_CONF"; then
+            log_error "Failed to source .tmux.conf"
+        fi
+        if ! "$TPM_DIR/bin/install_plugins"; then
+            log_error "Failed to install tmux plugins"
+        fi
+        tmux kill-session -t "$SESSION_NAME"
+    else
+        log_error "Failed to create new tmux session"
+    fi
     ;;
     *)
     log_error "Unsupported shell for package installation ($CURRENT_SHELL)"

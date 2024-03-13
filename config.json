@@ -17,6 +17,7 @@
         "zsh-history-substring-search": "https://github.com/zsh-users/zsh-history-substring-search.git"
     },
     "tmux_plugins": {
+        "tpm": "https://github.com/tmux-plugins/tpm.git",
         "dracula": "https://github.com/dracula/tmux.git"
     },
     "common_packages": [
