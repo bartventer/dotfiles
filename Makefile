@@ -6,6 +6,7 @@ DOTFILES_FONT ?= "MesloLGS NF"
 # Act input variables (https://nektosact.com/usage/index.html#usage-guide)
 ACT_EVENT_JSON=event.json
 ACT_FLAGS=-e $(ACT_EVENT_JSON) --action-offline-mode
+ACT_FLAGS_LINUX=$(ACT_FLAGS) -P ubuntu-latest=catthehacker/ubuntu:full-latest
 ACT_FLAGS_MACOS=$(ACT_FLAGS) -P macos-latest=sickcodes/docker-osx:latest
 
 # Act output variables
@@ -43,7 +44,7 @@ endef
 # Run the test-linux job with act. If ACT_REDIRECT_OUTPUT is set to 1, the output will be redirected to a file.
 .PHONY: act-test-linux
 act-test-linux: ## Run the test-linux job with act (optional args: ACT_REDIRECT_OUTPUT=1 to redirect output to a file)
-	$(call act-test,linux,$(ACT_FLAGS))
+	$(call act-test,linux,$(ACT_FLAGS_LINUX))
 
 # Run the test-macos job with act. If ACT_REDIRECT_OUTPUT is set to 1, the output will be redirected to a file.
 .PHONY: act-test-macos
