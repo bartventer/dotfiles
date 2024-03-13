@@ -1,4 +1,4 @@
-name: Test Installation
+name: CI
 
 on: [push, pull_request]
 
@@ -8,40 +8,37 @@ jobs:
         name: Test on Linux
         strategy:
             matrix:
-                image:
+                config:
                     [
-                        'archlinux:latest',
-                        'debian:latest',
-                        'fedora:latest',
-                        'ubuntu:latest',
+                        { image: 'debian:latest', name: 'Debian' },
+                        { image: 'ubuntu:latest', name: 'Ubuntu' },
+                        { image: 'fedora:latest', name: 'Fedora' },
+                        { image: 'archlinux:latest', name: 'Arch Linux' },
                     ]
         container:
-            image: ${{ matrix.image }}
+            image: ${{ matrix.config.image }}
 
         steps:
-            - name: Checkout
+            - name: Checkout on {{ matrix.image.name }}
               uses: actions/checkout@v4
 
-            - name: Setup Environments
-              uses: ./.github/actions/setup-environments
-
-            - name: Install Dependencies
+            - name: Install Dependencies on {{ matrix.image.name }}
               run: |
                   # Determine package manager based on image name
-                  case "${{ matrix.image }}" in
-                      debian*|ubuntu*)
+                  case "${{ matrix.config.name }}" in
+                      Debian|Ubuntu)
                           apt-get update
-                          apt-get install -y zsh curl git gdb build-essential jq procps locales
+                          apt-get install -y zsh curl git gdb build-essential jq nodejs npm python3 python3-pip locales procps golang-go
                           ;;
-                      fedora*)
-                          dnf install -y zsh curl git gdb gcc jq procps-ng glibc-all-langpacks
+                      Fedora|Rocky\ Linux)
+                          dnf install -y zsh curl git gdb gcc jq nodejs npm python3 python3-pip glibc-all-langpacks procps-ng golang
                           ;;
-                      archlinux*)
-                          pacman -Syu --noconfirm zsh curl git gdb gcc jq procps-ng
+                      Arch\ Linux*)
+                          pacman -Syu --noconfirm zsh curl git gdb gcc nodejs npm jq python python-pip procps-ng go
                           ;;
                   esac
 
-            - name: Run Install Script
+            - name: Run Install Script on {{ matrix.image.name }}
               shell: bash
               run: |
                   chmod +x install.sh
@@ -54,13 +51,26 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Setup Environments
-              uses: ./.github/actions/setup-environments
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: latest
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.x'
+                  cache: 'pip'
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: latest
 
             - name: Install Dependencies
               run: |
                   brew update
-                  brew install git zsh
+                  brew install zsh
 
             - name: Run Install Script
               shell: bash
@@ -70,6 +80,7 @@ jobs:
 
     semantic-release:
         name: Release
+        if: ${{ !github.event.act }} # skip during local actions testing
         needs: [test-linux, test-macos]
         runs-on: ubuntu-latest
         permissions:
