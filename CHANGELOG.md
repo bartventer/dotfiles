@@ -1,3 +1,15 @@
+# [3.6.0](https://github.com/bartventer/dotfiles/compare/v3.5.1...v3.6.0) (2024-03-13)
+
+
+### Bug Fixes
+
+* **all:** remove `rockylinux` distro specific support ([dca2a9a](https://github.com/bartventer/dotfiles/commit/dca2a9ae4e5c0fb8b5fd2ff6b9d54c071eff4b56))
+
+
+### Features
+
+* **config.json:** add rockylinux distro pacakages ([d9e815c](https://github.com/bartventer/dotfiles/commit/d9e815cd693cd9154bf293f9431fbade16e443c0))
+
 ## [3.5.1](https://github.com/bartventer/dotfiles/compare/v3.5.0...v3.5.1) (2024-03-13)
 
 
