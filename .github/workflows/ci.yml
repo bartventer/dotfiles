@@ -36,7 +36,7 @@ jobs:
                           ;;
                   esac
 
-            - name: Run Install Script on {{ matrix.image.name }}
+            - name: Run Install Script
               shell: bash
               run: |
                   chmod +x install.sh
