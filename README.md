@@ -4,6 +4,8 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 
 [![Release](https://img.shields.io/github/release/bartventer/dotfiles.svg)](https://github.com/bartventer/dotfiles/releases/latest)
 [![License](https://img.shields.io/github/license/bartventer/dotfiles.svg)](LICENSE)
+[![Build](https://github.com/bartventer/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/bartventer/dotfiles/actions/workflows/ci.yml)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bartventer/dotfiles)
 
 ## Table of Contents
 
