@@ -320,11 +320,7 @@ install_packages() {
 
     # Update the package lists
     log_info "Updating package lists for $package_manager with $update_cmd..."
-    if [[ "$CI" == "true" ]]; then
-        echo "Skipping package list update in CI environment"
-    else
-        run_sudo_cmd "$update_cmd"
-    fi
+    run_sudo_cmd "$update_cmd"
 
     # Install all packages in one command
     log_info "Installing packages with $package_manager..."
@@ -345,7 +341,12 @@ install_packages() {
             # Convert the space-separated string to an array for Homebrew
             IFS=' ' read -r -a brew_packages <<< "${packages[*]}"
             for package in "${brew_packages[@]}"; do
-                brew install "$package"
+                if [[ "$CI" == "true" ]]; then
+                    echo "CI environment detected. Installing $package without checking for installed dependents..."
+                    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "$package"
+                else
+                    brew install "$package"
+                fi
             done
             ;;
         *)
