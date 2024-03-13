@@ -225,6 +225,9 @@ if [[ "$CI" == "true" ]]; then
     Plugins:
         plugins_keys: ${plugins_keys[*]}
 
+    Tmux plugins:
+        tmux_plugins_keys: ${tmux_plugins_keys[*]}
+
     Common packages: $common_packages
 
     Distro packages:
