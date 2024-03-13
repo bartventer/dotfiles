@@ -1,3 +1,11 @@
+## [3.5.1](https://github.com/bartventer/dotfiles/compare/v3.5.0...v3.5.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* **install.sh:** Add CI-specific installation for Homebrew packages ([5498f9d](https://github.com/bartventer/dotfiles/commit/5498f9d99bc1580ec51ccd242dd91ab1cda8c8f8))
+* **install.sh:** skip package list update in CI environment ([b5b35eb](https://github.com/bartventer/dotfiles/commit/b5b35ebc12af8893e299fc20caade475a91a148d))
+
 # [3.5.0](https://github.com/bartventer/dotfiles/compare/v3.4.0...v3.5.0) (2024-03-12)
 
 
