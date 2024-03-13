@@ -45,37 +45,16 @@ jobs:
                   ./install.sh
 
     test-macos:
-        env:
-            PYTHON_VERSION: 3.12
-            GO_VERSION: '1.20'
-        runs-on: macos-12
+        runs-on: macos-latest
         name: Test on macOS
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Remove conflicting files
-              run: |
-                  for cmd in 2to3 \
-                      2to3-$PYTHON_VERSION \
-                      idle3 \
-                      idle3.$PYTHON_VERSION \
-                      pydoc3 \
-                      pydoc3.$PYTHON_VERSION \
-                      python3 \
-                      python3-config \
-                      python3.$PYTHON_VERSION \
-                      python3.$PYTHON_VERSION-config
-                  do
-                      rm "/usr/local/bin/$cmd" || true
-                  done
-
             - name: Install Dependencies
               run: |
-                  brew uninstall --ignore-dependencies go@$GO_VERSION || true # Uninstall existing Go installation, if any
-                  brew install gcc git zsh curl jq node npm python@$PYTHON_VERSION go
-                  brew link --overwrite python@$PYTHON_VERSION || true # Force link and overwrite all conflicting files
-                  brew link --overwrite go || true # Force link and overwrite all conflicting files
+                  brew update
+                  brew install gcc git zsh curl jq node npm python3 go
 
             - name: Run Install Script
               shell: bash
