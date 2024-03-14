@@ -1,4 +1,15 @@
 #!/bin/bash
+# 
+# This script installs the dotfiles on your system.
+# It checks and installs zsh and oh-my-zsh, creates symbolic links for files from the repository to the home directory,
+# determines the current shell (exits if not bash or zsh), identifies the package manager and installs packages,
+# clones oh-my-zsh plugins and theme, installs oh-my-zsh theme, installs fonts, sources .zshrc file,
+# parses config.json for Neovim configuration and applies it, and installs and configures Neovim.
+# 
+# Usage: ./install.sh
+# 
+# Dependencies: zsh, oh-my-zsh, jq, ps
+# 
 set -e
 
 # Initialization
@@ -14,16 +25,14 @@ log_info "Starting dotfiles installation..."
 # Paths
 ZSHRC="$HOME/.zshrc"
 TMUX_CONF="$HOME/.tmux.conf"
-NVIM_CONFIG_DIR="$REPO_DIR/.config/nvim"
+NVIM_CONFIG_DIR="$DOTFILES_DIR/.config/nvim"
 NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
 NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
 CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Configuration file
-CONFIG_DIR="$REPO_DIR/config"
-CONFIG_FILE="$CONFIG_DIR/config.json"
-FONT_FILE="$CONFIG_DIR/fonts.json"
+CONFIG_FILE="$DOTFILES_CONIG_DIR/config.json"
 
 # This function parses a JSON object and stores the keys and values in separate arrays.
 # It takes three arguments:
@@ -113,7 +122,7 @@ font_urls=()
 while IFS=":" read -r key value; do
     font_names+=("$key")
     font_urls+=("$value")
-done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$FONT_FILE")
+done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FONTS_CONFIG")
 
 
 # ****************************
@@ -239,7 +248,7 @@ if [[ "$CI" == "true" ]]; then
         NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
 
     Configuration file: $CONFIG_FILE
-    Font file: $FONT_FILE
+    Font file: $DOTFILES_FONTS_CONFIG
 
     Options:
         OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
@@ -764,7 +773,7 @@ install_zsh_and_oh_my_zsh() {
 create_symlinks() {
     # Create symlinks for all files in the relative_paths array
     for relative_path in "${relative_paths[@]}"; do
-        src="${REPO_DIR}/${relative_path}"
+        src="${DOTFILES_DIR}/${relative_path}"
         target="$HOME/$relative_path"
         create_symlink "$src" "$target"
     done
