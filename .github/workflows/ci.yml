@@ -9,10 +9,15 @@ jobs:
         strategy:
             matrix:
                 image:
-                    - debian:latest
-                    - ubuntu:latest
-                    - fedora:latest
-                    - archlinux:latest
+                    [
+                        debian:latest,
+                        ubuntu:latest,
+                        fedora:latest,
+                        archlinux:latest,
+                    ]
+                include:
+                    - os: archlinux:latest
+                      coverage: true # only generate coverage on archlinux
         container:
             image: ${{ matrix.image }}
 
@@ -26,15 +31,20 @@ jobs:
                   case "${{ matrix.image }}" in
                       debian*|ubuntu*)
                           apt-get update
-                          apt-get install -y zsh curl git gdb build-essential jq nodejs npm python3 python3-pip locales procps golang-go
+                          apt-get install -y zsh curl make git gdb build-essential jq nodejs npm python3 python3-pip locales procps golang-go
                           ;;
                       fedora*)
-                          dnf install -y zsh curl git gdb gcc jq nodejs npm python3 python3-pip glibc-all-langpacks procps-ng golang
+                          dnf install -y zsh curl make git gdb gcc jq nodejs npm python3 python3-pip glibc-all-langpacks procps-ng golang
                           ;;
                       archlinux*)
-                          pacman -Syu --noconfirm zsh curl git gdb gcc nodejs npm jq python python-pip procps-ng go
+                          pacman -Syu --noconfirm zsh curl make git gdb gcc nodejs npm jq python python-pip procps-ng go
                           ;;
                   esac
+                  # Install Python dependencies   
+                  pip3 install -r requirements.txt
+                  if [[ "${{ matrix.coverage }}" == "true" ]]; then
+                      pip3 install coverage
+                  fi
 
             - name: Run Install Script
               shell: bash
@@ -43,7 +53,21 @@ jobs:
                   ./install.sh
 
             - name: Run Tests
-              run: make test
+              run: |
+                  make test
+
+            - name: Generate coverage report
+              if: ${{ matrix.coverage }}
+              run: |
+                  make coverage
+                  coverage xml
+
+            - name: Upload coverage to Codecov
+              if: ${{ matrix.coverage }}
+              uses: codecov/codecov-action@v4
+              with:
+                  file: ./coverage.xml
+                  fail_ci_if_error: true
 
     test-macos:
         runs-on: macos-latest
@@ -71,7 +95,9 @@ jobs:
             - name: Install Dependencies
               run: |
                   brew update
-                  brew install zsh
+                  brew install zsh make
+                  # Install Python dependencies
+                  pip3 install -r requirements.txt
 
             - name: Run Install Script
               shell: bash
@@ -80,42 +106,13 @@ jobs:
                   ./install.sh
 
             - name: Run Tests
-              run: make test
-
-    coverage:
-        needs: [test-linux, test-macos]
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: '3.x'
-
-            - name: Install dependencies
               run: |
-                  pip install -r requirements.txt
-                  pip install coverage
-                  apt-get update
-                  apt-get install -y make
-
-            - name: Generate coverage report
-              run: |
-                  make coverage
-                  coverage xml
-
-            - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@v4
-              with:
-                  file: ./coverage.xml
-                  fail_ci_if_error: true
+                  make test
 
     semantic-release:
         name: Release
         if: ${{ !github.event.act }} # skip during local actions testing
-        needs: [coverage]
+        needs: [test-linux, test-macos]
         runs-on: ubuntu-latest
         permissions:
             contents: write
