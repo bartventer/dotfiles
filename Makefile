@@ -121,7 +121,7 @@ setup-venv: ## Set up the python virtual environment
 .PHONY: activate-venv
 activate-venv: ## Activate the python virtual environment
 	@echo "Activating virtual environment..."
-	@$(VENV_ACTIVATE_SCRIPT)
+	@source $(VENV_ACTIVATE_SCRIPT)
 
 .PHONY: install-requirements
 install-requirements: ## Install pip requirements
