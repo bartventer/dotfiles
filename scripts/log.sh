@@ -1,5 +1,31 @@
 #!/bin/bash
 
+# log.sh
+# 
+# Description: This script provides a logging utility for bash scripts. It supports different log levels and colors for different types of logs.
+# 
+# Functions:
+#   log_message(level, color, message, func_name, line_number, file_name): Logs a message with a given level, color, and source information.
+#   log_success(message): Logs a success message (green).
+#   log_info(message): Logs an informational message (cyan).
+#   log_warn(message): Logs a warning message (yellow).
+#   log_error(message): Logs an error message (red).
+#   log_trace(message): Logs a trace message (purple), including the function name.
+# 
+# Globals:
+#   RED, GREEN, YELLOW, INFO, TRACE, NC: Color codes for log messages.
+#   LOG_LEVEL: The minimum log level to display.
+#   FUNCNAME_INDEX, LINENO_INDEX, SOURCE_INDEX: Indices for shell-specific arrays.
+# 
+# Usage:
+#   Source this script in your bash script, then call the log functions. For example:
+#     source log.sh
+#     log_info "This is an informational message."
+#     log_error "This is an error message."
+# 
+# Note:
+#   This script checks if it's running in zsh or bash and adjusts array indices accordingly.
+
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'

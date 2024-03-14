@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# update_fonts.sh
+# 
+# Description: This script updates the fonts for the system. It checks for necessary dependencies, sets up a Python virtual environment, installs requirements, and fetches the fonts.
+# 
+# Functions:
+#   check_dependency(dep): Checks if a dependency is installed. If not, logs an error message and exits the script.
+#   setup_venv(): Sets up a Python virtual environment if it doesn't already exist.
+#   install_requirements(): Installs the Python requirements from a requirements.txt file.
+#   fetch_fonts(): Runs a Python script to fetch the fonts.
+# 
+# Globals:
+#   VENV_DIR: The directory for the Python virtual environment.
+#   PYTHON_PATH: The path to the Python interpreter in the virtual environment.
+# 
+# Usage:
+#   Run this script to update the fonts. For example:
+#     ./update_fonts.sh
+# 
+# Note:
+#   This script sources a script called init.sh, which should be in the same directory.
+
 set -e
 
 # Initialization
@@ -26,19 +47,21 @@ setup_venv() {
 }
 
 install_requirements() {
-    "$PYTHON_PATH" -m pip install -r "$(dirname "$0")/requirements.txt"
+    "$PYTHON_PATH" -m pip install -r "$DOTFILES_DIR/requirements.txt"
 }
 
 fetch_fonts() {
-    "$PYTHON_PATH" "$(dirname "$0")/scripts/fetch_fonts.py"
+    "$PYTHON_PATH" "$DOTFILES_SCRIPTS_DIR/fetch_fonts.py"
 }
 
 log_info "Starting fonts update..."
 
 # Check for necessary dependencies
 log_info "Checking for necessary dependencies..."
-check_dependency "python3"
-check_dependency "pip"
+for dep in "python3" "pip"
+do
+    check_dependency "$dep"
+done
 
 # Set up Python virtual environment and install requirements
 log_info "Setting up Python virtual environment and installing requirements..."
@@ -52,4 +75,4 @@ install_requirements
 log_info "Fetching fonts..."
 fetch_fonts
 
-log_success "Fonts updated successfully!"
+log_success "Fonts update complete."
