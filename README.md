@@ -30,6 +30,9 @@ You should have the following software installed for the main script:
 | [npm](https://www.npmjs.com/)                         | Node.js package manager.      | `sudo pacman -S npm`              | Neovim plugins  |
 | [jq](https://stedolan.github.io/jq/)                  | Command-line JSON processor.  | `sudo pacman -S jq`               | Scripting       |
 | [ps](https://man7.org/linux/man-pages/man1/ps.1.html) | Process status.               | `sudo pacman -S procps-ng`        | Shell detection |
+| [Python3](https://www.python.org/)                    | Python programming language.  | `sudo pacman -S python`           | Scripting       |
+| [pip](https://pip.pypa.io/en/stable/)                 | Python package installer.     | `sudo pacman -S python-pip`       | Scripting       |
+| [venv](https://docs.python.org/3/library/venv.html)   | Python virtual environment.   | Included with Python3             | Scripting       |
 | [make](https://www.gnu.org/software/make/)            | Build automation tool.        | `sudo pacman -S make`             | Optional        |
 
 ### Font Scraping Script (Optional)
@@ -66,8 +69,8 @@ Please note that the script is designed to work with recent versions of these op
 | [`.config/nvim`](.config/nvim)       | This directory contains configuration files for Neovim.               |
 | [`install.sh`](install.sh)           | This script installs the dotfiles on your system.                     |
 | [`update_fonts.sh`](update_fonts.sh) | This script updates the fonts.json file.                              |
-| [`fonts.json`](fonts.json)           | This file contains a list of available fonts.                         |
-| [`config.json`](config.json)         | This file contains configuration options for the installation script. |
+| [`fonts.json`](config/fonts.json)    | This file contains a list of available fonts.                         |
+| [`config.json`](config/config.json)  | This file contains configuration options for the installation script. |
 
 ## Installation
 
@@ -89,14 +92,12 @@ The script performs the following steps:
 
 1. Check and install `zsh` and `oh-my-zsh`.
 2. Create symbolic links for files from the repository to the home directory.
-3. Determine the current shell (exit if not `bash` or `zsh`).
-4. Identify the package manager and install packages.
-5. Clone `oh-my-zsh` plugins and theme.
+3. Identify the package manager, update package lists and install packages.
+4. Clone `oh-my-zsh` plugins and theme.
+5. Clone and install `tmux` plugins.
 6. Install `oh-my-zsh` theme.
 7. Install fonts.
-8. Source `.zshrc` file.
-9. Parse `config.json` for Neovim configuration and apply it.
-10. Install and configure `Neovim`.
+8. Install and configure `Neovim`.
 
 You can customize the installation using the following command-line options:
 
