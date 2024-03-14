@@ -7,6 +7,10 @@ source "init.sh"
 
 log_info "Starting dotfiles installation..."
 
+# *******************
+# ** Configuration **
+# *******************
+
 # Paths
 ZSHRC="$HOME/.zshrc"
 TMUX_CONF="$HOME/.tmux.conf"
@@ -17,8 +21,43 @@ CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Configuration file
-CONFIG_FILE="$REPO_DIR/config.json"
-FONT_FILE="$REPO_DIR/fonts.json"]
+CONFIG_DIR="$REPO_DIR/config"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+FONT_FILE="$CONFIG_DIR/fonts.json"
+
+# This function parses a JSON object and stores the keys and values in separate arrays.
+# It takes three arguments:
+#   - A JSON key
+#   - The name of the array to store the keys
+#   - The name of the array to store the values
+parse_json_object() {
+    # Store the arguments in local variables
+    local json_key="$1"
+    local keys_array_name="$2"
+    local values_array_name="$3"
+
+    # Initialize arrays to hold the keys and values
+    local keys=()
+    local values=()
+
+    # Extract the JSON object associated with the key from the global json_data variable
+    local json_object
+    json_object=$(jq -r ".$json_key" "$CONFIG_FILE")
+
+    # Loop over the keys in the JSON object
+    while IFS=$'\n' read -r key; do
+        # Add the key to the keys array
+        keys+=("$key")
+        # Use jq to extract the value corresponding to the key from the JSON object
+        # Add the value to the values array
+        values+=("$(jq -r ".\"$key\"" <<< "$json_object")")
+    done < <(jq -r 'keys[]' <<< "$json_object")  # Use jq to extract the keys from the JSON object
+
+    # Use eval to assign the keys and values to the arrays specified by keys_array_name and values_array_name
+    # The \${keys[@]} and \${values[@]} syntaxes are used to expand the arrays into a list of quoted elements
+    eval "$keys_array_name=(\"\${keys[@]}\")"
+    eval "$values_array_name=(\"\${values[@]}\")"
+}
 
 # Options
 TERM_COLOR="$(jq -r '.term_color' "$CONFIG_FILE")"
@@ -43,50 +82,30 @@ fi
 FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20"
 
 # Package managers
-# Parse the pkg_managers object from the config.json file
-pkg_managers=$(jq -r '.pkg_managers' "$CONFIG_FILE")
 pkg_managers_keys=()
 pkg_managers_values=()
-while IFS=$'\n' read -r key; do
-    pkg_managers_keys+=("$key")
-    pkg_managers_values+=("$(jq -r ".pkg_managers.\"$key\"" "$CONFIG_FILE")")
-done < <(jq -r 'keys[]' <<< "$pkg_managers")
+parse_json_object 'pkg_managers' pkg_managers_keys pkg_managers_values
 
 # Relative paths
-relative_paths=()
-while IFS= read -r line; do
-    relative_paths+=("$line")
-done < <(jq -r '.relative_paths[]' "$CONFIG_FILE")
+relative_paths=("$(jq -r '.relative_paths[]' "$CONFIG_FILE")")
 
 # Plugins, common packages, distro-specific packages
-plugins=$(jq -r '.plugins' "$CONFIG_FILE")
-plugins_keys=()
 plugins_values=()
-while IFS=$'\n' read -r key; do
-    plugins_keys+=("$key")
-    plugins_values+=("$(jq -r ".plugins.\"$key\"" "$CONFIG_FILE")")
-done < <(jq -r 'keys[]' <<< "$plugins")
+plugins_keys=()
+parse_json_object 'plugins' plugins_keys plugins_values
 
 # Tmux plugins
-tmux_plugins=$(jq -r '.tmux_plugins' "$CONFIG_FILE")
 tmux_plugins_keys=()
 tmux_plugins_values=()
-while IFS=$'\n' read -r key; do
-    tmux_plugins_keys+=("$key")
-    tmux_plugins_values+=("$(jq -r ".tmux_plugins.\"$key\"" "$CONFIG_FILE")")
-done < <(jq -r 'keys[]' <<< "$tmux_plugins")
+parse_json_object 'tmux_plugins' tmux_plugins_keys tmux_plugins_values
 
 # Parse the common_packages array from the config.json file into a space-separated string
 common_packages=$(jq -r '.common_packages[]' "$CONFIG_FILE" | tr '\n' ' ')
 
 # Parse the distro_packages object from the config.json file
-distro_packages=$(jq -r '.distro_packages' "$CONFIG_FILE")
 distro_packages_keys=()
 distro_packages_values=()
-while IFS=$'\n' read -r key; do
-    distro_packages_keys+=("$key")
-    distro_packages_values+=("$(jq -r ".distro_packages.\"$key\"" "$CONFIG_FILE")")
-done < <(jq -r 'keys[]' <<< "$distro_packages")
+parse_json_object 'distro_packages' distro_packages_keys distro_packages_values
 
 # Load the fonts dictionary from the fonts.json file
 font_names=()
@@ -95,6 +114,11 @@ while IFS=":" read -r key value; do
     font_names+=("$key")
     font_urls+=("$value")
 done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$FONT_FILE")
+
+
+# ****************************
+# ** Argument parsing logic **
+# ****************************
 
 # Check if the --it or --interactive argument was provided
 if [[ $1 == "--it" || $1 == "--interactive" ]]; then
@@ -200,7 +224,10 @@ else
     done
 fi
 
-# if debug is true
+# ***********************
+# ** Debug information **
+# ***********************
+
 if [[ "$CI" == "true" ]]; then
     log_info "
     Paths:
@@ -223,14 +250,17 @@ if [[ "$CI" == "true" ]]; then
 
     Package managers:
         pkg_managers_keys: ${pkg_managers_keys[*]}
+        pkg_managers_values: ${pkg_managers_values[*]}
 
     Relative paths: ${relative_paths[*]}
 
     Plugins:
         plugins_keys: ${plugins_keys[*]}
+        plugins_values: ${plugins_values[*]}
 
     Tmux plugins:
         tmux_plugins_keys: ${tmux_plugins_keys[*]}
+        tmux_plugins_values: ${tmux_plugins_values[*]}
 
     Terminal color: $TERM_COLOR
 
@@ -238,6 +268,7 @@ if [[ "$CI" == "true" ]]; then
 
     Distro packages:
         distro_packages_keys: ${distro_packages_keys[*]}
+        distro_packages_values: ${distro_packages_values[*]}
     "
 fi
 
@@ -624,6 +655,26 @@ create_symlink() {
 install_fonts() {
     log_info "Installing ${FONT_NAME} fonts..."
 
+    # Determine the OS and set the font directory accordingly
+    case "$(uname)" in
+    *nix | *ux)
+        font_dir=~/.fonts
+        ;;
+    Darwin)
+        font_dir=~/Library/Fonts
+        ;;
+    *)
+        log_error "Unsupported OS for font installation"
+        exit 1
+        ;;
+    esac
+
+    # Check if the fonts are already installed
+    if [[ -d "$font_dir" && -n "$(ls -A "$font_dir")" ]]; then
+        log_info "${FONT_NAME} fonts are already installed."
+        return
+    fi
+
     # Create a temporary directory
     tmp_dir=$(mktemp -d)
 
@@ -650,34 +701,16 @@ install_fonts() {
         font_files=("$tmp_dir"/*.ttf)
     fi
 
-    # Determine the OS and move the font files to the correct directory
-    case "$(uname)" in
-    *nix | *ux)
-        # Create the ~/.fonts directory if it doesn't exist
-        mkdir -p ~/.fonts
+    # Create the font directory if it doesn't exist
+    mkdir -p "$font_dir"
 
-        # Move the font files to the correct directory
-        for font_file in "${font_files[@]}"; do
-            mv "$font_file" ~/.fonts/
-        done
+    # Move the font files to the correct directory
+    for font_file in "${font_files[@]}"; do
+        mv "$font_file" "$font_dir"
+    done
 
-        # Update the font cache
-        fc-cache -fv
-        ;;
-    Darwin)
-        # Create the ~/Library/Fonts directory if it doesn't exist
-        mkdir -p ~/Library/Fonts
-
-        # Move the font files to the correct directory
-        for font_file in "${font_files[@]}"; do
-            mv "$font_file" ~/Library/Fonts/
-        done
-        ;;
-    *)
-        log_error "Unsupported OS for font installation"
-        exit 1
-        ;;
-    esac
+    # Update the font cache for Linux
+    [[ "$(uname)" == *nix || "$(uname)" == *ux ]] && fc-cache -fv
 
     # Remove the temporary directory
     rm -r "$tmp_dir"
@@ -685,83 +718,88 @@ install_fonts() {
     log_success "${FONT_NAME} fonts installed successfully!"
 }
 
+# *******************************
+# ** Install zsh and oh-my-zsh **
+# *******************************
 
+install_zsh_and_oh_my_zsh() {
+    # Check if zsh is installed
+    ZSH_INSTALLED=false
+    OH_MY_ZSH_INSTALLED=false
+    OH_MY_ZSH_DIR="$HOME"/.oh-my-zsh
+    log_info "Checking if zsh is installed..."
+    if [ -n "$(command -v zsh)" ]; then
+        echo "zsh is installed"
+        ZSH_INSTALLED=true
 
-# ******************
-# ** Main Section **
-# ******************
+        # Check if oh-my-zsh.sh is present
+        if [ ! -f "$OH_MY_ZSH_DIR"/oh-my-zsh.sh ]; then
+            # Backup existing oh-my-zsh installation if it exists
+            if [ -d "$OH_MY_ZSH_DIR" ]; then
+                echo "Backing up existing oh-my-zsh installation..."
+                mv "$OH_MY_ZSH_DIR" "$OH_MY_ZSH_DIR".bak
+            fi
 
-# Check if zsh is installed
-ZSH_INSTALLED=false
-OH_MY_ZSH_INSTALLED=false
-OH_MY_ZSH_DIR="$HOME"/.oh-my-zsh
-log_info "Checking if zsh is installed..."
-if [ -n "$(command -v zsh)" ]; then
-    echo "zsh is installed"
-    ZSH_INSTALLED=true
-
-    # Check if oh-my-zsh.sh is present
-    if [ ! -f "$OH_MY_ZSH_DIR"/oh-my-zsh.sh ]; then
-        # Backup existing oh-my-zsh installation if it exists
-        if [ -d "$OH_MY_ZSH_DIR" ]; then
-            echo "Backing up existing oh-my-zsh installation..."
-            mv "$OH_MY_ZSH_DIR" "$OH_MY_ZSH_DIR".bak
+            # Install oh-my-zsh
+            echo "Installing oh-my-zsh..."
+            sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+            OH_MY_ZSH_INSTALLED=true
+        else
+            echo "oh-my-zsh is already installed"
+            OH_MY_ZSH_INSTALLED=true
         fi
-
-        # Install oh-my-zsh
-        echo "Installing oh-my-zsh..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        OH_MY_ZSH_INSTALLED=true
-    else
-        echo "oh-my-zsh is already installed"
-        OH_MY_ZSH_INSTALLED=true
     fi
-fi
 
-# If either zsh or oh-my-zsh are not installed, exit the script
-if [ "$ZSH_INSTALLED" = false ] || [ "$OH_MY_ZSH_INSTALLED" = false ]; then
-    log_error "Either zsh or oh-my-zsh is not installed, cannot source .zshrc file"
-    exit 1
-fi
+    # If either zsh or oh-my-zsh are not installed, exit the script
+    if [ "$ZSH_INSTALLED" = false ] || [ "$OH_MY_ZSH_INSTALLED" = false ]; then
+        log_error "Either zsh or oh-my-zsh is not installed, cannot source .zshrc file"
+        exit 1
+    fi
+}
 
-# Create symlinks for all files in the relative_paths array
-for relative_path in "${relative_paths[@]}"; do
-    src="${REPO_DIR}/${relative_path}"
-    target="$HOME/$relative_path"
-    create_symlink "$src" "$target"
-done
+# *********************
+# ** Create symlinks **
+# *********************
 
-# Get the current shell
-log_info "Detecting current shell..."
-if command -v ps >/dev/null 2>&1; then
-    CURRENT_SHELL=$(basename "$(ps -p $PPID -ocomm=)") # Get the parent process name
-else
-    CURRENT_SHELL=$(basename "$0")
-fi
-echo "Detected shell: $CURRENT_SHELL"
-
-# Check for package manager and install packages
-PKG_MANAGER=""
-log_info "Detecting package manager..."
-case $CURRENT_SHELL in
-  zsh|bash)
-    for index in "${!pkg_managers_keys[@]}"; do
-        pm="${pkg_managers_keys[$index]}"
-        if command -v "$pm" >/dev/null 2>&1; then
-            echo "Detected package manager: $pm"
-            PKG_MANAGER=$pm
-            install_packages "$PKG_MANAGER" "$CURRENT_SHELL"
-            break
-        fi
+create_symlinks() {
+    # Create symlinks for all files in the relative_paths array
+    for relative_path in "${relative_paths[@]}"; do
+        src="${REPO_DIR}/${relative_path}"
+        target="$HOME/$relative_path"
+        create_symlink "$src" "$target"
     done
+}
+
+# *********************************
+# ** Detect and install packages **
+# *********************************
+
+PKG_MANAGER=""
+detect_and_install_packages() {
+    # Check for package manager and install packages
+    log_info "Detecting package manager..."
+        for index in "${!pkg_managers_keys[@]}"; do
+            pm="${pkg_managers_keys[$index]}"
+            if command -v "$pm" >/dev/null 2>&1; then
+                echo "Detected package manager: $pm"
+                PKG_MANAGER=$pm
+                install_packages "$PKG_MANAGER"
+                break
+            fi
+        done
 
     # Check if a package manager was found
     if [ -z "$PKG_MANAGER" ]; then
         log_error "No package manager found"
         exit 1
     fi
+}
 
-    # Clone plugins and theme
+# ***************************************
+# ** Clone oh-my-zsh plugins and theme **
+# ***************************************
+
+clone_plugins_and_themes() {
     log_info "Cloning oh-my-zsh plugins and theme..."
     for index in "${!plugins_keys[@]}"; do
         plugin="${plugins_keys[$index]}"
@@ -777,8 +815,13 @@ case $CURRENT_SHELL in
             git clone --depth=1 "$url" "$dir" # Clone the repository
         fi
     done
+}
 
-    # Clone tmux plugins
+# ************************ 
+# ** Clone tmux plugins **
+# ************************
+
+clone_tmux_plugins() {
     log_info "Cloning tmux plugins..."
     for index in "${!tmux_plugins_keys[@]}"; do
         plugin="${tmux_plugins_keys[$index]}"
@@ -794,7 +837,13 @@ case $CURRENT_SHELL in
             git clone --depth=1 "$url" "$dir" # Clone the repository
         fi
     done
+}
 
+# **************************
+# ** Install tmux plugins **
+# **************************
+
+install_tmux_plugins() {
     # Ensure tpm is installed
     TPM_DIR="$HOME/.tmux/plugins/tpm"
     if [ ! -d "$TPM_DIR" ]; then
@@ -817,70 +866,108 @@ case $CURRENT_SHELL in
         log_error "Failed to create new tmux session"
     fi
     append_env_variable_to_zshrc "TERM" "$TERM_COLOR"
+}
 
-    ;;
-    *)
-    log_error "Unsupported shell for package installation ($CURRENT_SHELL)"
-    exit 1
-    ;;
-esac
+# **********************
+# ** Configure Docker **
+# **********************
 
-# Docker specific configuration
-if [ -f /.dockerenv ]; then
-    log_info "Docker detected. Configuring environment for Docker..."
-    # Set the language environment variables
-    append_env_variable_to_zshrc "LANG" "C.UTF-8"
-    append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
-    
-    # Generate locale
-    log_info "Generating locale..."
-    if type locale-gen &>/dev/null; then
-        echo "Running locale-gen..."
-        echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
-        run_sudo_cmd "locale-gen"
-    elif type localedef &>/dev/null; then
-        echo "Running localedef..."
-        run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
-        run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
-    elif [ "$(uname)" == "Darwin" ]; then
-        echo "Running defaults write..."
-        defaults write -g AppleLocale -string "en_US"
-    else
-        log_error "No supported method for generating locale found"
-        exit 1
+configure_docker() {
+    # Docker specific configuration
+    if [ -f /.dockerenv ]; then
+        log_info "Docker detected. Configuring environment for Docker..."
+        # Set the language environment variables
+        append_env_variable_to_zshrc "LANG" "C.UTF-8"
+        append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
+        
+        # Generate locale
+        log_info "Generating locale..."
+        if type locale-gen &>/dev/null; then
+            echo "Running locale-gen..."
+            echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
+            run_sudo_cmd "locale-gen"
+        elif type localedef &>/dev/null; then
+            echo "Running localedef..."
+            run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
+            run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
+        elif [ "$(uname)" == "Darwin" ]; then
+            echo "Running defaults write..."
+            defaults write -g AppleLocale -string "en_US"
+        else
+            log_error "No supported method for generating locale found"
+            exit 1
+        fi
     fi
-fi
+}
 
-# Install oh-my-zsh theme
-if command -v basename &> /dev/null
-then
-    OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
-else
-    # Use parameter expansion as a fallback
-    OH_MY_ZSH_THEME_NAME=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
-fi
+# *****************************
+# ** Install oh-my-zsh theme **
+# *****************************
 
-if [ -z "$OH_MY_ZSH_THEME_NAME" ]; then
-    log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
-    exit 1
-elif [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-    log_info "Installing $OH_MY_ZSH_THEME_NAME theme..."
-    git clone --depth=1 https://github.com/"$OH_MY_ZSH_CUSTOM_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
-else
-    log_info "$OH_MY_ZSH_THEME_NAME theme is already installed"
-fi
+install_oh_my_zsh_theme() {
+    if command -v basename &> /dev/null
+    then
+        OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
+    else
+        # Use parameter expansion as a fallback
+        OH_MY_ZSH_THEME_NAME=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
+    fi
 
-# Install fonts
-install_fonts
+    if [ -z "$OH_MY_ZSH_THEME_NAME" ]; then
+        log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
+        exit 1
+    elif [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
+        log_info "Installing $OH_MY_ZSH_THEME_NAME theme..."
+        git clone --depth=1 https://github.com/"$OH_MY_ZSH_CUSTOM_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
+    else
+        log_info "$OH_MY_ZSH_THEME_NAME theme is already installed"
+    fi
+}
 
-# Source .zshrc file to apply the changes
-source_zshrc
+# **********
+# ** Main **
+# **********
 
-# Install Neovim
-install_neovim "$PKG_MANAGER"
+main() {
+    # Install zsh and oh-my-zsh
+    install_zsh_and_oh_my_zsh
 
-# Configure Neovim
-configure_neovim "$PKG_MANAGER"
+    # Create symlinks
+    create_symlinks
 
-# Finish
-log_success "Dotfiles installation complete!"
+    # Detect and install packages
+    detect_and_install_packages
+
+    # Clone plugins and themes
+    clone_plugins_and_themes
+
+    # Clone tmux plugins
+    clone_tmux_plugins
+
+    # Install tmux plugins
+    install_tmux_plugins
+
+    # Docker specific configuration
+    configure_docker
+
+    # Install oh-my-zsh theme
+    install_oh_my_zsh_theme
+
+    # Install fonts
+    install_fonts
+
+    # Source .zshrc file to apply the changes
+    source_zshrc
+
+    # Install Neovim
+    install_neovim "$PKG_MANAGER"
+
+    # Configure Neovim
+    configure_neovim "$PKG_MANAGER"
+
+    # Finish
+    log_success "Dotfiles installation complete!"
+}
+
+# Run the main script
+main
