@@ -18,10 +18,7 @@ jobs:
                         'archlinux:latest',
                     ]
                 include:
-                    - image: 'debian:latest'
-                      venv: true
                     - image: 'archlinux:latest'
-                      venv: true
                       coverage: true # only generate coverage on archlinux
         container:
             image: ${{ matrix.image }}
@@ -47,11 +44,8 @@ jobs:
                           ;;
                   esac
                   # Install Python dependencies
-                  if [[ "${{ matrix.venv }}" == "true" ]]; then
-                    python3 -m venv venv
-                    source venv/bin/activate
-                  fi
                   python3 -m pip install -r requirements.txt
+                  python3 -m pip install coverage
 
             - name: Run Install Script
               shell: bash
@@ -62,18 +56,12 @@ jobs:
             - name: Run Tests
               shell: bash
               run: |
-                  if [[ "${{ matrix.venv }}" == "true" ]]; then
-                    source venv/bin/activate
-                  fi
                   make test
 
             - name: Generate coverage report
               if: ${{ matrix.coverage }}
               shell: bash
               run: |
-                  if [[ "${{ matrix.venv }}" == "true" ]]; then
-                    source venv/bin/activate
-                  fi
                   make coverage
                   make coverage-report COVERAGE_REPORT_FORMAT=xml
 
