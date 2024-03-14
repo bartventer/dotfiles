@@ -67,13 +67,12 @@ jobs:
 
             - name: Upload coverage to Codecov
               if: ${{ matrix.coverage }}
-              uses: codecov/codecov-action@v4
+              uses: codecov/codecov-action@v3
               with:
                   file: ./coverage.xml
                   token: ${{ secrets.CODECOV_TOKEN }}
                   fail_ci_if_error: true
                   slug: bartventer/dotfiles
-                  working-directory: ${{ github.workspace }}
 
     test-macos:
         runs-on: macos-latest
