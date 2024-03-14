@@ -16,7 +16,10 @@ jobs:
                         'archlinux:latest',
                     ]
                 include:
+                    - image: 'debian:latest'
+                      venv: true
                     - image: 'archlinux:latest'
+                      venv: true
                       coverage: true # only generate coverage on archlinux
         container:
             image: ${{ matrix.image }}
@@ -41,7 +44,11 @@ jobs:
                           ;;
                   esac
                   # Install Python dependencies
-                  make setup-venv
+                  if ${{ matrix.venv }}; then
+                    make setup-venv
+                    make activate-venv
+                  fi
+                  make install-requirements
 
             - name: Run Install Script
               shell: bash
@@ -51,11 +58,18 @@ jobs:
 
             - name: Run Tests
               run: |
+                  if ${{ matrix.venv }}; then
+                    make activate-venv
+                  fi
                   make test
 
             - name: Generate coverage report
               if: ${{ matrix.coverage }}
               run: |
+                  if ${{ matrix.venv }}; then
+                    make activate-venv
+                  fi
+                  make coverage
                   make coverage-report COVERAGE_REPORT_FORMAT=xml
 
             - name: Upload coverage to Codecov
@@ -93,7 +107,7 @@ jobs:
                   brew update
                   brew install zsh make
                   # Install Python dependencies
-                  make setup-venv
+                  make install-requirements
 
             - name: Run Install Script
               shell: bash
