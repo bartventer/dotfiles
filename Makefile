@@ -26,10 +26,11 @@ TMUX_RUNSHELL_FLAGS="$(TMUX_PLUGIN_MANAGER_BIN)"
 
 # Python
 VENV=venv
+VENV_ACTIVATE_SCRIPT=$(VENV)/bin/activate
 ifeq ($(CI),true)
     VENV_ACTIVATE= # In CI, by default we don't activate the virtual environment
 else
-    VENV_ACTIVATE=. $(VENV)/bin/activate;
+    VENV_ACTIVATE=. $(VENV_ACTIVATE_SCRIPT);
 endif
 COVERAGE_REPORT_FORMAT ?= html  # Default to HTML coverage report
 UNITTEST_DISCOVER=unittest discover
@@ -120,7 +121,7 @@ setup-venv: ## Set up the python virtual environment
 .PHONY: activate-venv
 activate-venv: ## Activate the python virtual environment
 	@echo "Activating virtual environment..."
-	@$(VENV_ACTIVATE)
+	@$(VENV_ACTIVATE_SCRIPT)
 
 .PHONY: install-requirements
 install-requirements: ## Install pip requirements
