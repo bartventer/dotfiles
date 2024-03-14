@@ -93,7 +93,7 @@ jobs:
                   brew update
                   brew install zsh make
                   # Install Python dependencies
-                  pip3 install -r requirements.txt
+                  make setup-venv
 
             - name: Run Install Script
               shell: bash
