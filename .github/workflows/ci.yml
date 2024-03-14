@@ -10,13 +10,13 @@ jobs:
             matrix:
                 image:
                     [
-                        debian:latest,
-                        ubuntu:latest,
-                        fedora:latest,
-                        archlinux:latest,
+                        'debian:latest',
+                        'ubuntu:latest',
+                        'fedora:latest',
+                        'archlinux:latest',
                     ]
                 include:
-                    - image: archlinux:latest
+                    - image: 'archlinux:latest'
                       coverage: true # only generate coverage on archlinux
         container:
             image: ${{ matrix.image }}
