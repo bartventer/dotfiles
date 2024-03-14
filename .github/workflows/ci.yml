@@ -113,7 +113,7 @@ jobs:
     semantic-release:
         name: Release
         if: ${{ !github.event.act }} # skip during local actions testing
-        needs: [test-linux, test-macos]
+        needs: [coverage]
         runs-on: ubuntu-latest
         permissions:
             contents: write
