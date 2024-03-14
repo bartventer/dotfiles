@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Initialization
 # shellcheck disable=SC1091
 source "init.sh"
