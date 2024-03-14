@@ -73,6 +73,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   fail_ci_if_error: true
                   slug: bartventer/dotfiles
+                  root_dir: ${{ github.workspace }}
 
     test-macos:
         runs-on: macos-latest
