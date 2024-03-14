@@ -1,3 +1,22 @@
+# [3.8.0](https://github.com/bartventer/dotfiles/compare/v3.7.1...v3.8.0) (2024-03-14)
+
+
+### Bug Fixes
+
+* Correctly populate relative_paths array ([11877cf](https://github.com/bartventer/dotfiles/commit/11877cfecdbaac22b639d3e1b0aec5d3c147e33b))
+
+
+### Features
+
+* **CI:** optimize coverage generation and reporting ([c3afa32](https://github.com/bartventer/dotfiles/commit/c3afa32208a92327ca1d6edd8d9b6265cf2aaf8b))
+* **CI:** update matrix for `coverage` inclusion ([b552ace](https://github.com/bartventer/dotfiles/commit/b552ace3f83893c0dbf9abe57620d21d6d576611))
+* **config:** organization configuration files ([312f3eb](https://github.com/bartventer/dotfiles/commit/312f3eb5cf17dd99ee9a4257ea35a7e307584da6))
+* **env_setup.py:** add script to initialize environment variables ([027518a](https://github.com/bartventer/dotfiles/commit/027518ad7e096160209d5bfa85a304c983b95bb0))
+* **fetch_fonts.py:** refactor font fetching script and add unit tests ([4f1f262](https://github.com/bartventer/dotfiles/commit/4f1f26271da74d0ad679400dd5122e0694bfefed))
+* **init.sh:** enforce script to exit on error ([f627216](https://github.com/bartventer/dotfiles/commit/f627216a3cbcfb9c52b931606da0553bd87b21f4))
+* **install.sh:** enhance config.json parsing ([137be5f](https://github.com/bartventer/dotfiles/commit/137be5fafae75843a4b6ade51928ed6459e5d572))
+* **update_fonts.sh:** enforce script to exit on error ([cfcfee4](https://github.com/bartventer/dotfiles/commit/cfcfee43eb5616b0dc694ddc72cd2ec3d0341da8))
+
 ## [3.7.1](https://github.com/bartventer/dotfiles/compare/v3.7.0...v3.7.1) (2024-03-13)
 
 
