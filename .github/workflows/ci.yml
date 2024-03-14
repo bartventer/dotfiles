@@ -44,7 +44,7 @@ jobs:
                           ;;
                   esac
                   # Install Python dependencies
-                  if ${{ matrix.venv }}; then
+                  if [[ "${{ matrix.venv }}" == "true" ]]; then
                     python3 -m venv venv
                     source venv/bin/activate
                   fi
@@ -58,7 +58,7 @@ jobs:
 
             - name: Run Tests
               run: |
-                  if ${{ matrix.venv }}; then
+                  if [[ "${{ matrix.venv }}" == "true" ]]; then
                     source venv/bin/activate
                   fi
                   make test
@@ -66,7 +66,7 @@ jobs:
             - name: Generate coverage report
               if: ${{ matrix.coverage }}
               run: |
-                  if ${{ matrix.venv }}; then
+                  if [[ "${{ matrix.venv }}" == "true" ]]; then
                     source venv/bin/activate
                   fi
                   make coverage
