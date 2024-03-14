@@ -3,6 +3,7 @@
 This repository contains my personal dotfiles for Unix-like systems. It includes configuration files for the Zsh shell, tmux, and Neovim.
 
 [![Release](https://img.shields.io/github/release/bartventer/dotfiles.svg)](https://github.com/bartventer/dotfiles/releases/latest)
+[![codecov](https://codecov.io/gh/bartventer/dotfiles/graph/badge.svg?token=qxQt1nkKcG)](https://codecov.io/gh/bartventer/dotfiles)
 [![License](https://img.shields.io/github/license/bartventer/dotfiles.svg)](LICENSE)
 [![Build](https://github.com/bartventer/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/bartventer/dotfiles/actions/workflows/ci.yml)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bartventer/dotfiles)
