@@ -105,7 +105,7 @@ endef
 .PHONY: setup-venv
 setup-venv: ## Create a virtual environment and install the requirements
 	if [ ! -d $(VENV) ]; then
-		python3 -m venv $(VENV) || $(call error_exit,"Failed to create virtual environment.")
+		python3 -m venv $(VENV)
 	fi
 	$(VENV_ACTIVATE) pip3 install -r requirements.txt
 
