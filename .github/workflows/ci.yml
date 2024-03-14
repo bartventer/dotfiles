@@ -16,7 +16,7 @@ jobs:
                         'archlinux:latest',
                     ]
                 include:
-                    - image: 'ubuntu:latest'
+                    - image: 'archlinux:latest'
                       coverage: true # only generate coverage on archlinux
         container:
             image: ${{ matrix.image }}
@@ -40,7 +40,12 @@ jobs:
                           pacman -Syu --noconfirm zsh curl make git gdb gcc nodejs npm jq python python-pip procps-ng go
                           ;;
                   esac
-                  # Install Python dependencies   
+                  # Install Python dependencies
+                  # Create a virtual environment for archlinux
+                  if [[ "${{ matrix.image }}" == archlinux* ]]; then
+                      python -m venv venv
+                      source venv/bin/activate
+                  fi
                   pip3 install -r requirements.txt
                   if [[ "${{ matrix.coverage }}" == "true" ]]; then
                       pip3 install coverage
