@@ -96,7 +96,9 @@ pkg_managers_values=()
 parse_json_object 'pkg_managers' pkg_managers_keys pkg_managers_values
 
 # Relative paths
-relative_paths=("$(jq -r '.relative_paths[]' "$CONFIG_FILE")")
+while IFS= read -r line; do
+    relative_paths+=("$line")
+done < <(jq -r '.relative_paths[]' "$CONFIG_FILE")
 
 # Plugins, common packages, distro-specific packages
 plugins_values=()
