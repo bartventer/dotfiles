@@ -25,15 +25,15 @@ TMUX_NEWSESSION_FLAGS=-d
 TMUX_RUNSHELL_FLAGS="$(TMUX_PLUGIN_MANAGER_BIN)"
 
 # Python
-ifeq ($(CI),true)
-    VENV_ACTIVATE= # In CI, we don't need to activate the virtual environment
-else
-    VENV_ACTIVATE=. venv/bin/activate; # Use this to activate the virtual environment
-endif
+VENV=venv
+VENV_ACTIVATE=. $(VENV)/bin/activate; # Use this to activate the virtual environment
+COVERAGE_REPORT_FORMAT ?= html  # Default to HTML coverage report
 UNITTEST_DISCOVER=unittest discover
+
+# Python commands
 PYTHON_TEST=$(VENV_ACTIVATE) python -m $(UNITTEST_DISCOVER)
 PYTHON_COVERAGE=$(VENV_ACTIVATE) coverage run --source=. -m $(UNITTEST_DISCOVER)
-PYTHON_COVERAGE_HTML=$(VENV_ACTIVATE) coverage html
+PYTHON_COVERAGE_REPORT=$(VENV_ACTIVATE) coverage $(COVERAGE_REPORT_FORMAT)
 
 # Python flags
 PYTHON_TEST_FLAGS=-s tests/
@@ -102,6 +102,13 @@ define act-test
 	fi
 endef
 
+.PHONY: setup-venv
+setup-venv: ## Create a virtual environment and install the requirements
+	if [ ! -d $(VENV) ]; then
+		python3 -m venv $(VENV) || $(call error_exit,"Failed to create virtual environment.")
+	fi
+	$(VENV_ACTIVATE) pip3 install -r requirements.txt
+
 .PHONY: test
 test: ## Run the tests
 	$(PYTHON_TEST) $(PYTHON_TEST_FLAGS)
@@ -110,9 +117,9 @@ test: ## Run the tests
 coverage: ## Run the tests with coverage
 	$(PYTHON_COVERAGE) $(PYTHON_COVERAGE_FLAGS)
 
-.PHONY: html-coverage
-html-coverage: ## Generate the HTML coverage report
-	$(PYTHON_COVERAGE_HTML)
+.PHONY: coverage-report
+coverage-report: ## Generate the coverage report (optional args: COVERAGE_REPORT_FORMAT=xml to generate XML report, defaults to html)
+	$(PYTHON_COVERAGE_REPORT)
 
 .PHONY: act-test-linux
 act-test-linux: ## Run the test-linux job with act (optional args: ACT_REDIRECT_OUTPUT=1 to redirect output to a file)
