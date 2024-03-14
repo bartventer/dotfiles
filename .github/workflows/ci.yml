@@ -18,6 +18,7 @@ jobs:
                 include:
                     - image: 'archlinux:latest'
                       coverage: true # only generate coverage on archlinux
+                      venv: true # create a virtual environment for archlinux
         container:
             image: ${{ matrix.image }}
 
@@ -42,7 +43,7 @@ jobs:
                   esac
                   # Install Python dependencies
                   # Create a virtual environment for archlinux
-                  if [[ "${{ matrix.image }}" == archlinux* ]]; then
+                  if [[ "${{ matrix.venv }}" == "true" ]]; then
                       python -m venv venv
                       source venv/bin/activate
                   fi
@@ -59,11 +60,17 @@ jobs:
 
             - name: Run Tests
               run: |
+                  if [[ "${{ matrix.venv }}" == "true" ]]; then
+                    source venv/bin/activate
+                  fi
                   make test
 
             - name: Generate coverage report
               if: ${{ matrix.coverage }}
               run: |
+                  if [[ "${{ matrix.venv }}" == "true" ]]; then
+                    source venv/bin/activate
+                  fi
                   make coverage
                   coverage xml
 
