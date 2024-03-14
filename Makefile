@@ -24,6 +24,21 @@ TMUX_PLUGIN_MANAGER_BIN=$(TMUX_PLUGIN_MANAGER_DIR)/bin/install_plugins
 TMUX_NEWSESSION_FLAGS=-d
 TMUX_RUNSHELL_FLAGS="$(TMUX_PLUGIN_MANAGER_BIN)"
 
+# Python
+ifeq ($(CI),true)
+    VENV_ACTIVATE= # In CI, we don't need to activate the virtual environment
+else
+    VENV_ACTIVATE=. venv/bin/activate; # Use this to activate the virtual environment
+endif
+UNITTEST_DISCOVER=unittest discover
+PYTHON_TEST=$(VENV_ACTIVATE) python -m $(UNITTEST_DISCOVER)
+PYTHON_COVERAGE=$(VENV_ACTIVATE) coverage run --source=. -m $(UNITTEST_DISCOVER)
+PYTHON_COVERAGE_HTML=$(VENV_ACTIVATE) coverage html
+
+# Python flags
+PYTHON_TEST_FLAGS=-s tests/
+PYTHON_COVERAGE_FLAGS=$(PYTHON_TEST_FLAGS)
+
 # ACT variables
 ACT=act
 ACT_JOB=$(ACT) -j
@@ -70,8 +85,8 @@ install-tmux-plugins: ## Install tmux plugins
 	fi
 
 update-fonts: $(DOTFILES_COMMON_DEPS) $(DOTFILES_UPDATE_FONTS_SCRIPT) requirements.txt ## Run the update_fonts.sh script
-	chmod +x $(DOTFILES_UPDATE_FONTS_SCRIPT) || $(call error_exit,"Failed to make $(DOTFILES_UPDATE_FONTS_SCRIPT) executable")
-	./$(DOTFILES_UPDATE_FONTS_SCRIPT) || $(call error_exit,"Failed to run $(DOTFILES_UPDATE_FONTS_SCRIPT)")
+	chmod -f +x $(DOTFILES_UPDATE_FONTS_SCRIPT)
+	./$(DOTFILES_UPDATE_FONTS_SCRIPT)
 
 # Run the specified test job with act and save the output to a file
 define act-test
@@ -87,6 +102,18 @@ define act-test
 	fi
 endef
 
+.PHONY: test
+test: ## Run the tests
+	$(PYTHON_TEST) $(PYTHON_TEST_FLAGS)
+
+.PHONY: coverage
+coverage: ## Run the tests with coverage
+	$(PYTHON_COVERAGE) $(PYTHON_COVERAGE_FLAGS)
+
+.PHONY: html-coverage
+html-coverage: ## Generate the HTML coverage report
+	$(PYTHON_COVERAGE_HTML)
+
 .PHONY: act-test-linux
 act-test-linux: ## Run the test-linux job with act (optional args: ACT_REDIRECT_OUTPUT=1 to redirect output to a file)
 	$(call act-test,linux,$(ACT_FLAGS_LINUX))
@@ -96,8 +123,8 @@ act-test-macos: ## Run the test-macos job with act (optional args: ACT_REDIRECT_
 	$(call act-test,macos,$(ACT_FLAGS_MACOS))
 
 .PHONY: clean
-clean: ## Clean up the act output directory
-	rm -rf $(ACT_OUTPUT_DIR)/*.txt $(ACT_OUTPUT_DIR)
+clean: ## Clean up the act output directory and any Python cache
+	rm -rf $(ACT_OUTPUT_DIR)/*.txt $(ACT_OUTPUT_DIR) __pycache__ */__pycache__ */*/__pycache__ .coverage htmlcov
 
 .PHONY: act-list-tests
 act-list-tests: ## List available test jobs

@@ -42,6 +42,9 @@ jobs:
                   chmod +x install.sh
                   ./install.sh
 
+            - name: Run Tests
+              run: make test
+
     test-macos:
         runs-on: macos-latest
         name: Test on macOS
@@ -75,6 +78,37 @@ jobs:
               run: |
                   chmod +x install.sh
                   ./install.sh
+
+            - name: Run Tests
+              run: make test
+
+    coverage:
+        needs: [test-linux, test-macos]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.x'
+
+            - name: Install dependencies
+              run: |
+                  pip install -r requirements.txt
+                  pip install coverage
+
+            - name: Generate coverage report
+              run: |
+                  make coverage
+                  coverage xml
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                  file: ./coverage.xml
+                  fail_ci_if_error: true
 
     semantic-release:
         name: Release
