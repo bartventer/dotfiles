@@ -16,7 +16,7 @@ jobs:
                         'archlinux:latest',
                     ]
                 include:
-                    - image: 'archlinux:latest'
+                    - image: 'ubuntu:latest'
                       coverage: true # only generate coverage on archlinux
         container:
             image: ${{ matrix.image }}
