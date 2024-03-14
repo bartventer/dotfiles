@@ -45,10 +45,10 @@ jobs:
                   esac
                   # Install Python dependencies
                   if ${{ matrix.venv }}; then
-                    make setup-venv
-                    make activate-venv
+                    python3 -m venv venv
+                    source venv/bin/activate
                   fi
-                  make install-requirements
+                  pip3 install -r requirements.txt
 
             - name: Run Install Script
               shell: bash
@@ -59,7 +59,7 @@ jobs:
             - name: Run Tests
               run: |
                   if ${{ matrix.venv }}; then
-                    make activate-venv
+                    source venv/bin/activate
                   fi
                   make test
 
@@ -67,7 +67,7 @@ jobs:
               if: ${{ matrix.coverage }}
               run: |
                   if ${{ matrix.venv }}; then
-                    make activate-venv
+                    source venv/bin/activate
                   fi
                   make coverage
                   make coverage-report COVERAGE_REPORT_FORMAT=xml
@@ -107,7 +107,7 @@ jobs:
                   brew update
                   brew install zsh make
                   # Install Python dependencies
-                  make install-requirements
+                  pip install -r requirements.txt
 
             - name: Run Install Script
               shell: bash

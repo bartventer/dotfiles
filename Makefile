@@ -26,11 +26,10 @@ TMUX_RUNSHELL_FLAGS="$(TMUX_PLUGIN_MANAGER_BIN)"
 
 # Python
 VENV=venv
-VENV_ACTIVATE_SCRIPT=$(VENV)/bin/activate
 ifeq ($(CI),true)
     VENV_ACTIVATE= # In CI, by default we don't activate the virtual environment
 else
-    VENV_ACTIVATE=. $(VENV_ACTIVATE_SCRIPT);
+    VENV_ACTIVATE=. $(VENV)/bin/activate;
 endif
 COVERAGE_REPORT_FORMAT ?= html  # Default to HTML coverage report
 UNITTEST_DISCOVER=unittest discover
@@ -39,13 +38,10 @@ UNITTEST_DISCOVER=unittest discover
 PYTHON_TEST=$(VENV_ACTIVATE) python -m $(UNITTEST_DISCOVER)
 PYTHON_COVERAGE=$(VENV_ACTIVATE) coverage run --source=. -m $(UNITTEST_DISCOVER)
 PYTHON_COVERAGE_REPORT=$(VENV_ACTIVATE) coverage $(COVERAGE_REPORT_FORMAT)
-PYTHON_INSTALL=$(VENV_ACTIVATE) pip3 install
-PYTHON_VENVSETUP=python3 -m venv $(VENV)
 
 # Python flags
 PYTHON_TEST_FLAGS=-s tests/
 PYTHON_COVERAGE_FLAGS=$(PYTHON_TEST_FLAGS)
-PYTHON_INSTALL_FLAGS=-r requirements.txt
 
 # ACT variables
 ACT=act
@@ -109,24 +105,6 @@ define act-test
 		$(ACT_JOB) $(ACT_JOB_ID_PREFIX)$(1) $(2)
 	fi
 endef
-
-.PHONY: setup-venv
-setup-venv: ## Set up the python virtual environment
-	@echo "Setting up virtual environment..."
-	if [ ! -d "$(VENV)" ]; then
-		$(PYTHON_VENVSETUP)
-	fi
-	@$(VENV_ACTIVATE)
-
-.PHONY: activate-venv
-activate-venv: ## Activate the python virtual environment
-	@echo "Activating virtual environment..."
-	@source $(VENV_ACTIVATE_SCRIPT)
-
-.PHONY: install-requirements
-install-requirements: ## Install pip requirements
-	@echo "Installing requirements..."
-	@$(PYTHON_INSTALL) $(PYTHON_INSTALL_FLAGS)
 
 .PHONY: test
 test: ## Run the tests
