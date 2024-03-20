@@ -6,59 +6,48 @@ jobs:
     test-linux:
         runs-on: ubuntu-latest
         name: Test on Linux
-        env:
-            PIP_BREAK_SYSTEM_PACKAGES: 1 # force pip to install in user space
         strategy:
             matrix:
-                image:
+                imageName:
                     [
-                        'debian:latest',
-                        'ubuntu:latest',
-                        'fedora:latest',
-                        'archlinux:latest',
+                        'debian',
+                        'ubuntu',
+                        'fedora',
+                        'archlinux',
                     ]
                 include:
-                    - image: 'archlinux:latest'
+                    - imageName: 'archlinux'
                       coverage: true # only generate coverage on archlinux
-        container:
-            image: ${{ matrix.image }}
 
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Install Dependencies
+            - name: 'Install devcontainer CLI'
+              run: npm install -g @devcontainers/cli
+
+            - name: Create and start '${{ matrix.imageName }}' devcontainer
               shell: bash
+              run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-up
+
+            - name: Run Dotfiles Tests for '${{ matrix.imageName }}'
+              run: make IMAGE_NAME=${{ matrix.imageName }} test
+
+            - name: Install Python Dependencies
+              shell: bash
+              env:
+                  PIP_BREAK_SYSTEM_PACKAGES: 1
               run: |
-                  # Determine package manager based on image name
-                  case "${{ matrix.image }}" in
-                      debian*|ubuntu*)
-                          apt-get update
-                          apt-get install -y zsh curl make git gdb build-essential jq nodejs npm python3-venv python3-pip locales procps golang-go
-                          ;;
-                      fedora*)
-                          dnf install -y zsh curl make git gdb gcc jq nodejs npm python3 python3-pip glibc-all-langpacks procps-ng golang
-                          ;;
-                      archlinux*)
-                          pacman -Syu --noconfirm zsh curl make git gdb gcc nodejs npm jq python python-pip procps-ng go
-                          ;;
-                  esac
-                  # Install Python dependencies
                   python3 -m pip install -r requirements.txt
                   python3 -m pip install coverage
 
-            - name: Run Install Script
-              shell: bash
-              run: |
-                  chmod +x install.sh
-                  ./install.sh
-
-            - name: Run Tests
+            - name: Run Python Script Tests for '${{ matrix.imageName }}'
               shell: bash
               run: |
                   make test
 
             - name: Generate coverage report
+              # Only generate coverage once, no need to do it for every OS
               if: ${{ matrix.coverage }}
               shell: bash
               run: |
@@ -66,13 +55,14 @@ jobs:
                   make coverage-report COVERAGE_REPORT_FORMAT=xml
 
             - name: Upload coverage to Codecov
+              # Only upload coverage once, no need to do it for every OS
               if: ${{ matrix.coverage }}
               uses: codecov/codecov-action@v3
               with:
                   file: ./coverage.xml
                   token: ${{ secrets.CODECOV_TOKEN }}
                   fail_ci_if_error: true
-                  slug: bartventer/dotfiles
+                  slug: ${{ github.repository }}
 
     test-macos:
         runs-on: macos-latest
@@ -110,7 +100,15 @@ jobs:
                   chmod +x install.sh
                   ./install.sh
 
-            - name: Run Tests
+            - name: Run Dotfiles Tests
+              shell: bash
+              run: |
+                cd test_project
+                chmod +x ./test.sh
+                ./test.sh
+
+            - name: Run Python Script Tests
+              shell: bash
               run: |
                   make test
 
