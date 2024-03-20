@@ -16,19 +16,43 @@ check_neovim_and_plugins() {
     config_file="$1"
 
     # Load the plugins from the JSON file
-    plugins=$(jq -r '.neovim | .[] | .[]' "$config_file")
+    parsers=$(jq -r '.neovim.parsers | .[]' "$config_file")
+    lsps=$(jq -r '.neovim.lsps | .[]' "$config_file")
+    daps=$(jq -r '.neovim.daps | .[]' "$config_file")
+    linters=$(jq -r '.neovim.linters | .[]' "$config_file")
+    formatters=$(jq -r '.neovim.formatters | .[]' "$config_file")
 
-    if [ -z "$plugins" ]; then
-        echo "No Neovim plugins found in the config file."
-        status=1
-    else
-        for plugin in $plugins
-        do
-            if ! check "[Neovim] Plugin ${plugin}" "nvim --headless +\":silent! echo exists('g:${plugin}')\" +\":q\""; then
-                status=1
-            fi
-        done
-    fi
+    # Check if the parsers are installed
+    for parser in $parsers
+    do
+        temp_file=$(mktemp)
+        echo "Temp file: $temp_file"
+        sudo nvim --headless +":TSInstallInfo" +":q" > $temp_file
+        output=$(grep -v "not installed" $temp_file | awk '{print $1}')
+        rm $temp_file
+        if echo "$output" | grep -q "^$parser$"; then
+            check_command="exit 0"
+        else
+            check_command="exit 1"
+        fi
+        if ! check "[Neovim] Parser ${parser}" "$check_command"; then
+            status=1
+        fi
+    done
+
+    # Check if the language servers, debug adapters, linters, and formatters are installed
+    for component in $lsps $daps $linters $formatters
+    do
+        output=$(nvim --headless +"lua print(require('mason-registry').is_installed('${component}'))" +q)
+        if [ "$output" = "true" ]; then
+            check_command="exit 0"
+        else
+            check_command="exit 1"
+        fi
+        if ! check "[Neovim] Mason ${component}" "$check_command"; then
+            status=1
+        fi
+    done
 
     return $status
 }
