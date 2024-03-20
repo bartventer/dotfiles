@@ -9,13 +9,15 @@
 
 set -e
 
-# Ensure script is run as root
-echo "🔒 Ensuring script is run as root..."
-if [ "$(id -u)" -ne 0 ]; then
-    echo "❌ Script must be run as root. Use sudo or su." >&2
-    exit 1
+# Ensure script is run as root if CI is not true
+if [ "$CI" != "true" ]; then
+    echo "🔒 Ensuring script is run as root..."
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "❌ Script must be run as root. Use sudo or su." >&2
+        exit 1
+    fi
+    echo "✅ OK. Script is run as root."
 fi
-echo "✅ OK. Script is run as root."
 
 # Detect the OS.
 echo "🔍 Detecting OS..."
