@@ -23,7 +23,7 @@ check() {
 }
 
 checkCommon() {
-    check "OS" "[[ $(uname) == 'Linux' || $(uname) == 'Darwin' ]]"
+    check "OS" "[[ \"$OSTYPE\" == 'darwin'* || $(uname) == 'Linux' ]]"
     check "User" "[[ $(whoami) == $USERNAME ]]"
 }
 

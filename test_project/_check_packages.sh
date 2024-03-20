@@ -81,6 +81,7 @@ check_packages() {
                     if ! check "${package}" "pacman -Q ${package}"; then
                         status=1
                     fi
+                    ;;
                 *)
                     if ! check "${package}" "command -v ${package}"; then
                         status=1

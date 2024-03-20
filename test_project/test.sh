@@ -27,8 +27,7 @@ config_file="${script_dir}/../config/config.json"
 
 # Check if zsh and plugins are installed
 check_zsh_and_plugins "$config_file"
-check "Oh My Zsh! theme" "test -e \"$HOME/.oh-my-zsh/custom/themes/devcontainers.zsh-theme\""
-check "zsh theme symlink" "test -e \"$HOME/.oh-my-zsh/custom/themes/codespaces.zsh-theme\""
+check "Oh My Zsh! (Powerlevel10k) theme" "test -e \"$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme\""
 
 # Check if Common packages and Distro-specific packages are installed
 check_packages "$config_file"

@@ -22,13 +22,16 @@ fi
 # Detect the OS.
 echo "🔍 Detecting OS..."
 OS="unknown"
-if [ "$(uname -s)" = "Darwin" ]; then
-    OS="macos"
-elif [ -f "/etc/os-release" ]; then
-    # shellcheck disable=SC1091
-    . /etc/os-release
-    OS=$ID
-fi
+case "$OSTYPE" in
+  darwin*) OS="macos" ;; 
+  *)
+    if [ -f "/etc/os-release" ]; then
+      # shellcheck disable=SC1091
+      . /etc/os-release
+      OS=$ID
+    fi
+    ;;
+esac
 echo "✅ OK. Detected OS: $OS"
 
 # Source the run_sudo_cmd function
