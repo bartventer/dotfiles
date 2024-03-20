@@ -30,8 +30,8 @@ jobs:
               shell: bash
               run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-up
 
-            - name: Run Dotfiles Tests for '${{ matrix.imageName }}'
-              run: make IMAGE_NAME=${{ matrix.imageName }} test
+            - name: Run Dotfiles Tests for '${{ matrix.imageName }}' devcontainer
+              run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-test
 
             - name: Install Python Dependencies
               shell: bash
