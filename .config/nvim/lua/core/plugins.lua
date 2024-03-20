@@ -74,6 +74,7 @@ local plugins = {
 		lazy = true,
 	},
 	-- Debugging
+	"nvim-neotest/nvim-nio",
 	"mfussenegger/nvim-dap",
 	"leoluz/nvim-dap-go",
 	"rcarriga/nvim-dap-ui",
