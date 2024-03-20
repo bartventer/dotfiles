@@ -1,0 +1,18 @@
+{
+    "name": "Test-Dotfiles Arch Linux",
+    "build": {
+        "context": "../../..",
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/bartventer/devcontainer-features/common-utils:latest": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "installOhMyZsh": true,
+            "installOhMyZshConfig": false,
+            "upgradePackages": true,
+            "additionalPackages": "curl make git gdb gcc nodejs npm jq python python-pip procps-ng go"
+        }
+    },
+    "remoteUser": "vscode"
+}
