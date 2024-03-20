@@ -16,7 +16,7 @@ DOTFILES_CONFIG_DIR=config
 DOTFILES_UPDATE_FONTS_SCRIPT=update_fonts.sh
 DOTFILES_INSTALL_SCRIPT=install.sh
 ifeq ($(CI),true)
-	DOTFILES_REPO_FLAGS="--dotfiles-repository $(GITHUB_REPOSITORY)"
+	DOTFILES_REPO_FLAGS="--dotfiles-repository $(GITHUB_REPOSITORY) --dotfiles-target-path ~/dotfiles --dotfiles-install-command $(DOTFILES_INSTALL_SCRIPT)"
 else
 	DOTFILES_REPO_FLAGS=
 endif
