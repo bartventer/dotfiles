@@ -1,15 +1,36 @@
 .SHELLFLAGS = -ec
 .ONESHELL:
 
+# Devcontainer variables
+IMAGE_NAME?=archlinux## The name of the base image. Options: archlinux, debian, fedora, ubuntu. Defaults to "archlinux"
+DEVCONTAINER_WORKSPACE_FOLDER=.## The workspace folder to mount in the devcontainer. Defaults to "." (current directory)
+DEVCONTAINER_CONFIG_PATH?="test_project/$(IMAGE_NAME)/.devcontainer/devcontainer.json"## The path to the devcontainer build context. Defaults to "test_project/$(IMAGE_NAME)/.devcontainer"
+
 # Install variables
-INSTALL_ZSH_THEME_REPO ?= "romkatv/powerlevel10k"
-INSTALL_LANGUAGES ?= "golang"
-INSTALL_FONT ?= "MesloLGS NF"
+INSTALL_ZSH_THEME_REPO?="romkatv/powerlevel10k"## The Zsh theme repository to install. Defaults to "romkatv/powerlevel10k"
+INSTALL_LANGUAGES?="golang"## The languages to install. Defaults to "golang"
+INSTALL_FONT?="MesloLGS NF"## The font to install. Defaults to "MesloLGS NF"
 
 # Dotfiles path variables
 DOTFILES_CONFIG_DIR=config
 DOTFILES_UPDATE_FONTS_SCRIPT=update_fonts.sh
 DOTFILES_INSTALL_SCRIPT=install.sh
+ifeq ($(CI),true)
+	DOTFILES_REPO_FLAGS="--dotfiles-repository $(GITHUB_REPOSITORY)"
+else
+	DOTFILES_REPO_FLAGS=
+endif
+
+# Devcontainer command
+DEVCONTAINER=devcontainer
+DEVCONTAINER_BUILD=$(DEVCONTAINER) build
+DEVCONTAINER_UP=$(DEVCONTAINER) up
+DEVCONTAINER_EXEC=$(DEVCONTAINER) exec
+
+# Devcontainer flags
+DEVCONTAINER_BUILD_FLAGS=--workspace-folder $(DEVCONTAINER_WORKSPACE_FOLDER) --config $(DEVCONTAINER_CONFIG_PATH) --image-name $(IMAGE_NAME)
+DEVCONTAINER_EXEC_FLAGS=--workspace-folder $(DEVCONTAINER_WORKSPACE_FOLDER) --config $(DEVCONTAINER_CONFIG_PATH) --id-label test-container=$(IMAGE_NAME)
+DEVCONTAINER_UP_FLAGS=$(DEVCONTAINER_EXEC_FLAGS) $(DOTFILES_REPO_FLAGS)
 
 # Tmux
 TMUX=tmux
@@ -27,9 +48,9 @@ TMUX_RUNSHELL_FLAGS="$(TMUX_PLUGIN_MANAGER_BIN)"
 # Python
 VENV=venv
 ifeq ($(CI),true)
-    VENV_ACTIVATE= # In CI, by default we don't activate the virtual environment
+	VENV_ACTIVATE= # In CI, by default we don't activate the virtual environment
 else
-    VENV_ACTIVATE=. $(VENV)/bin/activate;
+	VENV_ACTIVATE=. $(VENV)/bin/activate;
 endif
 COVERAGE_REPORT_FORMAT ?= html  # Default to HTML coverage report
 UNITTEST_DISCOVER=unittest discover
@@ -65,6 +86,15 @@ define error_exit
 	@echo "Error: $(1)"
 	@exit 1
 endef
+
+.PHONY: help
+help: ## Display this help message.
+	@echo "Usage: make [TARGET]"
+	@echo "Targets:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m    %-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "Variables:"
+	@awk 'BEGIN {FS = "##"} /^[a-zA-Z_-]+\s*\?=\s*.*?## / {split($$1, a, "\\s*\\?=\\s*"); printf "\033[33m    %-30s\033[0m %s\n", a[1], $$2}' $(MAKEFILE_LIST)
 
 install: $(DOTFILES_COMMON_DEPS) $(DOTFILES_CONFIG_DIR) .config $(DOTFILES_INSTALL_SCRIPT) .tmux.conf .zshrc ## Run the install.sh script (optional args: INSTALL_ZSH_THEME_REPO, INSTALL_LANGUAGES, INSTALL_FONT)
 	chmod +x $(DOTFILES_INSTALL_SCRIPT) || $(call error_exit,"Failed to make $(DOTFILES_INSTALL_SCRIPT) executable")
@@ -126,10 +156,6 @@ act-test-linux: ## Run the test-linux job with act (optional args: ACT_REDIRECT_
 act-test-macos: ## Run the test-macos job with act (optional args: ACT_REDIRECT_OUTPUT=1 to redirect output to a file)
 	$(call act-test,macos,$(ACT_FLAGS_MACOS))
 
-.PHONY: clean
-clean: ## Clean up the act output directory and any Python cache
-	rm -rf $(ACT_OUTPUT_DIR)/*.txt $(ACT_OUTPUT_DIR) __pycache__ */__pycache__ */*/__pycache__ .coverage htmlcov
-
 .PHONY: act-list-tests
 act-list-tests: ## List available test jobs
 	@echo "Available test jobs:"
@@ -146,8 +172,55 @@ true-color: ## Displays a series of colored squares if true color is supported
 		fi
 	done'
 
-.PHONY: help
-help: ## Display this help message
-	@echo "Usage: make [TARGET]"
-	@echo "Targets:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m    %-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+.PHONY: devcontainer-up
+devcontainer-up: ## Create and run the devcontainer image
+	@echo "Creating and running the devcontainer image ($(IMAGE_NAME))..."
+	$(DEVCONTAINER_UP) $(DEVCONTAINER_EXEC_FLAGS)
+	@if [ -f "$(DOTFILES_INSTALL_SCRIPT)" ]; then \
+		echo "⚠️ Running the install.sh script in the devcontainer as dotfiles repository is not set..."; \
+		$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
+			set -e; \
+			if [ -f "$(DOTFILES_INSTALL_SCRIPT)" ]; then \
+				chmod +x $(DOTFILES_INSTALL_SCRIPT); \
+				SUDO_CMD=$$(if command -v sudo >/dev/null 2>&1; then echo "sudo -E env PATH=$$PATH NVM_DIR=$$NVM_DIR NVM_CD_FLAGS=$$NVM_CD_FLAGS NVM_RC_VERSION=$$NVM_RC_VERSION"; else echo ""; fi); \
+				$$SUDO_CMD ./$(DOTFILES_INSTALL_SCRIPT); \
+			fi'; \
+	fi
+
+.PHONY: devcontainer-test
+devcontainer-test: ## Test the devcontainer image
+	@echo "Testing the devcontainer image ($(IMAGE_NAME))..."
+	$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
+		set -e; \
+		if [ -f "test_project/test.sh" ]; then \
+			cd test_project; \
+			SUDO_CMD=$$(if command -v sudo >/dev/null 2>&1; then echo "sudo -E env PATH=$$PATH NVM_DIR=$$NVM_DIR NVM_CD_FLAGS=$$NVM_CD_FLAGS NVM_RC_VERSION=$$NVM_RC_VERSION"; else echo ""; fi); \
+			$$SUDO_CMD chmod +x test.sh; \
+			./test.sh; \
+		else \
+			ls -a; \
+		fi'
+
+.PHONY: clean
+clean: ## Clean up the act output directory, any Python cache files, and the devcontainer image
+	@echo "Cleaning up the act output directory ($(ACT_OUTPUT_DIR))..."
+	@echo "ACT_OUTPUT_DIR = $(ACT_OUTPUT_DIR)"
+	rm -rf $(ACT_OUTPUT_DIR)/*.txt $(ACT_OUTPUT_DIR) __pycache__ */__pycache__ */*/__pycache__ .coverage htmlcov
+
+	echo "Cleaning up the devcontainer image ($(IMAGE_NAME))..."
+	@image_id=$$(docker images -q $(IMAGE_NAME)); \
+	if [ -n "$$image_id" ]; then \
+		echo "Found image: $(IMAGE_NAME)"; \
+		container_ids=$$(docker ps -aq -f ancestor=$(IMAGE_NAME)); \
+		if [ -n "$$container_ids" ]; then \
+			echo "Stopping and removing containers: $$container_ids"; \
+			docker stop $$container_ids > /dev/null 2>&1; \
+			docker rm $$container_ids > /dev/null 2>&1; \
+		else \
+			echo "No containers found for image: $(IMAGE_NAME)"; \
+		fi; \
+		echo "Removing image: $(IMAGE_NAME)"; \
+		docker rmi $(IMAGE_NAME) > /dev/null 2>&1; \
+	else \
+		echo "Image not found: $(IMAGE_NAME)"; \
+	fi
