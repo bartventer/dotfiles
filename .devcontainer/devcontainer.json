@@ -1,25 +1,10 @@
 {
     "name": "Dotfiles",
-    "dockerComposeFile": [
-        "docker-compose.yml"
-    ],
-    "service": "app",
-    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "http.proxySupport": "off"
-            },
-            "extensions": [
-                "GitHub.copilot",
-                "GitHub.copilot-chat",
-                "golang.go",
-                "github.vscode-github-actions",
-                "ms-azuretools.vscode-docker"
-            ]
-        }
-    },
+    "image": "mcr.microsoft.com/devcontainers/go:1.22-bullseye",
+    "postCreateCommand": "npm install -g @devcontainers/cli",
     "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/node:1": {},
         "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": true,
             "configureZshAsDefaultShell": true,
@@ -28,7 +13,14 @@
             "upgradePackages": true
         }
     },
-    "remoteEnv": {
-        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "golang.go",
+                "github.vscode-github-actions"
+            ]
+        }
     }
 }
