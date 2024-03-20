@@ -10,9 +10,9 @@ echoStderr()
 
 check() {
     LABEL=$1
-    shift
+    CONDITION=$2
     echo -e "\n🧪 Testing $LABEL"
-    if bash -c "$@" &>/dev/null; then 
+    if eval "$CONDITION"; then 
         echo "✅  Passed!"
         return 0
     else

@@ -45,9 +45,48 @@ check_packages() {
 
         for package in "${packages_array[@]}"
         do
-            if ! check "${package}" "command -v ${package}"; then
-                status=1
-            fi
+            # Packages to rename
+            case "$package" in
+                "fd-find")
+                    package="fdfind"
+                    ;;
+                "ripgrep")
+                    package="rg"
+                    ;;
+            esac
+
+            # Check if the package is installed
+            case "$package" in
+                "python3-venv")
+                    if ! check "${package}" "python3 -m venv --help &>/dev/null"; then
+                        status=1
+                    fi
+                    ;;
+                "glibc-locale-source"|"glibc-langpack-en"|"python3-devel")
+                    if ! check "${package}" "rpm -q ${package}"; then
+                        status=1
+                    fi
+                    ;;
+                "locales")
+                    if ! check "${package}" "locale -a"; then
+                        status=1
+                    fi
+                    ;;
+                lua*)
+                    if ! check "${package}" "lua -v"; then
+                        status=1
+                    fi
+                    ;;
+                "tree-sitter-cli")
+                    if ! check "${package}" "pacman -Q ${package}"; then
+                        status=1
+                    fi
+                *)
+                    if ! check "${package}" "command -v ${package}"; then
+                        status=1
+                    fi
+                    ;;
+            esac
         done
     fi
 
