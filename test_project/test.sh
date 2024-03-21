@@ -1,6 +1,13 @@
 #!/bin/bash
 cd "$(dirname "$0")" || exit
 
+source ../scripts/util.sh
+source ../scripts/log.sh
+
+debug_system
+
+log_info "Running tests..."
+
 # shellcheck disable=SC1091
 source test-utils.sh
 
