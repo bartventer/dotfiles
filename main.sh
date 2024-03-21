@@ -16,8 +16,8 @@ set -e
 # shellcheck disable=SC1091
 source "init.sh" 
 
-# Source the run_sudo_cmd function
-. scripts/run_sudo_cmd.sh
+# Source the util script.
+. scripts/util.sh
 
 log_info "Starting dotfiles installation..."
 
@@ -312,36 +312,15 @@ get_index() {
     done
 }
 
-# *******************
-# ** Detect distro **
-# *******************
-
-detect_distro() {
-    # Get the name of the current distribution
-    local distro
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        distro="macos"
-    else
-        distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
-    fi
-    echo "$distro"
-}
-
 # **********************
 # ** Install Packages **
 # **********************
 
 install_packages() {
-    # Store the package manager passed as an argument
     local package_manager=$1
+    local distro=$2
 
-    log_info "Installing packages..."
-
-    # Get the name of the current distribution
-    echo "Detecting distribution..."
-    local distro=""
-    distro=$(detect_distro)
-    echo "Detected distribution: $distro"
+    log_info "Installing packages (package manager: $package_manager, distro: $distro)..."
 
     # Start with the common packages
     local packages=("${common_packages[@]}")
@@ -760,6 +739,7 @@ create_symlinks() {
 
 PKG_MANAGER=""
 detect_and_install_packages() {
+    local distro=$1
     # Check for package manager and install packages
     log_info "Detecting package manager..."
         for index in "${!pkg_managers_keys[@]}"; do
@@ -767,7 +747,7 @@ detect_and_install_packages() {
             if command -v "$pm" >/dev/null 2>&1; then
                 echo "Detected package manager: $pm"
                 PKG_MANAGER=$pm
-                install_packages "$PKG_MANAGER"
+                install_packages "$PKG_MANAGER" "$distro"
                 break
             fi
         done
@@ -913,6 +893,9 @@ install_oh_my_zsh_theme() {
 # **********
 
 main() {
+    local distro=$1
+    log_info "Starting dotfiles installation (distro: $distro)..."
+
     # Install zsh and oh-my-zsh
     install_zsh_and_oh_my_zsh
 
@@ -920,7 +903,7 @@ main() {
     create_symlinks
 
     # Detect and install packages
-    detect_and_install_packages
+    detect_and_install_packages "$distro"
 
     # Clone plugins and themes
     clone_plugins_and_themes
@@ -954,4 +937,4 @@ main() {
 }
 
 # Run the main script
-main
+main "$@"

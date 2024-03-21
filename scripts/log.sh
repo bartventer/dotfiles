@@ -30,7 +30,7 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 INFO='\033[1;36m'
-TRACE='\033[1;35m'  # New color code for trace level logs
+TRACE='\033[1;35m'
 NC='\033[0m' # No Color
 
 LOG_LEVEL=0
