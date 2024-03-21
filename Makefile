@@ -4,7 +4,9 @@
 # Devcontainer variables
 IMAGE_NAME?=archlinux## The name of the base image. Options: archlinux, debian, fedora, ubuntu. Defaults to "archlinux"
 DEVCONTAINER_WORKSPACE_FOLDER=.## The workspace folder to mount in the devcontainer. Defaults to "." (current directory)
-DEVCONTAINER_CONFIG_PATH?="test_project/$(IMAGE_NAME)/.devcontainer/devcontainer.json"## The path to the devcontainer build context. Defaults to "test_project/$(IMAGE_NAME)/.devcontainer"
+TEST_PROJECT_PATH?="test_project"## The path to the test project. Defaults to "test_project"
+DEVCONTAINER_CONFIG_PATH?="$(TEST_PROJECT_PATH)/$(IMAGE_NAME)/.devcontainer/devcontainer.json"## The path to the devcontainer build context. Defaults to "test_project/$(IMAGE_NAME)/.devcontainer"
+DEVCONTAINER_TEST_SCRIPT?="test.sh"## The test script to run in the devcontainer. Defaults to "test.sh"
 
 # Install variables
 INSTALL_ZSH_THEME_REPO?="romkatv/powerlevel10k"## The Zsh theme repository to install. Defaults to "romkatv/powerlevel10k"
@@ -191,10 +193,10 @@ devcontainer-test: ## Test the devcontainer image
 	@echo "Testing the devcontainer image ($(IMAGE_NAME))..."
 	$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
 		set -e; \
-		if [ -f "test_project/test.sh" ]; then \
-			cd test_project; \
-			chmod +x test.sh; \
-			./test.sh; \
+		if [ -f "$(TEST_PROJECT_PATH)/$(DEVCONTAINER_TEST_SCRIPT)" ]; then \
+			cd $(TEST_PROJECT_PATH); \
+			chmod +x $(DEVCONTAINER_TEST_SCRIPT); \
+			./$(DEVCONTAINER_TEST_SCRIPT); \
 		else \
 			ls -a; \
 		fi'
