@@ -1,3 +1,10 @@
+# [3.10.0](https://github.com/bartventer/dotfiles/compare/v3.9.0...v3.10.0) (2024-03-21)
+
+
+### Features
+
+* **log.sh:** log absolute path of filename ([49ecc65](https://github.com/bartventer/dotfiles/commit/49ecc65091f11e81b1532d48c15835b572717268))
+
 # [3.9.0](https://github.com/bartventer/dotfiles/compare/v3.8.0...v3.9.0) (2024-03-21)
 
 
