@@ -182,8 +182,7 @@ devcontainer-up: ## Create and run the devcontainer image
 			set -e; \
 			if [ -f "$(DOTFILES_INSTALL_SCRIPT)" ]; then \
 				chmod +x $(DOTFILES_INSTALL_SCRIPT); \
-				SUDO_CMD=$$(if command -v sudo >/dev/null 2>&1; then echo "sudo -E env PATH=$$PATH NVM_DIR=$$NVM_DIR NVM_CD_FLAGS=$$NVM_CD_FLAGS NVM_RC_VERSION=$$NVM_RC_VERSION"; else echo ""; fi); \
-				$$SUDO_CMD ./$(DOTFILES_INSTALL_SCRIPT); \
+				./$(DOTFILES_INSTALL_SCRIPT); \
 			fi'; \
 	fi
 
@@ -194,8 +193,7 @@ devcontainer-test: ## Test the devcontainer image
 		set -e; \
 		if [ -f "test_project/test.sh" ]; then \
 			cd test_project; \
-			SUDO_CMD=$$(if command -v sudo >/dev/null 2>&1; then echo "sudo -E env PATH=$$PATH NVM_DIR=$$NVM_DIR NVM_CD_FLAGS=$$NVM_CD_FLAGS NVM_RC_VERSION=$$NVM_RC_VERSION"; else echo ""; fi); \
-			$$SUDO_CMD chmod +x test.sh; \
+			chmod +x test.sh; \
 			./test.sh; \
 		else \
 			ls -a; \
