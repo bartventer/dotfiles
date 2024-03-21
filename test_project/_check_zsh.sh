@@ -20,7 +20,7 @@ check_zsh_and_plugins() {
 
     for plugin in $plugins
     do
-        if ! check "[zsh] Plugin ${plugin}" "[ -d ~/.oh-my-zsh/custom/plugins/${plugin} ]"; then
+        if ! check "[zsh] Plugin ${plugin}" "[ -d $HOME/.oh-my-zsh/custom/plugins/${plugin} ]"; then
             status=1
         fi
     done

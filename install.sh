@@ -12,10 +12,7 @@ set -e
 # Source the util script.
 . scripts/util.sh
 
-# Debug in CI
-if [ -n "$CI" ]; then
-    debug_system
-fi
+debug_system
 
 # Detect the OS.
 echo "🔍 Detecting OS..."
