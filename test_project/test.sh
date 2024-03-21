@@ -29,7 +29,7 @@ check "curl" "curl --version"
 check "git" "git --version"
 
 # Get the path to the JSON Config file
-script_dir=$(dirname "$(realpath "$0")")
+script_dir=$(cd "$(dirname "$0")"; pwd)
 config_file="${script_dir}/../config/config.json"
 
 # Check if zsh and plugins are installed

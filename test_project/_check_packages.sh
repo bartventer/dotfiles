@@ -2,19 +2,13 @@
 
 # shellcheck disable=SC1091
 source test-utils.sh
+source ../scripts/util.sh
 
 check_packages() {
     # Initialize the status
     status=0
 
-    # Detect the current distribution
-    distro=""
-    if [ "$(uname)" == "Darwin" ]; then
-        distro="macos"
-    else
-        # shellcheck disable=SC2002
-        distro=$(cat /etc/os-release | grep "^ID=" | cut -d= -f2 | tr -d '"')
-    fi
+    local distro=$(detect_distro)
     echo "Detected distribution: $distro"
 
     # Get the config file location from the first argument
@@ -48,11 +42,12 @@ check_packages() {
             # Packages to rename
             case "$package" in
                 "fd-find")
-                    package="fdfind"
+                    case "$distro" in
+                        "debian"|"ubuntu") package="fdfind" ;;
+                        "fedora") package="fd" ;;
+                    esac
                     ;;
-                "ripgrep")
-                    package="rg"
-                    ;;
+                "ripgrep") package="rg" ;;
             esac
 
             # Check if the package is installed
