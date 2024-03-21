@@ -1,3 +1,17 @@
+# [3.9.0](https://github.com/bartventer/dotfiles/compare/v3.8.0...v3.9.0) (2024-03-21)
+
+
+### Bug Fixes
+
+* **install.sh:** remove `root` check for CI environment ([d70a348](https://github.com/bartventer/dotfiles/commit/d70a348b37f8a0531d957e7c0cb0964bbb862796))
+* **install.sh:** remove sudo check ([99007e1](https://github.com/bartventer/dotfiles/commit/99007e18cc62c5d66be014e6d73cdd5b02b21a21))
+
+
+### Features
+
+* **install.sh:** move logic to main.sh ([216234f](https://github.com/bartventer/dotfiles/commit/216234f9c4512e9d01e54f139e1d3a6d25de7360))
+* **install.sh:** update uname logic check ([a29e066](https://github.com/bartventer/dotfiles/commit/a29e06689b8b2ccee57b3de2ef4941787f4c8088))
+
 # [3.8.0](https://github.com/bartventer/dotfiles/compare/v3.7.1...v3.8.0) (2024-03-14)
 
 
