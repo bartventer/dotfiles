@@ -54,13 +54,17 @@ log_message() {
     local line_number=$5
     local file_name=$6
 
+    # Resolve the absolute path of the file
+    local abs_file_name
+    abs_file_name=$(cd "$(dirname "$file_name")" || exit; pwd -P)/$(basename "$file_name")
+
     if [ "$level" -ge "$LOG_LEVEL" ]; then
         local timestamp
         timestamp=$(TZ=UTC date +"%Y-%m-%d %H:%M:%S")
         if [ "$level" -eq "4" ]; then  # If level is 4 (trace), print function name
-            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${file_name}:${line_number}${NC}][${color}${func_name}${NC}]"
+            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}][${color}${func_name}${NC}]"
         else
-            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${file_name}:${line_number}${NC}]"
+            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}]"
         fi
         echo -e "${NC}${message}"  # Message is now white
     fi
