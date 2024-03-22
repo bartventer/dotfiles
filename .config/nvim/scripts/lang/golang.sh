@@ -1,6 +1,13 @@
 #!/bin/bash
 
+set -e
+
 log_info "Setting up GoLang..."
+
+if ! command -v go &> /dev/null; then
+    log_error "GoLang is not installed. Please install it and try again."
+    exit 1
+fi
 
 # Get the package manager from the command-line arguments
 PACKAGE_MANAGER=$1
@@ -17,9 +24,9 @@ log_info "Installing delve"
 case $PACKAGE_MANAGER in
 pacman)
     if [ "$CI" = "true" ]; then
-        pacman -S delve --noconfirm
+        pacman -Syu delve --noconfirm
     else
-        sudo pacman -S delve --noconfirm
+        sudo pacman -Syu delve --noconfirm
     fi
     ;;
 *)
