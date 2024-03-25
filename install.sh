@@ -6,7 +6,7 @@
 #
 # Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
 # Maintainer: Bart Venter <https://github.com/bartventer>
-set -euo pipefail
+set -eu
 
 CI=${CI:-false}
 # sudo_if Run commands with sudo if not in CI.

@@ -946,16 +946,18 @@ main() {
     source_zshrc
 
     # Install Neovim
-    log_info "Configuring permissions for user $USER..."
-    for dir in "/home/$USER/.local" "/home/$USER/.cache/pip"; do
-        if [ -d "$dir" ]; then
-            run_sudo_cmd "chown -R $USER:$USER $dir"
-        else
-            run_sudo_cmd "mkdir -p $dir"
-            run_sudo_cmd "chown -R $USER:$USER $dir"
-        fi
-    done
-    echo "OK. Permissions configured."
+    if [ "$distro" != "macos" ]; then
+        log_info "Configuring permissions for user $USER..."
+        for dir in "/home/$USER/.local" "/home/$USER/.cache/pip"; do
+            if [ -d "$dir" ]; then
+                run_sudo_cmd "chown -R $USER:$USER $dir"
+            else
+                run_sudo_cmd "mkdir -p $dir"
+                run_sudo_cmd "chown -R $USER:$USER $dir"
+            fi
+        done
+        echo "OK. Permissions configured."
+    fi
     install_neovim "$PKG_MANAGER"
     source_zshrc
 
