@@ -52,6 +52,7 @@ debug_system() {
     echo "$hyphens"
     echo "Date: $(TZ=UTC date +"%Y-%m-%d %H:%M:%S")"
     echo "User: $(whoami)"
+    echo "CI: $CI"
     set +e
     echo "OS: $(uname -srm)"
     set -e

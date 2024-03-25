@@ -10,7 +10,7 @@
 #
 # Dependencies: zsh, oh-my-zsh, jq, ps
 #
-set -euo pipefail
+set -eo pipefail
 
 # Initialization
 # shellcheck disable=SC1091
