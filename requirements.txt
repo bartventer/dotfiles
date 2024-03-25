@@ -1,4 +1,4 @@
 beautifulsoup4==4.12.3
 requests==2.31.0
 tqdm==4.66.2
-coverage==7.4.3
+coverage==7.4.4
