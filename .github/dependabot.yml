@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "chore(deps[pip]): update"
+      prefix: "chore(deps[pip])"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -14,4 +14,4 @@ updates:
     ignore:
       - dependency-name: "dependabot.yml"
     commit-message:
-      prefix: "chore(deps[github-actions]): update"
+      prefix: "chore(deps[github-actions])"
