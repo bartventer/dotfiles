@@ -22,8 +22,12 @@ sudo_if() {
 # Detect the OS.
 echo "🔍 Detecting OS..."
 OS=""
+BASH_PATH="/bin/bash"
 case "$(uname -s)" in
-Darwin) OS="macos" ;;
+Darwin)
+  OS="macos"
+  BASH_PATH="/usr/local/bin/bash"
+  ;;
 Linux)
   if [ -f "/etc/os-release" ]; then
     OS=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')

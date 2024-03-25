@@ -54,9 +54,7 @@ debug_system() {
     echo "User: $(whoami)"
     echo "CI: $CI"
     set +e
-    echo "Kernel-name: $(uname -s)"
-    echo "Kernel-release: $(uname -r)"
-    echo "Kernel-machine: $(uname -m)"
+    echo "Kernel: $(uname -s)"
     set -e
     echo "Current directory: $(pwd)"
     echo "$hyphens"
