@@ -606,9 +606,7 @@ configure_neovim() {
             local script="$NVIM_LANGUAGE_SCRIPT_DIR/$custom_script"
             if [ -f "$script" ]; then
                 log_info "Custom script found: $script. Running script..."
-                set +e
                 source "$script" "$package_manager"
-                set -e
             else
                 log_error "Invalid custom script: $script. Please check the $CONFIG_FILE file and ensure the script exists in $NVIM_LANGUAGE_SCRIPT_DIR."
                 exit 1
@@ -953,7 +951,8 @@ main() {
         if [ -d "$dir" ]; then
             run_sudo_cmd "chown -R $USER:$USER $dir"
         else
-            log_warn "Directory $dir not found. Skipping..."
+            run_sudo_cmd "mkdir -p $dir"
+            run_sudo_cmd "chown -R $USER:$USER $dir"
         fi
     done
     echo "OK. Permissions configured."
