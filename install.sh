@@ -65,4 +65,4 @@ debug_system
 
 # Execute main script
 echo "🚀 Executing main script (OS:$OS)..."
-exec $BASH_PATH "$(dirname "$0")/main.sh" "$@"
+exec $BASH_PATH "$(dirname "$0")/main.sh" "$OS" "$@"

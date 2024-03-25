@@ -237,8 +237,8 @@ get_index() {
 # **********************
 
 install_packages() {
-    local package_manager=$1
-    local distro=$2
+    local distro=$1
+    local package_manager=$2
 
     log_info "Installing packages (package manager: $package_manager, distro: $distro)..."
 
@@ -696,13 +696,13 @@ PKG_MANAGER=""
 detect_and_install_packages() {
     local distro=$1
     # Check for package manager and install packages
-    log_info "Detecting package manager..."
+    log_info "Detecting package manager (distro: $distro)..."
     for index in "${!pkg_managers_keys[@]}"; do
-        pm="${pkg_managers_keys[$index]}"
+        local pm="${pkg_managers_keys[$index]}"
         if command -v "$pm" >/dev/null 2>&1; then
             echo "Detected package manager: $pm"
             PKG_MANAGER=$pm
-            install_packages "$PKG_MANAGER" "$distro"
+            install_packages "$distro" "$pm"
             break
         fi
     done
@@ -899,4 +899,4 @@ main() {
 }
 
 # Run the main script
-main "$@"
+main "$1"
