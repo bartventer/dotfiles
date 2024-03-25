@@ -10,7 +10,7 @@
 #
 # Dependencies: zsh, oh-my-zsh, jq, ps
 #
-set -eo pipefail
+set -e
 
 # Initialization
 # shellcheck disable=SC1091
@@ -134,67 +134,32 @@ done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FON
 # ** Argument parsing logic **
 # ****************************
 
-# Check if the --it or --interactive argument was provided
-if [[ $1 == "--it" || $1 == "--interactive" ]]; then
-
-    # theme repository
-    log_warn "Please enter the repository for the oh-my-zsh theme (default: ${OH_MY_ZSH_CUSTOM_THEME_REPO}):"
-    read -r input
-    OH_MY_ZSH_CUSTOM_THEME_REPO=${input:-$OH_MY_ZSH_CUSTOM_THEME_REPO}
-
-    # font name
-    font_playground_link=https://www.programmingfonts.org/
-    log_warn "Please enter the number corresponding to the font you want to use (default: ${FONT_NAME}):\n
-    (visit ${font_playground_link} to see the fonts in action)\n
-    "
-
-    # Print the font options
-    printf '%s\n' "${font_names[@]}" | awk '{print NR, $0}' | column
-
-    choice=""
-    while true; do
-        read -rp "Your choice: " choice
-        if [[ -z $choice ]]; then
-            log_warn "No selection made. Using default font: ${FONT_NAME}"
-            break
+# Parse command-line options
+# -r: oh-my-zsh theme repository
+# -f: font name
+while getopts "r:l:f:" opt; do
+    case ${opt} in
+    r)
+        OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
+        ;;
+    f)
+        FONT_NAME="$OPTARG"
+        if [[ "$FONT_NAME" == "${FONT_MESLOLGS_NF}" ]] || printf '%s\n' "${font_names[@]}" | grep -q -F "$FONT_NAME"; then
+            if [[ "$FONT_NAME" != "${FONT_MESLOLGS_NF}" ]]; then
+                FONT_INDEX=$(printf '%s\n' "${font_names[@]}" | grep -n -F "$FONT_NAME" | cut -d: -f1)
+                FONT_URL=${font_urls[$((FONT_INDEX - 1))]}
+            fi
         else
-            if [[ ! $choice =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#font_names[@]})); then
-                log_warn "Invalid selection: $choice. Please select a number from the list."
-            else
-                FONT_NAME=${font_names[$((choice - 1))]}
-                FONT_URL=${font_urls[$((choice - 1))]}
-                break
-            fi
-        fi
-    done
-else
-    # Parse command-line options
-    # -r: oh-my-zsh theme repository
-    # -f: font name
-    while getopts "r:l:f:" opt; do
-        case ${opt} in
-        r)
-            OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
-            ;;
-        f)
-            FONT_NAME="$OPTARG"
-            if [[ "$FONT_NAME" == "${FONT_MESLOLGS_NF}" ]] || printf '%s\n' "${font_names[@]}" | grep -q -F "$FONT_NAME"; then
-                if [[ "$FONT_NAME" != "${FONT_MESLOLGS_NF}" ]]; then
-                    FONT_INDEX=$(printf '%s\n' "${font_names[@]}" | grep -n -F "$FONT_NAME" | cut -d: -f1)
-                    FONT_URL=${font_urls[$((FONT_INDEX - 1))]}
-                fi
-            else
-                log_error "Invalid font name: $FONT_NAME. Please provide a valid font name."
-                exit 1
-            fi
-            ;;
-        \?)
-            log_error "Invalid option: -$OPTARG"
+            log_error "Invalid font name: $FONT_NAME. Please provide a valid font name."
             exit 1
-            ;;
-        esac
-    done
-fi
+        fi
+        ;;
+    \?)
+        log_error "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+    esac
+done
 
 # ***********************
 # ** Debug information **
@@ -467,6 +432,7 @@ install_neovim() {
         ;;
     esac
 
+    source_zshrc
     log_success "Neovim installed successfully!"
 }
 
@@ -479,38 +445,6 @@ configure_neovim() {
     local package_manager=$1
 
     log_info "Configuring Neovim..."
-
-    # Ensure node is installed, otherwise exit
-    if ! command -v node &>/dev/null; then
-        log_error "Node.js is required for Neovim configuration. Please install it and run this script again."
-        exit 1
-    fi
-
-    # Try installing neovim package
-    local package_managers=("npm" "yarn" "pnpm")
-    local package_installed=false
-    for package_manager in "${package_managers[@]}"; do
-        if command -v $package_manager &>/dev/null; then
-            log_info "Trying to install/update neovim package with $package_manager..."
-            case $package_manager in
-            "pnpm" | "npm")
-                run_sudo_cmd "$package_manager install -g neovim" && package_installed=true && break
-                ;;
-            "yarn")
-                run_sudo_cmd "$package_manager global add neovim" && package_installed=true && break
-                ;;
-            *)
-                log_error "Unsupported Node.js package manager: $package_manager"
-                exit 1
-                ;;
-            esac
-        fi
-    done
-
-    if ! $package_installed; then
-        log_error "Failed to install/update neovim package. Please install it manually and run this script again."
-        exit 1
-    fi
 
     # Parse variables from config.json
     local nvim_profiles=$(jq -r 'try (.nvim_profiles | keys[]) // empty' "$CONFIG_FILE")
@@ -595,9 +529,7 @@ configure_neovim() {
             if [ "$CI" = "true" ]; then
                 log_info "CI environment detected. Skipping headless commands."
             else
-                set +e
-                run_sudo_cmd "nvim --headless -c \"$cmd\" -c \"quitall\"" >/dev/null
-                set -e
+                nvim --headless -c "$cmd" -c "quitall"
             fi
         done
 
@@ -614,6 +546,7 @@ configure_neovim() {
         fi
     done
 
+    source_zshrc
     log_success "Neovim configured successfully!"
 }
 
@@ -949,25 +882,21 @@ main() {
     if [ "$distro" != "macos" ]; then
         log_info "Configuring permissions for user $USER..."
         for dir in "/home/$USER/.local" "/home/$USER/.cache/pip"; do
-            if [ -d "$dir" ]; then
-                run_sudo_cmd "chown -R $USER:$USER $dir"
-            else
+            if [ ! -d "$dir" ]; then
                 run_sudo_cmd "mkdir -p $dir"
-                run_sudo_cmd "chown -R $USER:$USER $dir"
             fi
+            run_sudo_cmd "chown -R $USER:$USER $dir"
         done
         echo "OK. Permissions configured."
     fi
     install_neovim "$PKG_MANAGER"
-    source_zshrc
 
     # Configure Neovim
     configure_neovim "$PKG_MANAGER"
-    source_zshrc
 
     # Finish
     log_success "Dotfiles installation complete!"
 }
 
 # Run the main script
-main "$1"
+main "$@"

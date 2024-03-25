@@ -39,7 +39,14 @@
     "nvim_profiles": {
         "default": {
             "checks": {
-                "required": []
+                "required": [
+                    "node"
+                ],
+                "one_of": [
+                    "npm",
+                    "yarn",
+                    "pnpm"
+                ]
             },
             "parsers": [
                 "markdown_inline"

@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -e
 
 # run_cmd Run commands in a way that works both locally and in CI.
@@ -15,7 +16,7 @@ run_cmd() {
 # run_sudo_cmd Run commands with sudo.
 # Usage: run_sudo_cmd "command"
 run_sudo_cmd() {
-    echo "Running command with sudo: $1"
+    echo ":: Running command with sudo: $1"
     if [ "$CI" = "true" ]; then
         run_cmd "$1"
     else
@@ -29,8 +30,9 @@ run_sudo_cmd() {
 # Usage: detect_distro
 detect_distro() {
     distro=""
-    case "$OSTYPE" in
-    darwin*) distro="macos" ;;
+    # case "$OSTYPE" in
+    case "$(uname -s)" in
+    Darwin) distro="macos" ;;
     *)
         if [ -f "/etc/os-release" ]; then
             distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')

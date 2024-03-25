@@ -6,7 +6,7 @@
 #
 # Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
 # Maintainer: Bart Venter <https://github.com/bartventer>
-set -eu
+set -e
 
 CI=${CI:-false}
 # sudo_if Run commands with sudo if not in CI.
@@ -65,5 +65,4 @@ debug_system
 
 # Execute main script
 echo "🚀 Executing main script (OS:$OS)..."
-exec /bin/bash "$(dirname "$0")/main.sh" "$OS"
-exit $?
+exec $BASH_PATH "$(dirname "$0")/main.sh" "$@"

@@ -26,7 +26,7 @@
 # Note:
 #   This script checks if it's running in zsh or bash and adjusts array indices accordingly.
 
-set -euo pipefail
+set -e
 
 ZSH_VERSION=${ZSH_VERSION:-""}
 
