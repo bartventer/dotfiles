@@ -35,34 +35,83 @@
     },
     "term_color:": "xterm-256color",
     "oh_my_zsh_custom_theme_repo": "romkatv/powerlevel10k",
-    "nvim_languages": [
-        "golang"
-    ],
     "font_name": "MesloLGS NF",
-    "neovim": {
-        "parsers": [
-            "markdown_inline"
-        ],
-        "lsps": [
-            "gopls",
-            "lua-language-server",
-            "pyright",
-            "typescript-language-server"
-        ],
-        "daps": [
-            "go-debug-adapter"
-        ],
-        "linters": [
-            "eslint_d"
-        ],
-        "formatters": [
-            "black",
-            "goimports-reviser",
-            "golines",
-            "gomodifytags",
-            "gotests",
-            "prettierd",
-            "stylua"
-        ]
+    "nvim_profiles": {
+        "default": {
+            "checks": {
+                "required": [
+                    "nvim"
+                ]
+            },
+            "parsers": [
+                "markdown_inline"
+            ],
+            "lsps": [
+                "lua-language-server"
+            ],
+            "daps": [],
+            "linters": [],
+            "formatters": [
+                "stylua"
+            ]
+        },
+        "golang": {
+            "checks": {
+                "required": [
+                    "go"
+                ]
+            },
+            "lsps": [
+                "gopls"
+            ],
+            "daps": [
+                "go-debug-adapter"
+            ],
+            "linters": [],
+            "formatters": [
+                "goimports-reviser",
+                "golines",
+                "gomodifytags",
+                "gotests"
+            ],
+            "custom_script": "golang.sh"
+        },
+        "typescript": {
+            "checks": {
+                "required": [
+                    "node"
+                ],
+                "one_of": [
+                    "npm",
+                    "yarn",
+                    "pnpm"
+                ]
+            },
+            "lsps": [
+                "typescript-language-server"
+            ],
+            "daps": [],
+            "linters": [
+                "eslint_d"
+            ],
+            "formatters": [
+                "prettierd"
+            ]
+        },
+        "python": {
+            "checks": {
+                "required": [
+                    "python"
+                ]
+            },
+            "lsps": [
+                "pyright"
+            ],
+            "daps": [],
+            "linters": [],
+            "formatters": [
+                "black"
+            ]
+        }
     }
 }

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # log.sh
-# 
+#
 # Description: This script provides a logging utility for bash scripts. It supports different log levels and colors for different types of logs.
-# 
+#
 # Functions:
 #   log_message(level, color, message, func_name, line_number, file_name): Logs a message with a given level, color, and source information.
 #   log_success(message): Logs a success message (green).
@@ -11,20 +11,24 @@
 #   log_warn(message): Logs a warning message (yellow).
 #   log_error(message): Logs an error message (red).
 #   log_trace(message): Logs a trace message (purple), including the function name.
-# 
+#
 # Globals:
 #   RED, GREEN, YELLOW, INFO, TRACE, NC: Color codes for log messages.
 #   LOG_LEVEL: The minimum log level to display.
 #   FUNCNAME_INDEX, LINENO_INDEX, SOURCE_INDEX: Indices for shell-specific arrays.
-# 
+#
 # Usage:
 #   Source this script in your bash script, then call the log functions. For example:
 #     source log.sh
 #     log_info "This is an informational message."
 #     log_error "This is an error message."
-# 
+#
 # Note:
 #   This script checks if it's running in zsh or bash and adjusts array indices accordingly.
+
+set -euo pipefail
+
+ZSH_VERSION=${ZSH_VERSION:-""}
 
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -56,17 +60,20 @@ log_message() {
 
     # Resolve the absolute path of the file
     local abs_file_name
-    abs_file_name=$(cd "$(dirname "$file_name")" || exit; pwd -P)/$(basename "$file_name")
+    abs_file_name=$(
+        cd "$(dirname "$file_name")" || exit
+        pwd -P
+    )/$(basename "$file_name")
 
     if [ "$level" -ge "$LOG_LEVEL" ]; then
         local timestamp
         timestamp=$(TZ=UTC date +"%Y-%m-%d %H:%M:%S")
-        if [ "$level" -eq "4" ]; then  # If level is 4 (trace), print function name
+        if [ "$level" -eq "4" ]; then # If level is 4 (trace), print function name
             echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}][${color}${func_name}${NC}]"
         else
             echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}]"
         fi
-        echo -e "${NC}${message}"  # Message is now white
+        echo -e "${NC}${message}" # Message is now white
     fi
 }
 

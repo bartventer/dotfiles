@@ -10,13 +10,13 @@ This repository contains my personal dotfiles for Unix-like systems. It includes
 
 ## Table of Contents
 
--   [Prerequisites](#prerequisites)
--   [OS Support](#os-support)
--   [Files and Directories](#files-and-directories)
--   [Installation](#installation)
--   [Font Update](#font-update)
--   [Visual Studio Code Settings](#visual-studio-code-settings)
--   [License](#license)
+- [Prerequisites](#prerequisites)
+- [OS Support](#os-support)
+- [Files and Directories](#files-and-directories)
+- [Installation](#installation)
+- [Font Update](#font-update)
+- [Visual Studio Code Settings](#visual-studio-code-settings)
+- [License](#license)
 
 ## Prerequisites
 
@@ -50,10 +50,10 @@ For the optional `update_fonts.sh` script (detailed in the [Font Update](#font-u
 
 This script is designed to work on the following operating systems:
 
--   Debian-based distributions (like Ubuntu)
--   Red Hat-based distributions (like Fedora)
--   Arch Linux
--   macOS
+- Debian-based distributions (like Ubuntu)
+- Red Hat-based distributions (like Fedora)
+- Arch Linux
+- macOS
 
 The script uses different package managers depending on the OS, including `apt-get`, `dnf`, `yum`, `pacman`, and `brew`.
 
@@ -105,7 +105,6 @@ You can customize the installation using the following command-line options:
 | Option | Description                                                                                                                               | Default                                                                                                          | Example             |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `-r`   | Specify a custom theme repository for oh-my-zsh.                                                                                          | `romkatv/powerlevel10k`                                                                                          | `agnoster/agnoster` |
-| `-l`   | Specify one or more languages for Neovim configuration (comma-separated).                                                                 | `golang`                                                                                                         | `golang,rust`       |
 | `-f`   | Specify a font name. See [fonts.json](./fonts.json) for available fonts.<br>See the [Font Update](#font-update) section for more details. | `MesloLGS NF` ([patched for `powerlevel10k`](https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts)) | `Source Code Pro`   |
 
 You can also run the script in interactive mode with the `--it` or `--interactive` command-line arguments. In interactive mode, you will be prompted to enter the options.
@@ -115,14 +114,13 @@ Example:
 ```bash
 ./install.sh \
 -r "agnoster/agnoster" \
--l "golang,rust" \
 -f "Source Code Pro"
 ```
 
 Or with `make`:
 
 ```bash
-make install r="agnoster/agnoster" l="golang,rust" f="Source Code Pro"
+make install r="agnoster/agnoster" f="Source Code Pro"
 ```
 
 ## Font Update

@@ -6,35 +6,56 @@
 #
 # Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
 # Maintainer: Bart Venter <https://github.com/bartventer>
+set -euo pipefail
 
-set -e
+CI=${CI:-false}
+# sudo_if Run commands with sudo if not in CI.
+# Usage: sudo_if "command"
+sudo_if() {
+  if [ "$CI" = "true" ]; then
+    eval "$1"
+  else
+    sudo -E sh -c "$1"
+  fi
+}
+
+# Detect the OS.
+echo "🔍 Detecting OS..."
+OS=""
+case "$OSTYPE" in
+darwin*) OS="macos" ;;
+*)
+  if [ -f "/etc/os-release" ]; then
+    OS=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
+  fi
+  ;;
+esac
+echo "✅ OK. Detected OS: $OS"
+
+# Ensure bash is installed
+echo "🔧 Ensuring bash is installed..."
+case "$OS" in
+arch) sudo_if "pacman -Syu bash --noconfirm" ;;
+debian | ubuntu) sudo_if "apt-get update -y && apt-get install -y bash" ;;
+fedora)
+  sudo_if "dnf check-update -y || true"
+  sudo_if "dnf install -y bash"
+  ;;
+rhel) sudo_if "yum check-update -y && yum install -y bash" ;;
+macos) sudo_if "brew update && brew install bash" ;;
+*)
+  echo "OS $OS not supported."
+  exit 1
+  ;;
+esac
+echo "✅ OK. Bash is installed."
 
 # Source the util script.
 . scripts/util.sh
 
 debug_system
 
-# Detect the OS.
-echo "🔍 Detecting OS..."
-OS=$(detect_distro)
-echo "✅ OK. Detected OS: $OS"
-
-# Ensure bash is installed
-echo "🔧 Ensuring bash is installed..."
-case "$OS" in
-  arch) run_sudo_cmd "pacman -Syu bash --noconfirm" ;;
-  debian|ubuntu) run_sudo_cmd "apt-get update -y && apt-get install -y bash" ;;
-  fedora) run_sudo_cmd "dnf check-update -y && dnf install -y bash" ;;
-  rhel) run_sudo_cmd "yum check-update -y && yum install -y bash" ;;
-  macos) run_sudo_cmd "brew update && brew install bash" ;;
-  *)
-    echo "OS $OS not supported."
-    exit 1
-    ;;
-esac
-echo "✅ OK. Bash is installed."
-
 # Execute main script
 echo "🚀 Executing main script (OS:$OS)..."
-exec /bin/bash "$(dirname "$0")/main.sh" "$OS" "$@"
+exec /bin/bash "$(dirname "$0")/main.sh" "$OS"
 exit $?

@@ -8,3 +8,6 @@ htmlcov
 # act tests
 output/
 .nvimlog
+
+# Local stuff
+__test.sh

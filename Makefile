@@ -189,7 +189,7 @@ devcontainer-up: ## Create and run the devcontainer image
 	fi
 
 .PHONY: devcontainer-test
-devcontainer-test: ## Test the devcontainer image
+devcontainer-test: devcontainer-up## Test the devcontainer image
 	@echo "Testing the devcontainer image ($(IMAGE_NAME))..."
 	$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
 		set -e; \

@@ -1,20 +1,20 @@
 #!/bin/bash
-# 
+#
 # This script installs the dotfiles on your system.
 # It checks and installs zsh and oh-my-zsh, creates symbolic links for files from the repository to the home directory,
 # determines the current shell (exits if not bash or zsh), identifies the package manager and installs packages,
 # clones oh-my-zsh plugins and theme, installs oh-my-zsh theme, installs fonts, sources .zshrc file,
 # parses config.json for Neovim configuration and applies it, and installs and configures Neovim.
-# 
+#
 # Usage: ./install.sh
-# 
+#
 # Dependencies: zsh, oh-my-zsh, jq, ps
-# 
-set -e
+#
+set -euo pipefail
 
 # Initialization
 # shellcheck disable=SC1091
-source "init.sh" 
+source "init.sh"
 
 # Source the util script.
 . scripts/util.sh
@@ -26,12 +26,15 @@ log_info "Starting dotfiles installation..."
 # *******************
 
 # Paths
+CI="${CI:-false}"
+USER="${USER:-$(whoami)}"
+
 ZSHRC="$HOME/.zshrc"
 TMUX_CONF="$HOME/.tmux.conf"
 NVIM_CONFIG_DIR="$DOTFILES_DIR/.config/nvim"
 NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
 NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
-CLIPBOARD_CONFIG_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
+NVIM_CLIPBOARD_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # Configuration file
@@ -62,8 +65,8 @@ parse_json_object() {
         keys+=("$key")
         # Use jq to extract the value corresponding to the key from the JSON object
         # Add the value to the values array
-        values+=("$(jq -r ".\"$key\"" <<< "$json_object")")
-    done < <(jq -r 'keys[]' <<< "$json_object")  # Use jq to extract the keys from the JSON object
+        values+=("$(jq -r ".\"$key\"" <<<"$json_object")")
+    done < <(jq -r 'keys[]' <<<"$json_object") # Use jq to extract the keys from the JSON object
 
     # Use eval to assign the keys and values to the arrays specified by keys_array_name and values_array_name
     # The \${keys[@]} and \${values[@]} syntaxes are used to expand the arrays into a list of quoted elements
@@ -82,8 +85,6 @@ if [[ -z "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" || "$OH_MY_ZSH_CUSTOM_THEME_REPO
 fi
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-NVIM_LANGUAGES_DEFAULT=("$(jq -r '.nvim_languages[]' "$CONFIG_FILE")")
-NVIM_LANGUAGES=("${NVIM_LANGUAGES_DEFAULT[@]}")
 
 # Fonts
 FONT_NAME="$(jq -r '.font_name' "$CONFIG_FILE")"
@@ -129,7 +130,6 @@ while IFS=":" read -r key value; do
     font_urls+=("$value")
 done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FONTS_CONFIG")
 
-
 # ****************************
 # ** Argument parsing logic **
 # ****************************
@@ -161,69 +161,27 @@ if [[ $1 == "--it" || $1 == "--interactive" ]]; then
             if [[ ! $choice =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#font_names[@]})); then
                 log_warn "Invalid selection: $choice. Please select a number from the list."
             else
-                FONT_NAME=${font_names[$((choice-1))]}
-                FONT_URL=${font_urls[$((choice-1))]}
+                FONT_NAME=${font_names[$((choice - 1))]}
+                FONT_URL=${font_urls[$((choice - 1))]}
                 break
             fi
         fi
     done
-
-    # language
-    log_warn "Please select the language scripts to install (separate multiple choices with spaces):"
-
-    # Get the list of available language scripts
-    language_scripts=("$(ls "${NVIM_LANGUAGE_SCRIPT_DIR}")")
-
-    # Print the language script options
-    printf '%s\n' "${language_scripts[@]}" | awk '{print NR, $0}' | column
-
-    choice=""
-    while true; do
-        read -rp "Your choices: " choice
-        if [[ -z $choice ]]; then
-            log_warn "No selection made. Using default languages: ${NVIM_LANGUAGES[*]}"
-            break
-        else
-            # Split the choice into an array of selected indices
-            IFS=' ' read -ra selected_indices <<< "$choice"
-            # Validate each selected index
-            for index in "${selected_indices[@]}"; do
-                if [[ ! $index =~ ^[0-9]+$ ]] || ((index < 1 || index > ${#language_scripts[@]})); then
-                    log_warn "Invalid selection: $index. Please select numbers from the list."
-                    continue 2
-                fi
-            done
-            # If all selected indices are valid, break the loop
-            break
-        fi
-    done
-
-    # Get the selected language scripts
-    for index in "${selected_indices[@]}"; do
-        NVIM_LANGUAGES+=("${language_scripts[$((index-1))]}")
-    done
-
-    log_warn "Selected languages: ${NVIM_LANGUAGES[*]}"
 else
     # Parse command-line options
     # -r: oh-my-zsh theme repository
-    # -l: Neovim languages (comma-separated)
     # -f: font name
     while getopts "r:l:f:" opt; do
-      case ${opt} in
+        case ${opt} in
         r)
             OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
-            ;;
-        l)
-            IFS=',' read -ra NVIM_LANGUAGES_USER <<< "$OPTARG"
-            NVIM_LANGUAGES+=("${NVIM_LANGUAGES_USER[@]}")
             ;;
         f)
             FONT_NAME="$OPTARG"
             if [[ "$FONT_NAME" == "${FONT_MESLOLGS_NF}" ]] || printf '%s\n' "${font_names[@]}" | grep -q -F "$FONT_NAME"; then
                 if [[ "$FONT_NAME" != "${FONT_MESLOLGS_NF}" ]]; then
                     FONT_INDEX=$(printf '%s\n' "${font_names[@]}" | grep -n -F "$FONT_NAME" | cut -d: -f1)
-                    FONT_URL=${font_urls[$((FONT_INDEX-1))]}
+                    FONT_URL=${font_urls[$((FONT_INDEX - 1))]}
                 fi
             else
                 log_error "Invalid font name: $FONT_NAME. Please provide a valid font name."
@@ -234,7 +192,7 @@ else
             log_error "Invalid option: -$OPTARG"
             exit 1
             ;;
-      esac
+        esac
     done
 fi
 
@@ -249,7 +207,7 @@ if [[ "$CI" == "true" ]]; then
         NVIM_CONFIG_DIR: $NVIM_CONFIG_DIR
         NVIM_SCRIPTS_DIR: $NVIM_SCRIPTS_DIR
         NVIM_OPTIONS_FILE: $NVIM_OPTIONS_FILE
-        CLIPBOARD_CONFIG_SCRIPT: $CLIPBOARD_CONFIG_SCRIPT
+        NVIM_CLIPBOARD_SCRIPT: $NVIM_CLIPBOARD_SCRIPT
         NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
 
     Configuration file: $CONFIG_FILE
@@ -258,7 +216,6 @@ if [[ "$CI" == "true" ]]; then
     Options:
         OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
         OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
-        NVIM_LANGUAGES: ${NVIM_LANGUAGES[*]}
         FONT_NAME: $FONT_NAME
         FONT_URL: $FONT_URL
 
@@ -296,8 +253,6 @@ source_zshrc() {
     zsh -c "export ZSH_DISABLE_COMPFIX=true; source $ZSHRC"
 }
 
-
-
 # *********************
 # ** Get Index Value **
 # *********************
@@ -328,7 +283,7 @@ install_packages() {
     # Add the distro-specific packages to the list
     local distro_index
     distro_index=$(printf "%s\n" "${distro_packages_keys[@]}" | grep -n -x "$distro" | cut -d: -f1)
-    local distro_specific_packages="${distro_packages_values[$((distro_index-1))]}"
+    local distro_specific_packages="${distro_packages_values[$((distro_index - 1))]}"
     packages=("${packages[@]}" "$distro_specific_packages")
 
     # Get the update command for the package manager
@@ -343,39 +298,38 @@ install_packages() {
     # Install all packages in one command
     log_info "Installing packages with $package_manager..."
     case $package_manager in
-        "apt-get")
-            run_sudo_cmd "apt-get install -y ${packages[*]}"
-            ;;
-        "dnf")
-            run_sudo_cmd "dnf install -y ${packages[*]}"
-            ;;
-        "yum")
-            run_sudo_cmd "yum install -y ${packages[*]}"
-            ;;
-        "pacman")
-            run_sudo_cmd "pacman -Syu --needed --noconfirm ${packages[*]}"
-            ;;
-        "brew")
-            # Convert the space-separated string to an array for Homebrew
-            IFS=' ' read -r -a brew_packages <<< "${packages[*]}"
-            for package in "${brew_packages[@]}"; do
-                if [[ "$CI" == "true" ]]; then
-                    echo "CI environment detected. Installing $package without checking for installed dependents..."
-                    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "$package"
-                else
-                    brew install "$package"
-                fi
-            done
-            ;;
-        *)
-            log_error "Unsupported package manager: $package_manager"
-            exit 1
-            ;;
+    "apt-get")
+        run_sudo_cmd "apt-get install -y ${packages[*]}"
+        ;;
+    "dnf")
+        run_sudo_cmd "dnf install -y ${packages[*]}"
+        ;;
+    "yum")
+        run_sudo_cmd "yum install -y ${packages[*]}"
+        ;;
+    "pacman")
+        run_sudo_cmd "pacman -Syu --needed --noconfirm ${packages[*]}"
+        ;;
+    "brew")
+        # Convert the space-separated string to an array for Homebrew
+        IFS=' ' read -r -a brew_packages <<<"${packages[*]}"
+        for package in "${brew_packages[@]}"; do
+            if [[ "$CI" == "true" ]]; then
+                echo "CI environment detected. Installing $package without checking for installed dependents..."
+                HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "$package"
+            else
+                brew install "$package"
+            fi
+        done
+        ;;
+    *)
+        log_error "Unsupported package manager: $package_manager"
+        exit 1
+        ;;
     esac
 
     log_success "Packages installed successfully!"
 }
-
 
 # *****************************
 # ** Add variables to .zshrc **
@@ -397,7 +351,7 @@ append_env_variable_to_zshrc() {
     # If the variable is not set, add it to the end of the file
     elif ! grep -q "$var_name=$var_value" "$ZSHRC"; then
         log_info "Setting $var_name environment variable"
-        echo -e "\nexport $var_name=$var_value" >> "$ZSHRC"
+        echo -e "\nexport $var_name=$var_value" >>"$ZSHRC"
     fi
 }
 
@@ -442,7 +396,7 @@ install_neovim() {
             rm -r "$nvim_tmpdir"
             # Add the bin directory of the extracted archive to the PATH in .zshrc if it's not already there
             if ! grep -q "$nvim_bin_dir" "$ZSHRC"; then
-                echo -e "\nexport PATH=\"\$PATH:$nvim_bin_dir\"" >> "$ZSHRC"
+                echo -e "\nexport PATH=\"\$PATH:$nvim_bin_dir\"" >>"$ZSHRC"
             fi
             # Also ensure that the bin directory is added to the PATH for the current session
             export PATH="$PATH:$nvim_bin_dir"
@@ -514,24 +468,11 @@ install_neovim() {
     esac
 
     log_success "Neovim installed successfully!"
-
-    # Source zshrc
-    source_zshrc
 }
 
 # **********************
 # ** Configure Neovim **
 # **********************
-
-parse_neovim_config() {
-    local key=$1
-    local values
-    # shellcheck disable=SC2207
-    # shellcheck disable=SC2086
-    # shellcheck disable=SC1087
-    values=($(jq -r ".neovim.$key[]" $CONFIG_FILE))
-    echo "${values[*]}"
-}
 
 configure_neovim() {
     # Define local variables
@@ -539,65 +480,148 @@ configure_neovim() {
 
     log_info "Configuring Neovim..."
 
-    # Ensure node and npm are installed, otherwise exit
-    if ! command -v node &>/dev/null || ! command -v npm &>/dev/null; then
-        log_error "Node.js and npm are required for Neovim configuration. Please install them and run this script again."
+    # Ensure node is installed, otherwise exit
+    if ! command -v node &>/dev/null; then
+        log_error "Node.js is required for Neovim configuration. Please install it and run this script again."
+        exit 1
+    fi
+
+    # Try installing neovim package
+    local package_managers=("npm" "yarn" "pnpm")
+    local package_installed=false
+    for package_manager in "${package_managers[@]}"; do
+        if command -v $package_manager &>/dev/null; then
+            log_info "Trying to install/update neovim package with $package_manager..."
+            case $package_manager in
+            "pnpm" | "npm")
+                run_sudo_cmd "$package_manager install -g neovim" && package_installed=true && break
+                ;;
+            "yarn")
+                run_sudo_cmd "$package_manager global add neovim" && package_installed=true && break
+                ;;
+            *)
+                log_error "Unsupported Node.js package manager: $package_manager"
+                exit 1
+                ;;
+            esac
+        fi
+    done
+
+    if ! $package_installed; then
+        log_error "Failed to install/update neovim package. Please install it manually and run this script again."
         exit 1
     fi
 
     # Parse variables from config.json
-    parsers=$(parse_neovim_config "parsers")
-    lsps=$(parse_neovim_config "lsps")
-    daps=$(parse_neovim_config "daps")
-    linters=$(parse_neovim_config "linters")
-    formatters=$(parse_neovim_config "formatters")
-
-    # nvim headless commands
-    commands=('Lazy sync' "TSInstallSync! $parsers" 'MasonUpdate' "MasonInstall $lsps $daps $linters $formatters")
-    if [ "$CI" = "true" ]; then
-        # do nothing
-        log_info "CI environment detected. Skipping headless commands."
-    else
-        # Run commands
-        for cmd in "${commands[@]}"; do
-            log_info "Running command: $cmd..."
-            nvim --headless -c "$cmd" -c "quitall"
-        done
+    local nvim_profiles=$(jq -r 'try (.nvim_profiles | keys[]) // empty' "$CONFIG_FILE")
+    if [ -z "$nvim_profiles" ]; then
+        log_error "No Neovim profiles found in the config file. Please check the $CONFIG_FILE file and ensure the profiles are defined."
+        exit 1
     fi
 
-    # Call the clipboard configuration script
-    # shellcheck disable=SC1090
-    source "$CLIPBOARD_CONFIG_SCRIPT" "$NVIM_OPTIONS_FILE"
+    for profile in $nvim_profiles; do
+        local checks_required=$(jq -r "try (.nvim_profiles.$profile.checks.required[]) // empty" "$CONFIG_FILE")
+        local checks_one_of=$(jq -r ".nvim_profiles.$profile.checks.one_of[]?" "$CONFIG_FILE")
+        local custom_script=$(jq -r ".nvim_profiles.$profile.custom_script?" "$CONFIG_FILE")
+        # debug info
+        log_info "Configuring Neovim profile: $profile
 
-    # CoPilot message
-    log_warn "[Neovim CoPilot] Remember to install CoPilot with :CoPilot setup"
+            Required checks: ${checks_required[@]}
+            One-of checks: ${checks_one_of[@]}
+            Custom script(null if not set): $custom_script
+        "
 
-    # Call the relevant language-specific Neovim configure script for each selected language
-    for language in "${NVIM_LANGUAGES[@]}"; do
-        if [ -n "$language" ]; then
-            language=${language%.sh} # Remove the .sh extension if it's present
-            script="$NVIM_LANGUAGE_SCRIPT_DIR/${language}.sh"
-            log_info "Checking for configuration script: $script"
-            if [ -f "$script" ]; then
-                echo "Configuring Neovim for $language..."
-                # shellcheck disable=SC1090
-                source "$script" "$package_manager"
+        # Check required
+        if [ -z "$checks_required" ]; then
+            log_info "No required checks found for Neovim profile $profile. Skipping..."
+            continue
+        else
+            log_info "Checking required checks for Neovim profile $profile. Required checks: $checks_required"
+            for check in $checks_required; do
+                if ! command -v "$check" &>/dev/null; then
+                    log_warn "$check is required for Neovim profile $profile. Please install it and run this script again. Skipping..."
+                    continue
+                fi
+            done
+        fi
+
+        # Check one of
+        if [ -z "$checks_one_of" ]; then
+            echo "OK. No one of checks found for Neovim profile $profile."
+        else
+            log_info "Checking one-of checks for Neovim profile $profile. One-of checks: $checks_one_of"
+            local one_of_exists=false
+            for check in $checks_one_of; do
+                echo "Checking one of $check..."
+                if command -v "$check" &>/dev/null; then
+                    one_of_exists=true
+                    break
+                fi
+            done
+            if ! $one_of_exists; then
+                log_warn "One-of $checks_one_of is required for Neovim profile $profile. Please install one of them and run this script again. Skipping..."
+                continue
+            fi
+        fi
+
+        # Build the TSInstallSync and MasonInstall commands for the profile
+        local keys=("parsers" "lsps" "daps" "linters" "formatters")
+        local mason_deps=()
+        local parsers=()
+        for key in "${keys[@]}"; do
+            local items=$(jq -r ".nvim_profiles.$profile.$key[]?" "$CONFIG_FILE")
+            if [ "$key" = "parsers" ]; then
+                parsers=($items)
             else
-                log_error "No configuration script found for $language"
+                mason_deps+=($items)
+            fi
+        done
+        log_info "Profile $profile configuration:
+
+    Parsers: ${parsers[@]}
+    Mason dependencies: ${mason_deps[@]}
+"
+        # nvim headless commands
+        local commands=('Lazy sync')
+        if [ "${#parsers[@]}" -ne 0 ]; then
+            commands+=("TSInstallSync! ${parsers[*]}")
+        fi
+        commands+=('MasonUpdate')
+        if [ "${#mason_deps[@]}" -ne 0 ]; then
+            commands+=("MasonInstall ${mason_deps[*]}")
+        fi
+        for cmd in "${commands[@]}"; do
+            log_info "Running command: $cmd..."
+            if [ "$CI" = "true" ]; then
+                log_info "CI environment detected. Skipping headless commands."
+            else
+                set +e
+                run_sudo_cmd "nvim --headless -c \"$cmd\" -c \"quitall\"" >/dev/null
+                set -e
+            fi
+        done
+
+        # Run custom script
+        if [ "$custom_script" != "null" ]; then
+            local script="$NVIM_LANGUAGE_SCRIPT_DIR/$custom_script"
+            if [ -f "$script" ]; then
+                log_info "Custom script found: $script. Running script..."
+                set +e
+                source "$script" "$package_manager"
+                set -e
+            else
+                log_error "Invalid custom script: $script. Please check the $CONFIG_FILE file and ensure the script exists in $NVIM_LANGUAGE_SCRIPT_DIR."
                 exit 1
             fi
         fi
     done
 
     log_success "Neovim configured successfully!"
-    
-    # Source zshrc
-    source_zshrc
 }
-    
+
 # *********************
 # ** Create symlinks **
-# ********************* 
+# *********************
 
 create_symlink() {
     local src=$1
@@ -645,7 +669,7 @@ install_fonts() {
     if [[ "$FONT_NAME" = MesloLG* ]] && [[ "$OH_MY_ZSH_CUSTOM_THEME_REPO" = "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" ]]; then
         # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
         # Download the font files
-        font_files=()  # Clear the array
+        font_files=() # Clear the array
         for font_file in "Regular" "Bold" "Italic" "Bold Italic"; do
             # Replace spaces in font_file with %20 for the URL
             url_font_file=${font_file// /%20}
@@ -742,15 +766,15 @@ detect_and_install_packages() {
     local distro=$1
     # Check for package manager and install packages
     log_info "Detecting package manager..."
-        for index in "${!pkg_managers_keys[@]}"; do
-            pm="${pkg_managers_keys[$index]}"
-            if command -v "$pm" >/dev/null 2>&1; then
-                echo "Detected package manager: $pm"
-                PKG_MANAGER=$pm
-                install_packages "$PKG_MANAGER" "$distro"
-                break
-            fi
-        done
+    for index in "${!pkg_managers_keys[@]}"; do
+        pm="${pkg_managers_keys[$index]}"
+        if command -v "$pm" >/dev/null 2>&1; then
+            echo "Detected package manager: $pm"
+            PKG_MANAGER=$pm
+            install_packages "$PKG_MANAGER" "$distro"
+            break
+        fi
+    done
 
     # Check if a package manager was found
     if [ -z "$PKG_MANAGER" ]; then
@@ -781,7 +805,7 @@ clone_plugins_and_themes() {
     done
 }
 
-# ************************ 
+# ************************
 # ** Clone tmux plugins **
 # ************************
 
@@ -843,7 +867,7 @@ configure_docker() {
         # Set the language environment variables
         append_env_variable_to_zshrc "LANG" "C.UTF-8"
         append_env_variable_to_zshrc "LC_ALL" "en_US.UTF-8"
-        
+
         # Generate locale
         log_info "Generating locale..."
         if type locale-gen &>/dev/null; then
@@ -869,8 +893,7 @@ configure_docker() {
 # *****************************
 
 install_oh_my_zsh_theme() {
-    if command -v basename &> /dev/null
-    then
+    if command -v basename &>/dev/null; then
         OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
     else
         # Use parameter expansion as a fallback
@@ -922,19 +945,28 @@ main() {
 
     # Install fonts
     install_fonts
-
-    # Source .zshrc file to apply the changes
     source_zshrc
 
     # Install Neovim
+    log_info "Configuring permissions for user $USER..."
+    for dir in "/home/$USER/.local" "/home/$USER/.cache/pip"; do
+        if [ -d "$dir" ]; then
+            run_sudo_cmd "chown -R $USER:$USER $dir"
+        else
+            log_warn "Directory $dir not found. Skipping..."
+        fi
+    done
+    echo "OK. Permissions configured."
     install_neovim "$PKG_MANAGER"
+    source_zshrc
 
     # Configure Neovim
     configure_neovim "$PKG_MANAGER"
+    source_zshrc
 
     # Finish
     log_success "Dotfiles installation complete!"
 }
 
 # Run the main script
-main "$@"
+main "$1"

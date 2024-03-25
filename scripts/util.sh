@@ -1,32 +1,28 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
-# run_sudo_cmd Run commands with sudo in a way that works both locally and in CI.
+# run_cmd Run commands in a way that works both locally and in CI.
 # It also ensures that dnf check-update does not cause the script to exit when using set -e.
+# Usage: run_cmd "command"
+run_cmd() {
+    if [ "$1" = "dnf check-update -y" ]; then
+        eval "$1" || true
+    else
+        eval "$1"
+    fi
+}
+
+# run_sudo_cmd Run commands with sudo.
 # Usage: run_sudo_cmd "command"
 run_sudo_cmd() {
-    run_cmd() {
-        if [ "$1" = "dnf check-update"* ]; then
-            # dnf check-update returns a non-zero exit code when updates are available.
-            # This is expected behavior and not an error. However, it can cause issues
-            # if you're using set -e or set -o errexit in your script, which cause the
-            # script to exit when any command returns a non-zero exit code. To handle this,
-            # we ignore the exit code of dnf check-update.
-            eval "$1" || true
-        else
-            eval "$1"
-        fi
-    }
-
+    echo "Running command with sudo: $1"
     if [ "$CI" = "true" ]; then
         run_cmd "$1"
     else
-        if command -v bash >/dev/null 2>&1; then
-            sudo -E bash -c "run_cmd() { if [ \"\$1\" = \"dnf check-update\"* ]; then eval \"\$1\" || true; else eval \"\$1\"; fi; }; declare -f run_cmd > /dev/null; run_cmd '$1'"
-        else
-            sudo -E sh -c "run_cmd() { if [ \"\$1\" = \"dnf check-update\"* ]; then eval \"\$1\" || true; else eval \"\$1\"; fi; }; declare -f run_cmd > /dev/null; run_cmd '$1'"
-        fi
+        sudo -E bash -c "$(declare -f run_cmd); run_cmd '$1'"
     fi
 }
+
 # detect_distro Detects the OS and returns the distro name. The distro name is
 # lowercased, e.g., "macos", "arch", "debian", "ubuntu", "fedora", "rhel", or "
 # unknown".
@@ -34,8 +30,8 @@ run_sudo_cmd() {
 detect_distro() {
     distro=""
     case "$OSTYPE" in
-      darwin*) distro="macos" ;; 
-      *)
+    darwin*) distro="macos" ;;
+    *)
         if [ -f "/etc/os-release" ]; then
             distro=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
         fi
@@ -56,6 +52,9 @@ debug_system() {
     echo "$hyphens"
     echo "Date: $(TZ=UTC date +"%Y-%m-%d %H:%M:%S")"
     echo "User: $(whoami)"
+    set +e
+    echo "OS: $(uname -srm)"
+    set -e
     echo "Current directory: $(pwd)"
     echo "$hyphens"
     echo "Environment variables:"

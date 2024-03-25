@@ -26,10 +26,6 @@ jobs:
             - name: 'Install devcontainer CLI'
               run: npm install -g @devcontainers/cli
 
-            - name: Create and start '${{ matrix.imageName }}' devcontainer
-              shell: bash
-              run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-up
-
             - name: Run Dotfiles Tests for '${{ matrix.imageName }}' devcontainer
               run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-test
 

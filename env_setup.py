@@ -56,6 +56,10 @@ def main():
     else:
         DOTFILES_DIR = os.path.dirname(os.path.realpath(__file__))
 
+    if not DOTFILES_DIR:
+        print("Error: DOTFILES_DIR not found.", file=sys.stderr)
+        sys.exit(1)
+
     # Set DOTFILES_CONIG_DIR
     DOTFILES_CONIG_DIR = os.path.join(DOTFILES_DIR, "config")
 
@@ -79,7 +83,7 @@ def main():
     for item in env_items:
         item.check_and_export()
 
-    print("Environment set.", file=sys.stderr)
+    print("OK. Environment set.", file=sys.stderr)
 
 
 if __name__ == "__main__":
