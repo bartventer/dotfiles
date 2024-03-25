@@ -588,7 +588,7 @@ configure_neovim() {
         fi
         commands+=('MasonUpdate')
         if [ "${#mason_deps[@]}" -ne 0 ]; then
-            commands+=("MasonInstall ${mason_deps[*]}")
+            commands+=("MasonInstall ${mason_deps[*]} --force")
         fi
         for cmd in "${commands[@]}"; do
             log_info "Running command: $cmd..."
