@@ -1,3 +1,18 @@
+## [3.10.1](https://github.com/bartventer/dotfiles/compare/v3.10.0...v3.10.1) (2024-03-25)
+
+
+### Bug Fixes
+
+* **install.sh:** add force flag to MasonInstall headless command ([79d7598](https://github.com/bartventer/dotfiles/commit/79d75988a62e8144d12834235303a824ca841f5a))
+* **install.sh:** adjust shell flags ([d85ad70](https://github.com/bartventer/dotfiles/commit/d85ad70586b2d4dae6be1eac7bb513fb318daecd))
+* **install.sh:** adjust shell flags ([6e3a481](https://github.com/bartventer/dotfiles/commit/6e3a481f278ce38baf2938ddf6869afc8ae3674a))
+* **install.sh:** change kernal-name getter ([58de5bc](https://github.com/bartventer/dotfiles/commit/58de5bcd7c3165c9ff0ad346bbc754affedb7be9))
+* **install.sh:** configure neovim profiles ([73a88c8](https://github.com/bartventer/dotfiles/commit/73a88c8124c5aded1904e13cebf2d806100f26fc))
+* **install.sh:** correct kernel check logic ([96eb183](https://github.com/bartventer/dotfiles/commit/96eb183dda414f36970ca709b08de827564232cf))
+* **install.sh:** correct permissions on macOS ([ffb9866](https://github.com/bartventer/dotfiles/commit/ffb9866277df028b3cbebcde2ead49a4f5469926))
+* **main.sh:** correct distro detection ([b6f0b2f](https://github.com/bartventer/dotfiles/commit/b6f0b2ff62601f7e189b81eebc5885ac3f818321))
+* **neovim/golang.sh:** exit if golang is not installed ([fd7ea80](https://github.com/bartventer/dotfiles/commit/fd7ea802b40df1f19f5fa6e0a0bbc8b93cb92ded))
+
 # [3.10.0](https://github.com/bartventer/dotfiles/compare/v3.9.0...v3.10.0) (2024-03-21)
 
 
