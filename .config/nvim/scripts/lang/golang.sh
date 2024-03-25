@@ -20,7 +20,8 @@ fi
 
 # Install delve
 log_info "Installing delve"
-
+# Set the GOPATH
+export GOPATH="$HOME/go"
 case $PACKAGE_MANAGER in
 pacman)
     set -x

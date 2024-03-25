@@ -39,9 +39,7 @@
     "nvim_profiles": {
         "default": {
             "checks": {
-                "required": [
-                    "nvim"
-                ]
+                "required": []
             },
             "parsers": [
                 "markdown_inline"

@@ -22,12 +22,16 @@ sudo_if() {
 # Detect the OS.
 echo "🔍 Detecting OS..."
 OS=""
-case "$OSTYPE" in
-darwin*) OS="macos" ;;
-*)
+case "$(uname -s)" in
+Darwin) OS="macos" ;;
+Linux)
   if [ -f "/etc/os-release" ]; then
     OS=$(awk -F= '/^NAME/{print tolower($2)}' /etc/os-release | tr -d '"' | awk '{print $1}')
   fi
+  ;;
+*)
+  echo "OS not supported."
+  exit 1
   ;;
 esac
 echo "✅ OK. Detected OS: $OS"
