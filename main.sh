@@ -35,11 +35,13 @@ fi
 
 CONFIG_FILE="$DOTFILES_CONIG_DIR/config.json"
 PKG_MANAGER=""
-DISTRO_PKGS=$(jq -r ".distro_packages."${DISTRO}[]"" "$CONFIG_FILE")
+COMMON_PKGS=($(jq -r '.common_packages[]' "$CONFIG_FILE"))
+DISTRO_PKGS=($(jq -r ".distro_packages."${DISTRO}[]"" "$CONFIG_FILE"))
 if [ -z "$DISTRO_PKGS" ]; then
     log_error "No packages found for the $DISTRO distribution in the config file."
     exit 1
 fi
+
 log_info "Detecting package manager (distro: ${DISTRO})..."
 for manager in $(jq -r '.pkg_managers | keys[]' "$CONFIG_FILE"); do
     if command -v $manager >/dev/null 2>&1; then
@@ -50,6 +52,7 @@ for manager in $(jq -r '.pkg_managers | keys[]' "$CONFIG_FILE"); do
         echo "$manager is not available"
     fi
 done
+
 if [ -z "$PKG_MANAGER" ]; then
     log_error "No package manager found."
     exit 1
@@ -140,9 +143,6 @@ parse_json_object 'plugins' plugins_keys plugins_values
 tmux_plugins_keys=()
 tmux_plugins_values=()
 parse_json_object 'tmux_plugins' tmux_plugins_keys tmux_plugins_values
-
-# Common packages array
-COMMON_PKGS=$(jq -r '.common_packages[]' "$CONFIG_FILE")
 
 # Load the fonts dictionary from the fonts.json file
 font_names=()
@@ -236,7 +236,7 @@ Distro-specific packages: $DISTRO_PKGS
 source_zshrc() {
     log_info "Sourcing .zshrc file"
     # Fix permissions before sourcing the .zshrc file
-    zsh -c "export ZSH_DISABLE_COMPFIX=true; source $ZSHRC"
+    zsh -c "export ZSH_DISABLE_COMPFIX=true; source ${ZSHRC}"
 }
 
 # **********************
@@ -244,7 +244,7 @@ source_zshrc() {
 # **********************
 
 install_packages() {
-    log_info "Installing packages (package manager: $PKG_MANAGER, DISTRO: $DISTRO)..."
+    log_info "Installing packages (package manager: ${PKG_MANAGER}, DISTRO: ${DISTRO})..."
 
     run_sudo_cmd "$UPDATE_CMD"
 
@@ -261,19 +261,18 @@ install_packages() {
     "pacman") run_sudo_cmd "pacman -Syu --needed --noconfirm ${packages_str}" ;;
     "brew")
         for package in "${packages[@]}"; do
-            package=$(echo $package | xargs) # Trim whitespace
-            if [[ -n $package ]]; then       # Skip empty lines
-                if [[ "$CI" == "true" ]]; then
-                    echo "CI environment detected. Installing $package without checking for installed dependents..."
-                    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "$package"
+            if [[ -n ${package} ]]; then # Skip empty lines
+                if [[ "${CI}" == "true" ]]; then
+                    echo "CI environment detected. Installing ${package} without checking for installed dependents..."
+                    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "${package}"
                 else
-                    brew install "$package"
+                    brew install "${package}"
                 fi
             fi
         done
         ;;
     *)
-        log_error "Unsupported package manager: $PKG_MANAGER"
+        log_error "Unsupported package manager: ${PKG_MANAGER}"
         exit 1
         ;;
     esac
@@ -464,7 +463,11 @@ install_neovim_deps() {
     # Install the pip packages
     if [ -n "${pip_packages}" ]; then
         log_info "Installing pip packages: ${pip_packages}"
-        pip3 install --break-system-packages "${pip_packages}"
+        if [ "${PKG_MANAGER}" = "pacman" ]; then
+            run_sudo_cmd "pip3 install --break-system-packages ${pip_packages}"
+        else
+            run_sudo_cmd "pip3 install ${pip_packages}"
+        fi
         log_success "OK. Pip packages installed successfully!"
     fi
 
