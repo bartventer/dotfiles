@@ -293,10 +293,14 @@ append_zsh_env_var() {
     # Value of the environment variable
     local var_value="$2"
 
-    # Create the .zshenv file if it doesn't exist
     if [ ! -f "$ZSHENV" ]; then
         touch "$ZSHENV"
-        run_sudo_cmd "chown $USER:$USER $ZSHENV"
+        # run_sudo_cmd "chown $USER:$USER $ZSHENV"
+        if [[ "$DISTRO" == "macos" ]]; then
+            run_sudo_cmd "chown $USER:staff $ZSHENV"
+        else
+            run_sudo_cmd "chown $USER:$USER $ZSHENV"
+        fi
     fi
 
     # If the variable is already set but commented out, uncomment it
@@ -569,8 +573,9 @@ configure_neovim() {
         fi
         for cmd in "${commands[@]}"; do
             log_info "Running command: ${cmd}..."
+            npm config set cache ~/.npm-cache
             if [ "$CI" = "true" ]; then
-                log_info "CI environment detected. Skipping headless commands."
+                log_info "Skipping headless commands."
             else
                 nvim --headless -c "${cmd}" -c "quitall"
             fi
