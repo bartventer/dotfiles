@@ -261,11 +261,14 @@ install_packages() {
     "pacman") run_sudo_cmd "pacman -Syu --needed --noconfirm ${packages_str}" ;;
     "brew")
         for package in "${packages[@]}"; do
-            if [[ "$CI" == "true" ]]; then
-                echo "CI environment detected. Installing $package without checking for installed dependents..."
-                HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "$package"
-            else
-                brew install "$package"
+            package=$(echo $package | xargs) # Trim whitespace
+            if [[ -n $package ]]; then       # Skip empty lines
+                if [[ "$CI" == "true" ]]; then
+                    echo "CI environment detected. Installing $package without checking for installed dependents..."
+                    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "$package"
+                else
+                    brew install "$package"
+                fi
             fi
         done
         ;;
