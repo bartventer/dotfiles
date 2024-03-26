@@ -16,11 +16,12 @@ run_cmd() {
 # run_sudo_cmd Run commands with sudo.
 # Usage: run_sudo_cmd "command"
 run_sudo_cmd() {
-    echo ":: Running command with sudo: $1"
+    local cmd=${1//$'\n'/ }
+    echo ":: Running command with sudo: $cmd"
     if [ "$CI" = "true" ]; then
-        run_cmd "$1"
+        run_cmd "$cmd"
     else
-        sudo -E bash -c "$(declare -f run_cmd); run_cmd '$1'"
+        sudo -E env "PATH=$PATH" bash -c "$(declare -f run_cmd); run_cmd '$cmd'"
     fi
 }
 

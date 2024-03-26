@@ -1,5 +1,6 @@
 .SHELLFLAGS = -ec
 .ONESHELL:
+SHELL = /bin/bash
 
 # Devcontainer variables
 IMAGE_NAME?=archlinux## The name of the base image. Options: archlinux, debian, fedora, ubuntu. Defaults to "archlinux"
@@ -7,6 +8,7 @@ DEVCONTAINER_WORKSPACE_FOLDER=.## The workspace folder to mount in the devcontai
 TEST_PROJECT_PATH?="test_project"## The path to the test project. Defaults to "test_project"
 DEVCONTAINER_CONFIG_PATH?="$(TEST_PROJECT_PATH)/$(IMAGE_NAME)/.devcontainer/devcontainer.json"## The path to the devcontainer build context. Defaults to "test_project/$(IMAGE_NAME)/.devcontainer"
 DEVCONTAINER_TEST_SCRIPT?="test.sh"## The test script to run in the devcontainer. Defaults to "test.sh"
+LABEL_KEY=test-container## The label key to use for the test container. Defaults to "test-container"
 
 # Install variables
 INSTALL_ZSH_THEME_REPO?="romkatv/powerlevel10k"## The Zsh theme repository to install. Defaults to "romkatv/powerlevel10k"
@@ -18,7 +20,10 @@ DOTFILES_CONFIG_DIR=config
 DOTFILES_UPDATE_FONTS_SCRIPT=update_fonts.sh
 DOTFILES_INSTALL_SCRIPT=install.sh
 ifeq ($(CI),true)
-	DOTFILES_REPO_FLAGS="--dotfiles-repository $(GITHUB_REPOSITORY) --dotfiles-target-path ~/dotfiles --dotfiles-install-command $(DOTFILES_INSTALL_SCRIPT)"
+	DOTFILES_REPO_FLAGS=\
+		--dotfiles-repository $(GITHUB_REPOSITORY) \
+		--dotfiles-target-path ~/dotfiles \
+		--dotfiles-install-command $(DOTFILES_INSTALL_SCRIPT)
 else
 	DOTFILES_REPO_FLAGS=
 endif
@@ -30,9 +35,31 @@ DEVCONTAINER_UP=$(DEVCONTAINER) up
 DEVCONTAINER_EXEC=$(DEVCONTAINER) exec
 
 # Devcontainer flags
-DEVCONTAINER_BUILD_FLAGS=--workspace-folder $(DEVCONTAINER_WORKSPACE_FOLDER) --config $(DEVCONTAINER_CONFIG_PATH) --image-name $(IMAGE_NAME)
-DEVCONTAINER_EXEC_FLAGS=--workspace-folder $(DEVCONTAINER_WORKSPACE_FOLDER) --config $(DEVCONTAINER_CONFIG_PATH) --id-label test-container=$(IMAGE_NAME)
+DEVCONTAINER_BUILD_FLAGS=\
+	--workspace-folder $(DEVCONTAINER_WORKSPACE_FOLDER) \
+	--config $(DEVCONTAINER_CONFIG_PATH) \
+	--image-name $(IMAGE_NAME)
+DEVCONTAINER_EXEC_FLAGS=\
+	--workspace-folder $(DEVCONTAINER_WORKSPACE_FOLDER) \
+	--config $(DEVCONTAINER_CONFIG_PATH) \
+	--id-label $(LABEL_KEY)=$(IMAGE_NAME)
 DEVCONTAINER_UP_FLAGS=$(DEVCONTAINER_EXEC_FLAGS) $(DOTFILES_REPO_FLAGS)
+
+# Docker variables
+CONTAINER_ID=$(shell docker ps -q -f label=$(LABEL_KEY)=$(IMAGE_NAME) | head -n 1)
+# Extract the remoteUser from the devcontainer.metadata label (defaults to "vscode")
+REMOTE_USER=$(if $(CONTAINER_ID),\
+$(shell docker inspect -f '{{index .Config.Labels "devcontainer.metadata"}}' $(CONTAINER_ID) | \
+jq -r '.[] | select(.remoteUser // .containterUser) | .remoteUser // .containterUser'),\
+vscode)
+DOCKER_EXEC_CMD?=/bin/zsh## The command to run in the devcontainer shell. Defaults to "/bin/zsh"
+
+# Docker command
+DOCKER=docker
+DOCKER_EXEC=$(DOCKER) exec
+
+# Docker flags
+DOCKER_EXEC_FLAGS=-it -u $(shell id -u):$(shell id -g) -w $(shell pwd) $(CONTAINER_ID)
 
 # Tmux
 TMUX=tmux
@@ -96,11 +123,25 @@ help: ## Display this help message.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m    %-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
 	@echo "Variables:"
-	@awk 'BEGIN {FS = "##"} /^[a-zA-Z_-]+\s*\?=\s*.*?## / {split($$1, a, "\\s*\\?=\\s*"); printf "\033[33m    %-30s\033[0m %s\n", a[1], $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = "##"} /^[a-zA-Z_-]+\s*\?=\s*.*?## / {split($$1, a, "\\s*\\?=\\s*"); printf "\033[33m   %-30s\033[0m %s\n", a[1], $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "Variable Values:"
+	@awk 'BEGIN {FS = "[ ?=]"} /^[a-zA-Z_-]+[ \t]*[?=]/ {print $$1}' $(MAKEFILE_LIST) | \
+	while read -r var; do \
+		printf "\033[35m    %-30s\033[0m %s\n" "$$var" "$$(make -s -f $(firstword $(MAKEFILE_LIST)) print-$$var)"; \
+	done
+
+.PHONY: print-%
+print-%: ## Helper target to print a variable. Usage: make print-VARIABLE
+	@printf '%s' "$($*)"
+
 
 install: $(DOTFILES_COMMON_DEPS) $(DOTFILES_CONFIG_DIR) .config $(DOTFILES_INSTALL_SCRIPT) .tmux.conf .zshrc ## Run the install.sh script (optional args: INSTALL_ZSH_THEME_REPO, INSTALL_LANGUAGES, INSTALL_FONT)
 	chmod +x $(DOTFILES_INSTALL_SCRIPT) || $(call error_exit,"Failed to make $(DOTFILES_INSTALL_SCRIPT) executable")
-	./$(DOTFILES_INSTALL_SCRIPT) -r $(INSTALL_ZSH_THEME_REPO) -l $(INSTALL_LANGUAGES) -f $(INSTALL_FONT) || $(call error_exit,"Failed to run $(DOTFILES_INSTALL_SCRIPT)")
+	./$(DOTFILES_INSTALL_SCRIPT) \
+		-r $(INSTALL_ZSH_THEME_REPO) \
+		-l $(INSTALL_LANGUAGES) \
+		-f $(INSTALL_FONT) || $(call error_exit,"Failed to run $(DOTFILES_INSTALL_SCRIPT)")
 
 .PHONY: update
 update: ## Pull the latest changes from the repository
@@ -201,26 +242,28 @@ devcontainer-test: ## Test the devcontainer image
 			ls -a; \
 		fi'
 
-.PHONY: clean
-clean: ## Clean up the act output directory, any Python cache files, and the devcontainer image
-	@echo "Cleaning up the act output directory ($(ACT_OUTPUT_DIR))..."
-	@echo "ACT_OUTPUT_DIR = $(ACT_OUTPUT_DIR)"
-	rm -rf $(ACT_OUTPUT_DIR)/*.txt $(ACT_OUTPUT_DIR) __pycache__ */__pycache__ */*/__pycache__ .coverage htmlcov
-
-	echo "Cleaning up the devcontainer image ($(IMAGE_NAME))..."
-	@image_id=$$(docker images -q $(IMAGE_NAME)); \
-	if [ -n "$$image_id" ]; then \
-		echo "Found image: $(IMAGE_NAME)"; \
-		container_ids=$$(docker ps -aq -f ancestor=$(IMAGE_NAME)); \
-		if [ -n "$$container_ids" ]; then \
-			echo "Stopping and removing containers: $$container_ids"; \
-			docker stop $$container_ids > /dev/null 2>&1; \
-			docker rm $$container_ids > /dev/null 2>&1; \
-		else \
-			echo "No containers found for image: $(IMAGE_NAME)"; \
-		fi; \
-		echo "Removing image: $(IMAGE_NAME)"; \
-		docker rmi $(IMAGE_NAME) > /dev/null 2>&1; \
+.PHONY: docker-exec
+docker-exec: ## Run a shell in the devcontainer image
+	@echo "Running a shell in the devcontainer image ($(IMAGE_NAME))..."
+	@if [ -z "$(CONTAINER_ID)" ]; then \
+		echo "No container found with label: $(LABEL_KEY)=$(IMAGE_NAME)"; \
 	else \
-		echo "Image not found: $(IMAGE_NAME)"; \
+		$(DOCKER_EXEC) $(DOCKER_EXEC_FLAGS) $(DOCKER_EXEC_CMD); \
 	fi
+
+.PHONY: clean
+clean: ## Clean up the act output directory and remove the devcontainers
+	@echo "Cleaning up the act output directory ($(ACT_OUTPUT_DIR))..."
+	rm -rf $(ACT_OUTPUT_DIR)/*.txt $(ACT_OUTPUT_DIR) __pycache__ */__pycache__ */*/__pycache__ .coverage htmlcov
+	@printf "OK. Done cleaning up the act output directory.\n\n"
+
+	@echo "Removing the devcontainers with label starting with: $(LABEL_KEY)..."
+	@CONTAINER_IDS=$$(docker ps -a -q | xargs -I {} docker inspect {} | \
+	jq -r 'select(any(.[0].Config.Labels | keys[]; startswith("$(LABEL_KEY)"))) | .[0].Id'); \
+	if [ -z "$$CONTAINER_IDS" ]; then \
+		echo "OK. No containers found to delete."; \
+	else \
+		echo $$CONTAINER_IDS | xargs -I {} sh -c 'echo "Removing container ID: {}" && docker rm -f {}'; \
+		echo "OK. Done removing containers."; \
+	fi
+

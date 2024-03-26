@@ -91,16 +91,18 @@ COMPLETION_WAITING_DOTS="true"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-	zsh-syntax-highlighting
-	zsh-autosuggestions
-	zsh-history-substring-search
-  archlinux # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/archlinux#arch-linux-plugin
-  man # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/man
-  tmux #https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/tmux
+  zsh-syntax-highlighting
+  zsh-autosuggestions
+  zsh-history-substring-search
+  man
+  tmux
 )
+if [ -f /etc/arch-release ]; then
+  plugins+=(archlinux)
+fi
 source $ZSH/oh-my-zsh.sh
 # Tmux config: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/tmux#configuration-variables
-ZSH_TMUX_AUTOSTART=true # Automatically starts tmux
+ZSH_TMUX_AUTOSTART=true            # Automatically starts tmux
 ZSH_TMUX_CONFIG="$HOME/.tmux.conf" # Path to tmux config file
 
 # User configuration
@@ -142,7 +144,7 @@ alias zsh_source="source ~/.zshrc"
 
 # Locally defined aliases
 if [ -f ~/.aliases ]; then
-   source ~/.aliases
+  source ~/.aliases
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
@@ -151,8 +153,5 @@ fi
 # Source powerlevel10k theme if it exists
 POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
 if [ -f "$POWERLEVEL10K_THEME" ]; then
-    source "$POWERLEVEL10K_THEME"
+  source "$POWERLEVEL10K_THEME"
 fi
-export LC_ALL=en_US.UTF-8
-
-export LANG=C.UTF-8
