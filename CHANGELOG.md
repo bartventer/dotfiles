@@ -1,3 +1,15 @@
+## [3.10.2](https://github.com/bartventer/dotfiles/compare/v3.10.1...v3.10.2) (2024-03-26)
+
+
+### Bug Fixes
+
+* **install.sh:** add `--break-system-packages` flag for pip ([7d48584](https://github.com/bartventer/dotfiles/commit/7d48584144345076fe33ee2a6c3b860aff01d929))
+* **install.sh:** correct macOS package installation ([4860a84](https://github.com/bartventer/dotfiles/commit/4860a8444be74d4ea4601a7f3992ccf8e2fe5e3c))
+* **install.sh:** correct macOS packages installation ([3a53976](https://github.com/bartventer/dotfiles/commit/3a5397674889cd5b232d4a13a5211c2c58d45a3f))
+* **install.sh:** fix neovim installation ([510126d](https://github.com/bartventer/dotfiles/commit/510126d7cb3a2046cc843da0ed09def231d91bc6))
+* **install.sh:** update node and python dependencies ([d8cc93d](https://github.com/bartventer/dotfiles/commit/d8cc93d58bfa77f187f9df616cad6625902c9d1d))
+* **main.sh:** remove which usage ([4ced985](https://github.com/bartventer/dotfiles/commit/4ced9857425ac5b046e58385abea541a1671dc0a))
+
 ## [3.10.1](https://github.com/bartventer/dotfiles/compare/v3.10.0...v3.10.1) (2024-03-25)
 
 
