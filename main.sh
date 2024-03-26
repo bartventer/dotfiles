@@ -464,7 +464,7 @@ install_neovim_deps() {
     # Install the pip packages
     if [ -n "${pip_packages}" ]; then
         log_info "Installing pip packages: ${pip_packages}"
-        pip3 install "${pip_packages}"
+        pip3 install --break-system-packages "${pip_packages}"
         log_success "OK. Pip packages installed successfully!"
     fi
 
