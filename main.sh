@@ -445,7 +445,7 @@ install_neovim_deps() {
             if command -v "${pkg_manager}" &>/dev/null; then
                 log_info "Using ${pkg_manager} to install node packages..."
                 local pkg_manager_path
-                pkg_manager_path=$(which "${pkg_manager}")
+                pkg_manager_path=$(command -v "${pkg_manager}")
                 run_sudo_cmd "${pkg_manager_path} install -g ${node_packages}"
                 node_deps_installed=true
                 break
@@ -860,7 +860,9 @@ install_oh_my_zsh_theme() {
 
 configure_permissions() {
     log_info "Configuring permissions for user ${USER}..."
-    local dirs=("/home/${USER}/.local" "/home/${USER}/.cache/pip" "/home/${USER}/.npm")
+    local dirs=(
+        "/home/${USER}/"{.local,.cache/pip,.cache/go-build,.cache/nvim,.npm,.config}
+    )
     for dir in "${dirs[@]}"; do
         if [ ! -d "${dir}" ]; then
             run_sudo_cmd "mkdir -p ${dir}"
