@@ -277,16 +277,11 @@ install_packages() {
     log_info "[$PKG_MANAGER] Installing packages: ${packages_str}"
     case $PKG_MANAGER in
     "brew")
-        for package in "${packages[@]}"; do
-            if [[ -n ${package} ]]; then # Skip empty lines
-                if [[ "${CI}" == "true" ]]; then
-                    echo "CI environment detected. Installing ${package} without checking for installed dependents..."
-                    run_cmd "HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 ${INSTALL_CMD} ${package}"
-                else
-                    run_cmd "${INSTALL_CMD} ${package}"
-                fi
-            fi
-        done
+        if [[ "${CI}" == "true" ]]; then
+            run_sudo_cmd "HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 ${INSTALL_CMD} ${packages_str}"
+        else
+            run_sudo_cmd "${INSTALL_CMD} ${packages_str}"
+        fi
         ;;
     *)
         run_sudo_cmd "${INSTALL_CMD} ${packages_str}"
