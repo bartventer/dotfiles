@@ -538,6 +538,7 @@ configure_neovim() {
 
         for cmd in "${commands[@]}"; do
             log_info "Running command: ${cmd}..."
+            npm config set cache ~/.npm-cache
             if [[ "$CI" == "true" ]]; then
                 log_info "Skipping headless commands."
             else
