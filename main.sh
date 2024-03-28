@@ -266,10 +266,6 @@ install_packages() {
             run_sudo_cmd "${cmd}"
         done
     fi
-
-    local packages=()
-    packages+=("${COMMON_PKGS[@]}")
-    packages+=("${DISTRO_PKGS[@]}")
     local packages_json=$(printf '%s\n' "${COMMON_PKGS[@]}" "${DISTRO_PKGS[@]}" | jq -R . | jq -s .) # Convert bash arrays to JSON arrays
     local packages_str=$(jq -rj '.[] | . + " "' <<<"$packages_json")                                 # Convert the JSON array to a string
     packages_str=${packages_str%" "}                                                                 # Remove trailing space
