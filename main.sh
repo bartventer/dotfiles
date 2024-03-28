@@ -24,7 +24,7 @@ log_info "Starting dotfiles installation..."
 CI="${CI:-false}"
 USER="${USER:-$(whoami)}"
 DISTRO=${1:-}
-if [ -z "$DISTRO" ]; then
+if [[ -z "$DISTRO" ]]; then
     log_error "Please provide the distribution as the first argument."
     exit 1
 fi
@@ -35,29 +35,39 @@ fi
 
 CONFIG_FILE="$DOTFILES_CONIG_DIR/config.json"
 PKG_MANAGER=""
-COMMON_PKGS=($(jq -r '.common_packages[]' "$CONFIG_FILE"))
-DISTRO_PKGS=($(jq -r ".distro_packages."${DISTRO}[]"" "$CONFIG_FILE"))
-if [ -z "$DISTRO_PKGS" ]; then
+COMMON_PKGS=("$(jq -r '.common_packages[]' "${CONFIG_FILE}")")
+if [[ -z "${COMMON_PKGS}" ]]; then
+    log_error "No common packages found in the config file."
+    exit 1
+fi
+DISTRO_PKGS=("$(jq -r ".distro_packages.""${DISTRO}"[]"" "${CONFIG_FILE}")")
+# shellcheck disable=SC2128
+if [[ -z "${DISTRO_PKGS}" ]]; then
     log_error "No packages found for the $DISTRO distribution in the config file."
     exit 1
 fi
 
 log_info "Detecting package manager (distro: ${DISTRO})..."
-for manager in $(jq -r '.pkg_managers | keys[]' "$CONFIG_FILE"); do
-    if command -v $manager >/dev/null 2>&1; then
-        PKG_MANAGER=$manager
+for manager in $(jq -r '.pkg_managers | keys[]' "${CONFIG_FILE}"); do
+    if command -v "${manager}" >/dev/null 2>&1; then
+        PKG_MANAGER="${manager}"
         echo "OK. Detected package manager: ${PKG_MANAGER}"
         break
     else
-        echo "$manager is not available"
+        echo "${manager} is not available"
     fi
 done
-
-if [ -z "$PKG_MANAGER" ]; then
+if [[ -z "$PKG_MANAGER" ]]; then
     log_error "No package manager found."
     exit 1
 fi
-UPDATE_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"]" "$CONFIG_FILE")
+INSTALL_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .install_cmd" "$CONFIG_FILE")
+UPDATE_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .update_cmd" "$CONFIG_FILE")
+PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
+if [[ -z "$UPDATE_CMD" || -z "$INSTALL_CMD" ]]; then
+    log_error "No update or install command found for the package manager: ${PKG_MANAGER}"
+    exit 1
+fi
 
 # *******************
 # ** Configuration **
@@ -190,27 +200,29 @@ done
 log_info "
 Debug information:
 
-User: $USER
-Distribution: $DISTRO
-Package manager: $PKG_MANAGER
-Update command: $UPDATE_CMD
+User: ${USER}
+Distribution: ${DISTRO}
+Package manager: ${PKG_MANAGER}
+Install command: ${INSTALL_CMD}
+Update command: ${UPDATE_CMD}
+Pre-install commands: ${PRE_INSTALL_CMDS}
 
 Paths:
-    ZSHRC: $ZSHRC
-    NVIM_CONFIG_DIR: $NVIM_CONFIG_DIR
-    NVIM_SCRIPTS_DIR: $NVIM_SCRIPTS_DIR
-    NVIM_OPTIONS_FILE: $NVIM_OPTIONS_FILE
-    NVIM_CLIPBOARD_SCRIPT: $NVIM_CLIPBOARD_SCRIPT
-    NVIM_LANGUAGE_SCRIPT_DIR: $NVIM_LANGUAGE_SCRIPT_DIR
+    ZSHRC: ${ZSHRC}
+    NVIM_CONFIG_DIR: ${NVIM_CONFIG_DIR}
+    NVIM_SCRIPTS_DIR: ${NVIM_SCRIPTS_DIR}
+    NVIM_OPTIONS_FILE: ${NVIM_OPTIONS_FILE}
+    NVIM_CLIPBOARD_SCRIPT: ${NVIM_CLIPBOARD_SCRIPT}
+    NVIM_LANGUAGE_SCRIPT_DIR: ${NVIM_LANGUAGE_SCRIPT_DIR}
 
-Configuration file: $CONFIG_FILE
-Font file: $DOTFILES_FONTS_CONFIG
+Configuration file: ${CONFIG_FILE}
+Font file: ${DOTFILES_FONTS_CONFIG}
 
 Options:
-    OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: $OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
-    OH_MY_ZSH_CUSTOM_THEME_REPO: $OH_MY_ZSH_CUSTOM_THEME_REPO
-    FONT_NAME: $FONT_NAME
-    FONT_URL: $FONT_URL
+    OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: ${OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT}
+    OH_MY_ZSH_CUSTOM_THEME_REPO: ${OH_MY_ZSH_CUSTOM_THEME_REPO}
+    FONT_NAME: ${FONT_NAME}
+    FONT_URL: ${FONT_URL}
 
 Relative paths: ${relative_paths[*]}
 
@@ -222,10 +234,10 @@ Tmux plugins:
     tmux_plugins_keys: ${tmux_plugins_keys[*]}
     tmux_plugins_values: ${tmux_plugins_values[*]}
 
-Terminal color: $TERM_COLOR
+Terminal color: ${TERM_COLOR}
 
-Common packages: $COMMON_PKGS
-Distro-specific packages: $DISTRO_PKGS
+Common packages: ${COMMON_PKGS[*]}
+Distro-specific packages: ${DISTRO_PKGS[*]}
 
 "
 
@@ -248,6 +260,13 @@ install_packages() {
 
     run_sudo_cmd "$UPDATE_CMD"
 
+    # Call pre-install commands
+    if [[ -n "${PRE_INSTALL_CMDS}" ]]; then
+        for cmd in "${PRE_INSTALL_CMDS[@]}"; do
+            run_sudo_cmd "${cmd}"
+        done
+    fi
+
     local packages=()
     packages+=("${COMMON_PKGS[@]}")
     packages+=("${DISTRO_PKGS[@]}")
@@ -255,28 +274,22 @@ install_packages() {
 
     log_info "[$PKG_MANAGER] Installing packages: ${packages_str}"
     case $PKG_MANAGER in
-    "apt-get") run_sudo_cmd "apt-get install -y ${packages_str}" ;;
-    "dnf") run_sudo_cmd "dnf install -y ${packages_str}" ;;
-    "yum") run_sudo_cmd "yum install -y ${packages_str}" ;;
-    "pacman") run_sudo_cmd "pacman -Syu --needed --noconfirm ${packages_str}" ;;
     "brew")
         for package in "${packages[@]}"; do
             if [[ -n ${package} ]]; then # Skip empty lines
                 if [[ "${CI}" == "true" ]]; then
                     echo "CI environment detected. Installing ${package} without checking for installed dependents..."
-                    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install "${package}"
+                    run_cmd "HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 ${INSTALL_CMD} ${package}"
                 else
-                    brew install "${package}"
+                    run_cmd "${INSTALL_CMD} ${package}"
                 fi
             fi
         done
         ;;
     *)
-        log_error "Unsupported package manager: ${PKG_MANAGER}"
-        exit 1
+        run_sudo_cmd "${INSTALL_CMD} ${packages_str}"
         ;;
     esac
-
     log_success "Packages installed successfully!"
 }
 
@@ -295,11 +308,10 @@ append_zsh_env_var() {
 
     if [ ! -f "$ZSHENV" ]; then
         touch "$ZSHENV"
-        # run_sudo_cmd "chown $USER:$USER $ZSHENV"
         if [[ "$DISTRO" == "macos" ]]; then
-            run_sudo_cmd "chown $USER:staff $ZSHENV"
+            run_sudo_cmd "chown ${USER}:staff ${ZSHENV}"
         else
-            run_sudo_cmd "chown $USER:$USER $ZSHENV"
+            run_sudo_cmd "chown ${USER}:${USER} ${ZSHENV}"
         fi
     fi
 
@@ -323,10 +335,6 @@ install_neovim() {
 
     # Determine package manager and corresponding commands
     case "${PKG_MANAGER}" in
-    "pacman")
-        # Install Neovim via package manager
-        run_sudo_cmd "pacman -Syu --noconfirm neovim"
-        ;;
     "apt-get")
         # Check if Neovim is already installed
         if ! dpkg -s neovim &>/dev/null; then
@@ -338,7 +346,8 @@ install_neovim() {
             local nvim_bin_dir="$nvim_install_dir/bin"
 
             # Create a temporary directory
-            local nvim_tmpdir=$(mktemp -d)
+            local nvim_tmpdir
+            nvim_tmpdir=$(mktemp -d)
             # Download the pre-built binary for Neovim into the temporary directory
             curl -L $nvim_url -o "$nvim_tmpdir/$nvim_tarball_name"
             # Extract the downloaded archive in the temporary directory
@@ -360,7 +369,8 @@ install_neovim() {
             echo "Installing tree-sitter..."
 
             # Create a temporary directory
-            local ts_tmpdir=$(mktemp -d)
+            local ts_tmpdir
+            ts_tmpdir=$(mktemp -d)
             # TS variables
             local ts_binary_name="tree-sitter-linux-x64"
             local ts_binary_url="https://github.com/tree-sitter/tree-sitter/releases/latest/download/$ts_binary_name.gz"
@@ -383,57 +393,12 @@ install_neovim() {
             log_info "Neovim is already installed"
         fi
         ;;
-    "yum")
-        # Check if Neovim is already installed
-        if ! yum list installed neovim &>/dev/null; then
-            # Install Neovim via package manager
-            run_sudo_cmd "yum install -y neovim"
-        else
-            log_info "Neovim is already installed"
-        fi
-        ;;
-    "dnf")
-        # Check if Neovim is already installed
-        if ! dnf list installed neovim &>/dev/null; then
-            # Install Neovim via package manager
-            run_sudo_cmd "dnf install -y neovim"
-        else
-            # echo "Neovim is already installed"
-            log_info "Neovim is already installed"
-        fi
-        ;;
-    "brew")
-        # Check if Neovim is already installed
-        if ! brew list --versions neovim &>/dev/null; then
-            # Install Neovim via package manager
-            brew install neovim
-        else
-            log_info "Neovim is already installed"
-        fi
-        ;;
-    *)
-        log_warn "Unsupported package manager for Neovim installation. Building from source instead."
-        # Clone Neovim repository
-        git clone https://github.com/neovim/neovim.git
-        cd neovim || exit
-        # Build Neovim from source
-        make CMAKE_BUILD_TYPE=Release
-        run_sudo_cmd "make install"
-        cd ..
-        # Remove the cloned repository
-        rm -rf neovim
-        # Add the Neovim binary directory to the PATH in .zshenv
-        append_zsh_env_var "PATH" "\"\$PATH:/usr/local/bin\""
-        ;;
+    *) run_sudo_cmd "${INSTALL_CMD} neovim" ;;
     esac
 
     source_zshrc
     log_success "Neovim installed successfully!"
 }
-
-# *************************
-# ** Install Neovim Deps **
-# *************************
 
 install_neovim_deps() {
     log_info "Installing Neovim dependencies..."
@@ -444,15 +409,16 @@ install_neovim_deps() {
     pip_packages=$(jq -r '.nvim_deps.pip_packages[]' "${CONFIG_FILE}")
 
     # Install the node packages
-    if [ -n "${node_packages}" ]; then
+    if [[ -n "${node_packages}" ]]; then
         log_info "Installing node packages: ${node_packages}"
         local node_deps_installed=false
-        for pkg_manager in npm yarn pnpm; do
-            if command -v "${pkg_manager}" &>/dev/null; then
-                log_info "Using ${pkg_manager} to install node packages..."
-                local pkg_manager_path
-                pkg_manager_path=$(command -v "${pkg_manager}")
-                run_sudo_cmd "${pkg_manager_path} install -g ${node_packages}"
+        for node_pkg_manager in npm yarn pnpm; do
+            if command -v "${node_pkg_manager}" &>/dev/null; then
+                log_info "Using ${node_pkg_manager} to install node packages..."
+                local node_pkg_manager_path
+                node_pkg_manager_path=$(command -v "${node_pkg_manager}")
+                run_sudo_cmd "${UPDATE_CMD} ${node_pkg_manager}"
+                run_sudo_cmd "${node_pkg_manager_path} install -g ${node_packages}"
                 node_deps_installed=true
                 break
             fi
@@ -465,13 +431,17 @@ install_neovim_deps() {
     fi
 
     # Install the pip packages
-    if [ -n "${pip_packages}" ]; then
+    if [[ -n "${pip_packages}" ]]; then
         log_info "Installing pip packages: ${pip_packages}"
-        if [ "${PKG_MANAGER}" = "pacman" ]; then
-            run_sudo_cmd "pip3 install --break-system-packages ${pip_packages}"
-        else
-            run_sudo_cmd "pip3 install ${pip_packages}"
+        PIP_CMD=$(command -v pip3 || command -v pip)
+        if [[ -z "${PIP_CMD}" ]]; then
+            log_error "pip is not installed. Please install pip and run this script again."
+            exit 1
         fi
+        case "${PKG_MANAGER}" in
+        "pacman") run_sudo_cmd "${PIP_CMD} install --break-system-packages ${pip_packages}" "-H" ;;
+        *) run_sudo_cmd "${PIP_CMD} install ${pip_packages}" "-H" ;;
+        esac
         log_success "OK. Pip packages installed successfully!"
     fi
 
@@ -488,8 +458,8 @@ configure_neovim() {
 
     # Parse variables from config.json
     local nvim_profiles
-    nvim_profiles=$(jq -r 'try (.nvim_profiles | keys[]) // empty' "${CONFIG_FILE}")
-    if [ -z "${nvim_profiles}" ]; then
+    nvim_profiles=$(jq -rS 'try (.nvim_profiles | keys[]) // empty' "${CONFIG_FILE}")
+    if [[ -z "${nvim_profiles}" ]]; then
         log_error "No Neovim profiles found in the config file. Please check the ${CONFIG_FILE} file and ensure the profiles are defined."
         exit 1
     fi
@@ -502,15 +472,13 @@ configure_neovim() {
         checks_one_of=$(jq -r ".nvim_profiles.${profile}.checks.one_of[]?" "${CONFIG_FILE}")
         custom_script=$(jq -r ".nvim_profiles.${profile}.custom_script?" "${CONFIG_FILE}")
         # debug info
-        log_info "Configuring Neovim profile: $profile
-
-            Required checks: ${checks_required[*]}
-            One-of checks: ${checks_one_of[*]}
-            Custom script(null if not set): $custom_script
-        "
+        log_info "Configuring Neovim profile: $profile"
+        log_info "Required checks: ${checks_required[*]}"
+        log_info "One-of checks: ${checks_one_of[*]}"
+        log_info "Custom script(null if not set): $custom_script"
 
         # Check required
-        if [ -z "${checks_required}" ]; then
+        if [[ -z "${checks_required}" ]]; then
             log_info "No required checks found for Neovim profile ${profile}. Skipping..."
             continue
         else
@@ -520,13 +488,13 @@ configure_neovim() {
                     log_warn "$check is required for Neovim profile ${profile}. Please install it and run this script again. Skipping..."
                     continue
                 fi
-                echo "OK. Required check $check exists."
+                echo -e "\nOK. Required check ${check} exists."
             done
         fi
 
         # Check one of
-        if [ -z "${checks_one_of}" ]; then
-            echo "OK. No one of checks found for Neovim profile ${profile}."
+        if [[ -z "${checks_one_of}" ]]; then
+            echo "OK. No one-of checks found for Neovim profile ${profile}."
         else
             log_info "Checking one-of checks for Neovim profile ${profile}. One-of checks: ${checks_one_of}"
             local one_of_exists=false
@@ -550,44 +518,50 @@ configure_neovim() {
         local parsers=()
         for key in "${keys[@]}"; do
             local items
-            items=$(jq -r ".nvim_profiles.${profile}.${key}[]?" "${CONFIG_FILE}")
-            if [ "$key" = "parsers" ]; then
-                parsers=($items)
+            items=$(jq -r ".nvim_profiles.${profile}.${key}[]? | @sh" "${CONFIG_FILE}" | tr -d "'")
+            if [[ "${key}" == "parsers" && -n "${items}" ]]; then
+                IFS=$'\n' parsers=($items)
             else
-                mason_deps+=($items)
+                IFS=$'\n' mason_deps+=($items)
             fi
         done
-        log_info "Profile ${profile} configuration:
-
-    Parsers: ${parsers[*]}
-    Mason dependencies: ${mason_deps[*]}
-"
+        log_info "Profile ${profile} configuration:"
+        log_info "Parsers: ${parsers[*]}"
+        log_info "Mason dependencies: ${mason_deps[*]}"
         # nvim headless commands
         local commands=('Lazy sync')
-        if [ "${#parsers[@]}" -ne 0 ]; then
-            commands+=("TSInstallSync! ${parsers[*]}")
+        if [[ -n "${parsers[*]}" ]]; then
+            commands+=("TSInstallSync! ${parsers[@]}")
         fi
         commands+=('MasonUpdate')
-        if [ "${#mason_deps[@]}" -ne 0 ]; then
-            commands+=("MasonInstall ${mason_deps[*]} --force")
+        if [[ -n "${mason_deps[*]}" ]]; then
+            local mason_install_command="MasonInstall"
+            for dep in "${mason_deps[@]}"; do
+                mason_install_command+=" ${dep}"
+            done
+            mason_install_command+=" --force"
+            commands+=("${mason_install_command}")
         fi
+
         for cmd in "${commands[@]}"; do
             log_info "Running command: ${cmd}..."
             npm config set cache ~/.npm-cache
-            if [ "$CI" = "true" ]; then
+            if [[ "$CI" == "true" ]]; then
                 log_info "Skipping headless commands."
             else
+                cmd=$(echo "${cmd}" | tr '\n' ' ') # Clean up the command
                 nvim --headless -c "${cmd}" -c "quitall"
             fi
         done
 
         # Run custom script
-        if [ "${custom_script}" != "null" ]; then
+        if [[ "${custom_script}" != "null" ]]; then
             local script="${NVIM_LANGUAGE_SCRIPT_DIR}/${custom_script}"
             if [ -f "$script" ]; then
                 log_info "Custom script found: ${script}. Running script..."
                 # shellcheck disable=SC1090
                 source "${script}" "${PKG_MANAGER}"
+                echo "OK. Custom script ${script} executed successfully."
             else
                 log_error "Invalid custom script: ${script}. Please check the ${CONFIG_FILE} file and ensure the script exists in ${NVIM_LANGUAGE_SCRIPT_DIR}."
                 exit 1
@@ -613,6 +587,7 @@ create_symlink() {
         rm -rf "$target"
     fi
     ln -sf "$src" "$target"
+    echo "OK. Symlink created successfully!"
 }
 
 # *******************
@@ -872,7 +847,7 @@ install_oh_my_zsh_theme() {
 configure_permissions() {
     log_info "Configuring permissions for user ${USER}..."
     local dirs=(
-        "/home/${USER}/"{.local,.cache/pip,.cache/go-build,.cache/nvim,.npm,.config}
+        "/home/${USER}/"{.local,.cache/pip,.cache/go-build,.cache/nvim,.npm,.npm-cache,.config}
     )
     for dir in "${dirs[@]}"; do
         if [ ! -d "${dir}" ]; then

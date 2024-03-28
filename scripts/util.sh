@@ -14,14 +14,15 @@ run_cmd() {
 }
 
 # run_sudo_cmd Run commands with sudo.
-# Usage: run_sudo_cmd "command"
+# Usage: run_sudo_cmd "command" "sudo_flags"
 run_sudo_cmd() {
     local cmd=${1//$'\n'/ }
+    local sudo_flags=${2:-}
     echo ":: Running command with sudo: $cmd"
     if [ "$CI" = "true" ]; then
         run_cmd "$cmd"
     else
-        sudo -E env "PATH=$PATH" bash -c "$(declare -f run_cmd); run_cmd '$cmd'"
+        sudo $sudo_flags -E env "PATH=$PATH" bash -c "$(declare -f run_cmd); run_cmd '$cmd'"
     fi
 }
 
@@ -49,27 +50,26 @@ detect_distro() {
 # version and detailed software information.
 debug_system() {
     files="/etc/os-release /etc/lsb-release"
-    hyphens=$(printf '%*s' 80 | tr ' ' '-')
+    hyphens=$(printf '%*s' 80 '' | tr ' ' '=')
 
     printf "\n\033[1;35m[DEBUG]\033[0m\n"
     echo "$hyphens"
     echo "Date: $(TZ=UTC date +"%Y-%m-%d %H:%M:%S")"
     echo "User: $(whoami)"
-    echo "CI: $CI"
     set +e
     echo "Kernel: $(uname -s)"
     set -e
     echo "Current directory: $(pwd)"
-    echo "$hyphens"
+    echo "${hyphens}"
     echo "Environment variables:"
     printenv | sed 's/^/    /'
-    echo "$hyphens"
+    echo "${hyphens}"
 
     for file in $files; do
         if [ -f "$file" ]; then
             echo "Contents of $file:"
-            cat "$file" | sed 's/^/    /'
-            echo "$hyphens"
+            sed 's/^/    /' <"${file}"
+            echo "${hyphens}"
         fi
     done
 
@@ -77,9 +77,9 @@ debug_system() {
     if [ "$os" = "macos" ]; then
         echo "macOS version:"
         sw_vers
-        echo "$hyphens"
+        echo "${hyphens}"
         echo "Detailed software information:"
         system_profiler SPSoftwareDataType
-        echo "$hyphens"
+        echo "${hyphens}"
     fi
 }
