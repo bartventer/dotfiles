@@ -270,7 +270,9 @@ install_packages() {
     local packages=()
     packages+=("${COMMON_PKGS[@]}")
     packages+=("${DISTRO_PKGS[@]}")
-    local packages_str="${packages[*]}"
+    local packages_json=$(printf '%s\n' "${COMMON_PKGS[@]}" "${DISTRO_PKGS[@]}" | jq -R . | jq -s .) # Convert bash arrays to JSON arrays
+    local packages_str=$(jq -rj '.[] | . + " "' <<<"$packages_json")                                 # Convert the JSON array to a string
+    packages_str=${packages_str%" "}                                                                 # Remove trailing space
 
     log_info "[$PKG_MANAGER] Installing packages: ${packages_str}"
     case $PKG_MANAGER in
@@ -417,7 +419,7 @@ install_neovim_deps() {
                 log_info "Using ${node_pkg_manager} to install node packages..."
                 local node_pkg_manager_path
                 node_pkg_manager_path=$(command -v "${node_pkg_manager}")
-                run_sudo_cmd "${UPDATE_CMD} ${node_pkg_manager}"
+                run_sudo_cmd "${UPDATE_CMD}"
                 run_sudo_cmd "${node_pkg_manager_path} install -g ${node_packages}"
                 node_deps_installed=true
                 break
