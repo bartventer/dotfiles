@@ -1,3 +1,20 @@
+## [3.10.3](https://github.com/bartventer/dotfiles/compare/v3.10.2...v3.10.3) (2024-03-28)
+
+
+### Bug Fixes
+
+* **config:** modify default packages ([0aa36cc](https://github.com/bartventer/dotfiles/commit/0aa36cced55c45fd3cee64557470e8007d6517ef))
+* **config.json:** remove python dependency on macOS ([349246e](https://github.com/bartventer/dotfiles/commit/349246ea75cff584bcf9c68fca0fc811d77aa103))
+* **install.sh:** modify Homebrew package installation step ([e735b84](https://github.com/bartventer/dotfiles/commit/e735b84c95db070659aa1d11fbdca05b6ec83dcb))
+* **install.sh:** modify package installation step ([bf42790](https://github.com/bartventer/dotfiles/commit/bf42790dccabc3489b0533a6d46156bd70d281c7))
+* **install.sh:** remove setting of npm config ([ff87ba3](https://github.com/bartventer/dotfiles/commit/ff87ba363951d8cbece76866f4d8a263ca6d8d5d))
+* **install.sh:** remove unused `packages` variable ([bc21188](https://github.com/bartventer/dotfiles/commit/bc21188689d47746b66c12b4833411bebaf1dd62))
+
+
+### Reverts
+
+* **install.sh:** add setting of npm config ([5929ca8](https://github.com/bartventer/dotfiles/commit/5929ca8796ca02744e2f22c1eb883735b9a34089))
+
 ## [3.10.2](https://github.com/bartventer/dotfiles/compare/v3.10.1...v3.10.2) (2024-03-26)
 
 
