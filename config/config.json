@@ -107,7 +107,6 @@
             "lua",
             "ripgrep",
             "fd",
-            "python3",
             "node"
         ]
     },
