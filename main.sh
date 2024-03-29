@@ -419,11 +419,15 @@ install_neovim() {
 install_neovim_deps() {
     log_info "Installing Neovim dependencies..."
 
-    # Create the virtual environment for Neovim
+    # Create the directory for virtual environments
     local venvs_dir="${HOME}/.venvs"
     append_zshlocal_var "VENVS_DIR" "${venvs_dir}"
+    export VENVS_DIR="${venvs_dir}"
+    # Nvim virtual environment
     local nvim_venv="${venvs_dir}/nvim"
     append_zshlocal_var "NVIM_VENV" "${nvim_venv}"
+    export NVIM_VENV="${nvim_venv}"
+    # Get the Python command
     local PYTHON_CMD=""
     PYTHON_CMD=$(command -v python3 || command -v python)
     if [[ -z "${PYTHON_CMD}" ]]; then
