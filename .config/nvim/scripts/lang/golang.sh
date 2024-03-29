@@ -18,11 +18,10 @@
 # Example: ./golang.sh pacman $HOME/.zsh_local
 #
 # This script will:
-#   - Install Delve for debugging Go code.
 #   - Install golangci-lint for linting Go code.
 #   - Generate Zsh autocompletion script for golangci-lint.
 #   - Update the zsh_local file with the autocompletion script.
-#
+#   - Installs various Go tools for development.
 # Note: This script assumes that Go is already installed.
 #-----------------------------------------------------------------------------------------------------------------
 
@@ -42,35 +41,6 @@ fi
 
 PACKAGE_MANAGER=$1
 ZSH_LOCAL=$2
-
-usage() {
-    echo "Usage: $0 <package_manager> <zsh_local>"
-    exit 1
-}
-
-error() {
-    log_error "Error: $1"
-    usage
-}
-
-install_delve() {
-    local package_manager=$1
-    log_info "Installing Delve..."
-    echo "Setting GOPATH for this session..."
-    case $package_manager in
-    pacman)
-        if [[ $CI == "true" ]]; then
-            pacman -Syu delve --noconfirm
-        else
-            sudo pacman -Syu delve --noconfirm
-        fi
-        ;;
-    *)
-        go install github.com/go-delve/delve/cmd/dlv@latest
-        ;;
-    esac
-    echo "OK. Delve installed."
-}
 
 update_zsh_local() {
     local zsh_local=$1
@@ -111,11 +81,34 @@ if [[ "${CI}" != "true" ]]; then
     export GOPATH="$HOME/go"
     export PATH="$GOPATH/bin:$PATH"
 fi
-# Install Go Tools
-install_delve "$PACKAGE_MANAGER" "$ZSH_LOCAL"
-install_and_setup_golangci_lint "$ZSH_LOCAL"
-go install -v github.com/cosmtrek/air@latest
 
-# ... and other dependencies
+# Install golangci-lint and set up autocompletion
+install_and_setup_golangci_lint "$ZSH_LOCAL"
+
+# Go tools to install
+GO_TOOLS="\
+    golang.org/x/tools/gopls@latest \
+    honnef.co/go/tools/cmd/staticcheck@latest \
+    golang.org/x/lint/golint@latest \
+    github.com/mgechev/revive@latest \
+    github.com/fatih/gomodifytags@latest \
+    github.com/haya14busa/goplay/cmd/goplay@latest \
+    github.com/cweill/gotests/gotests@latest \
+    github.com/josharian/impl@latest \
+    github.com/cosmtrek/air@latest"
+
+# Delve installation
+if [[ $PACKAGE_MANAGER != "pacman" ]]; then
+    GO_TOOLS+=" github.com/go-delve/delve/cmd/dlv@latest"
+else
+    log_info ":: Installing delve (arch based system)..."
+    if [[ $CI == "true" ]]; then
+        pacman -Syu delve --noconfirm
+    else
+        sudo pacman -Syu delve --noconfirm
+    fi
+fi
+log_info "Installing Go tools..."
+echo "${GO_TOOLS}" | xargs -n 1 go install
 
 log_success "Done. Go setup complete."
