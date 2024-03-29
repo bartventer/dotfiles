@@ -72,6 +72,7 @@ if [[ -z "$UPDATE_CMD" || -z "$INSTALL_CMD" ]]; then
 fi
 PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
 POST_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .post_install_commands[]?" "$CONFIG_FILE")
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
 
 # *******************
 # ** Configuration **
@@ -342,8 +343,6 @@ append_zshlocal_var() {
         log_info "Setting ${var_name} environment variable"
         echo -e "\nexport ${var_name}=${var_value}" >>"${ZSH_LOCAL}"
     fi
-    # also export for the current session
-    export "${var_name}=${var_value}"
 }
 
 # ********************
@@ -382,7 +381,7 @@ install_neovim() {
             rm -r "$nvim_tmpdir"
             # Add the Neovim binary directory to the PATH in .zshenv
             append_zshlocal_var "PATH" "\"\$PATH:$nvim_bin_dir\""
-
+            export PATH="$PATH:$nvim_bin_dir"
             # Install tree-sitter
             echo "Installing tree-sitter..."
 
@@ -764,7 +763,7 @@ clone_plugins_and_themes() {
         mkdir -p "$dir" # Ensure the directory exists
         if [ -d "$dir/.git" ]; then
             echo "Directory $dir already exists. Pulling latest changes..."
-            git -C "$dir" pull
+            git -C "$dir" pull --rebase=false
         else
             echo "Cloning $url into $dir..."
             git clone --depth=1 "$url" "$dir" # Clone the repository
@@ -786,7 +785,7 @@ clone_tmux_plugins() {
         mkdir -p "$dir" # Ensure the directory exists
         if [ -d "$dir/.git" ]; then
             echo "Directory $dir already exists. Pulling latest changes..."
-            git -C "$dir" pull
+            git -C "$dir" pull --rebase=false
         else
             echo "Cloning $url into $dir..."
             git clone --depth=1 "$url" "$dir" # Clone the repository
@@ -913,7 +912,7 @@ install_oh_my_zsh_theme() {
 configure_permissions() {
     log_info "Configuring permissions for user ${USER}..."
     local dirs=(
-        "/home/${USER}/"{.local,.cache/pip,.cache/go-build,.cache/nvim,.npm,.npm-cache,.config}
+        "/home/${USER}/"{.local,.cache,.npm,.npm-cache,.config}
     )
     for dir in "${dirs[@]}"; do
         if [ ! -d "${dir}" ]; then
