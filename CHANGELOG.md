@@ -1,3 +1,10 @@
+# [3.12.0](https://github.com/bartventer/dotfiles/compare/v3.11.0...v3.12.0) (2024-03-29)
+
+
+### Features
+
+* **scripts:** add additional go tools ([e3d018d](https://github.com/bartventer/dotfiles/commit/e3d018d99a683addaabc341604aadf469afe80ae))
+
 # [3.11.0](https://github.com/bartventer/dotfiles/compare/v3.10.5...v3.11.0) (2024-03-29)
 
 
