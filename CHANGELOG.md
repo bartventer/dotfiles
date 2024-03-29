@@ -1,3 +1,10 @@
+# [3.11.0](https://github.com/bartventer/dotfiles/compare/v3.10.5...v3.11.0) (2024-03-29)
+
+
+### Features
+
+* **scripts:** add `cosmtrek/air` tool to golang script ([39f3a6c](https://github.com/bartventer/dotfiles/commit/39f3a6c28a348920f6e1aa02469c991e81404503))
+
 ## [3.10.5](https://github.com/bartventer/dotfiles/compare/v3.10.4...v3.10.5) (2024-03-29)
 
 
