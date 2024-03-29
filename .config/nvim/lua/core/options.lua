@@ -19,6 +19,9 @@ vim.cmd([[ set noswapfile ]])
 --Line numbers
 vim.wo.number = true
 
+-- Python3 provider
+vim.g.python3_host_prog = os.getenv("NVIM_VENV") .. "/bin/python"
+
 -- Setting up clipboard configuration
 vim.g.clipboard = {
   name = 'LinuxClipboard',

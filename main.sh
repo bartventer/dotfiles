@@ -1,14 +1,17 @@
 #!/bin/bash
 #
 # This script installs the dotfiles on your system.
-# It checks and installs zsh and oh-my-zsh, creates symbolic links for files from the repository to the home directory,
-# determines the current shell (exits if not bash or zsh), identifies the package manager and installs packages,
-# clones oh-my-zsh plugins and theme, installs oh-my-zsh theme, installs fonts, sources .zshrc file,
-# parses config.json for Neovim configuration and applies it, and installs and configures Neovim.
+# It configures permissions (if not macOS), installs zsh and oh-my-zsh, creates symbolic links, installs packages,
+# clones oh-my-zsh and tmux plugins, configures Docker, installs oh-my-zsh theme, fonts, and Neovim with its dependencies.
+# It also sources the .zshrc file.
 #
-# Usage: ./install.sh
+# Usage: ./main.sh <distro> [additional_arguments...]
 #
-# Dependencies: zsh, oh-my-zsh, jq, ps
+# Arguments:
+#   - distro: The distribution of the operating system. This argument is required.
+#   - additional_arguments: Any additional arguments to be passed to the script.
+#
+# Dependencies: zsh, git, curl, jq, unzip, wget
 #
 set -e
 
@@ -63,11 +66,12 @@ if [[ -z "$PKG_MANAGER" ]]; then
 fi
 INSTALL_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .install_cmd" "$CONFIG_FILE")
 UPDATE_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .update_cmd" "$CONFIG_FILE")
-PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
 if [[ -z "$UPDATE_CMD" || -z "$INSTALL_CMD" ]]; then
     log_error "No update or install command found for the package manager: ${PKG_MANAGER}"
     exit 1
 fi
+PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
+POST_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .post_install_commands[]?" "$CONFIG_FILE")
 
 # *******************
 # ** Configuration **
@@ -83,7 +87,7 @@ NVIM_CLIPBOARD_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # User files
-ZSHENV="$HOME/.zshenv"
+ZSH_LOCAL="$HOME/.zsh_local"
 
 # This function parses a JSON object and stores the keys and values in separate arrays.
 # It takes three arguments:
@@ -206,6 +210,7 @@ Package manager: ${PKG_MANAGER}
 Install command: ${INSTALL_CMD}
 Update command: ${UPDATE_CMD}
 Pre-install commands: ${PRE_INSTALL_CMDS}
+Post-install commands: ${POST_INSTALL_CMDS}
 
 Paths:
     ZSHRC: ${ZSHRC}
@@ -258,19 +263,27 @@ source_zshrc() {
 install_packages() {
     log_info "Installing packages (package manager: ${PKG_MANAGER}, DISTRO: ${DISTRO})..."
 
+    # Update the package manager
+    echo ":: Updating the package manager (via ${UPDATE_CMD})..."
     run_sudo_cmd "$UPDATE_CMD"
+    echo "OK. Package manager updated."
 
     # Call pre-install commands
+    echo ":: Running pre-install commands..."
     if [[ -n "${PRE_INSTALL_CMDS}" ]]; then
+        echo "Pre-install commands: ${PRE_INSTALL_CMDS}"
         for cmd in "${PRE_INSTALL_CMDS[@]}"; do
             run_sudo_cmd "${cmd}"
         done
     fi
+    echo "OK. Pre-install commands executed."
+
     local packages_json=$(printf '%s\n' "${COMMON_PKGS[@]}" "${DISTRO_PKGS[@]}" | jq -R . | jq -s .) # Convert bash arrays to JSON arrays
     local packages_str=$(jq -rj '.[] | . + " "' <<<"$packages_json")                                 # Convert the JSON array to a string
     packages_str=${packages_str%" "}                                                                 # Remove trailing space
 
-    log_info "[$PKG_MANAGER] Installing packages: ${packages_str}"
+    echo ":: Running the package manager install command..."
+    echo "Packages: ${packages_str}"
     case $PKG_MANAGER in
     "brew")
         if [[ "${CI}" == "true" ]]; then
@@ -283,14 +296,26 @@ install_packages() {
         run_sudo_cmd "${INSTALL_CMD} ${packages_str}"
         ;;
     esac
+    echo "OK. Packages installed."
+
+    # Call post-install commands
+    echo ":: Running post-install commands..."
+    if [[ -n "${POST_INSTALL_CMDS}" ]]; then
+        echo "Post-install commands: ${POST_INSTALL_CMDS}"
+        for cmd in "${POST_INSTALL_CMDS[@]}"; do
+            run_sudo_cmd "${cmd}"
+        done
+    fi
+    echo "OK. Post-install commands executed."
+
     log_success "Packages installed successfully!"
 }
 
-# ******************************
-# ** Add variables to .zshenv **
-# ******************************
+# *******************************
+# ** Append zsh local variable **
+# *******************************
 
-append_zsh_env_var() {
+append_zshlocal_var() {
     # If the variable is already set but commented out, it will be uncommented
     # If the variable is not set, it will be added to the end of the file
 
@@ -299,24 +324,26 @@ append_zsh_env_var() {
     # Value of the environment variable
     local var_value="$2"
 
-    if [ ! -f "$ZSHENV" ]; then
-        touch "$ZSHENV"
+    if [ ! -f "$ZSH_LOCAL" ]; then
+        touch "$ZSH_LOCAL"
         if [[ "$DISTRO" == "macos" ]]; then
-            run_sudo_cmd "chown ${USER}:staff ${ZSHENV}"
+            run_sudo_cmd "chown ${USER}:staff ${ZSH_LOCAL}"
         else
-            run_sudo_cmd "chown ${USER}:${USER} ${ZSHENV}"
+            run_sudo_cmd "chown ${USER}:${USER} ${ZSH_LOCAL}"
         fi
     fi
 
     # If the variable is already set but commented out, uncomment it
-    if grep -q "^#.*export ${var_name}=${var_value}" "${ZSHENV}"; then
+    if grep -q "^#.*export ${var_name}=${var_value}" "${ZSH_LOCAL}"; then
         log_info "Uncommenting ${var_name} environment variable"
-        sed -i "s/^#.*export ${var_name}=${var_value}/export ${var_name}=${var_value}/" "${ZSHENV}"
+        sed -i "s/^#.*export ${var_name}=${var_value}/export ${var_name}=${var_value}/" "${ZSH_LOCAL}"
     # If the variable is not set, add it to the end of the file
-    elif ! grep -q "${var_name}=${var_value}" "${ZSHENV}"; then
+    elif ! grep -q "${var_name}=${var_value}" "${ZSH_LOCAL}"; then
         log_info "Setting ${var_name} environment variable"
-        echo -e "\nexport ${var_name}=${var_value}" >>"${ZSHENV}"
+        echo -e "\nexport ${var_name}=${var_value}" >>"${ZSH_LOCAL}"
     fi
+    # also export for the current session
+    export "${var_name}=${var_value}"
 }
 
 # ********************
@@ -354,9 +381,7 @@ install_neovim() {
             # Remove the temporary directory
             rm -r "$nvim_tmpdir"
             # Add the Neovim binary directory to the PATH in .zshenv
-            append_zsh_env_var "PATH" "\"\$PATH:$nvim_bin_dir\""
-            # Also ensure that the bin directory is added to the PATH for the current session
-            export PATH="$PATH:$nvim_bin_dir"
+            append_zshlocal_var "PATH" "\"\$PATH:$nvim_bin_dir\""
 
             # Install tree-sitter
             echo "Installing tree-sitter..."
@@ -396,6 +421,23 @@ install_neovim() {
 install_neovim_deps() {
     log_info "Installing Neovim dependencies..."
 
+    # Create the virtual environment for Neovim
+    local venvs_dir="${HOME}/.venvs"
+    append_zshlocal_var "VENVS_DIR" "${venvs_dir}"
+    local nvim_venv="${venvs_dir}/nvim"
+    append_zshlocal_var "NVIM_VENV" "${nvim_venv}"
+    local PYTHON_CMD=$(command -v python3 || command -v python)
+    if [[ -z "${PYTHON_CMD}" ]]; then
+        log_error "Python is not installed. Please install Python and run this script again."
+        exit 1
+    fi
+    if [[ ! -f "${nvim_venv}/bin/activate" ]]; then
+        log_info "Creating virtual environment for Neovim..."
+        mkdir -p "${nvim_venv}"
+        "${PYTHON_CMD}" -m venv "${nvim_venv}"
+        log_success "OK. Virtual environment created successfully!"
+    fi
+
     local node_packages
     local pip_packages
     node_packages=$(jq -r '.nvim_deps.node_packages[]' "${CONFIG_FILE}")
@@ -426,16 +468,18 @@ install_neovim_deps() {
     # Install the pip packages
     if [[ -n "${pip_packages}" ]]; then
         log_info "Installing pip packages: ${pip_packages}"
-        PIP_CMD=$(command -v pip3 || command -v pip)
+        echo "Activating the virtual environment..."
+        source "${nvim_venv}/bin/activate"
+        local PIP_CMD=$(command -v pip3 || command -v pip)
         if [[ -z "${PIP_CMD}" ]]; then
             log_error "pip is not installed. Please install pip and run this script again."
+            deactivate
             exit 1
         fi
-        case "${PKG_MANAGER}" in
-        "pacman") run_sudo_cmd "${PIP_CMD} install --break-system-packages ${pip_packages}" "-H" ;;
-        *) run_sudo_cmd "${PIP_CMD} install ${pip_packages}" "-H" ;;
-        esac
+        "${PIP_CMD}" install "${pip_packages}"
         log_success "OK. Pip packages installed successfully!"
+        deactivate
+        echo "Deactivated the virtual environment."
     fi
 
     log_success "OK. Neovim dependencies installed successfully!"
@@ -550,10 +594,11 @@ configure_neovim() {
         # Run custom script
         if [[ "${custom_script}" != "null" ]]; then
             local script="${NVIM_LANGUAGE_SCRIPT_DIR}/${custom_script}"
-            if [ -f "$script" ]; then
+            if [[ -f "$script" ]]; then
                 log_info "Custom script found: ${script}. Running script..."
+                # Usage: <script> <package_manager> <zsh_local>
                 # shellcheck disable=SC1090
-                source "${script}" "${PKG_MANAGER}"
+                source "${script}" "${PKG_MANAGER}" "${ZSH_LOCAL}"
                 echo "OK. Custom script ${script} executed successfully."
             else
                 log_error "Invalid custom script: ${script}. Please check the ${CONFIG_FILE} file and ensure the script exists in ${NVIM_LANGUAGE_SCRIPT_DIR}."
@@ -775,7 +820,29 @@ install_tmux_plugins() {
     else
         log_error "Failed to create new tmux session"
     fi
-    append_zsh_env_var "TERM" "$TERM_COLOR"
+    append_zshlocal_var "TERM" "$TERM_COLOR"
+}
+
+# *********************
+# ** Generate locale **
+# *********************
+
+generate_locale() {
+    local lang=$1
+    local encoding=$2
+    local locale_line="${lang}.${encoding} ${encoding}"
+    local locale_gen_file="/etc/locale.gen"
+    if ! grep -q "^$locale_line" "$locale_gen_file"; then
+        echo "$locale_line" | run_sudo_cmd "tee -a $locale_gen_file"
+    fi
+
+    if type locale-gen &>/dev/null; then
+        echo "Running locale-gen..."
+        run_sudo_cmd "locale-gen"
+    elif type localedef &>/dev/null; then
+        echo "Running localedef..."
+        run_sudo_cmd "localedef -i $lang -f $encoding $lang.$encoding"
+    fi
 }
 
 # **********************
@@ -787,26 +854,29 @@ configure_docker() {
     if [ -f /.dockerenv ]; then
         log_info "Docker detected. Configuring environment for Docker..."
         # Set the language environment variables
-        append_zsh_env_var "LANG" "C.UTF-8"
-        append_zsh_env_var "LC_ALL" "en_US.UTF-8"
+        local language="en_US"
+        local character_encoding="UTF-8"
+        append_zshlocal_var "LANG" "C.${character_encoding}"
+        append_zshlocal_var "LC_ALL" "${language}.${character_encoding}"
 
-        # Generate locale
-        log_info "Generating locale..."
-        if type locale-gen &>/dev/null; then
-            echo "Running locale-gen..."
-            echo "en_US.UTF-8 UTF-8" | run_sudo_cmd "tee -a /etc/locale.gen"
-            run_sudo_cmd "locale-gen"
-        elif type localedef &>/dev/null; then
-            echo "Running localedef..."
-            run_sudo_cmd "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
-            run_sudo_cmd "localedef -i en_US -f UTF-8 en_US.UTF-8"
-        elif [ "$(uname)" == "Darwin" ]; then
+        case "$(uname)" in
+        "Darwin")
+            # MacOS specific configuration
             echo "Running defaults write..."
-            defaults write -g AppleLocale -string "en_US"
-        else
-            log_error "No supported method for generating locale found"
-            exit 1
-        fi
+            defaults write -g AppleLocale -string "$language"
+            return 0
+            ;;
+        *)
+            # Generate locale
+            log_info "Generating locale..."
+            # If neither locale-gen nor localedef is available, exit the script
+            if ! type locale-gen &>/dev/null && ! type localedef &>/dev/null; then
+                log_error "No supported method for generating locale found"
+                exit 1
+            fi
+            generate_locale $language $character_encoding
+            ;;
+        esac
     fi
 }
 
@@ -815,22 +885,25 @@ configure_docker() {
 # *****************************
 
 install_oh_my_zsh_theme() {
+    local OH_MY_ZSH_THEME_NAME=""
     if command -v basename &>/dev/null; then
-        OH_MY_ZSH_THEME_NAME=$(basename "$OH_MY_ZSH_CUSTOM_THEME_REPO")
+        OH_MY_ZSH_THEME_NAME=$(basename "${OH_MY_ZSH_CUSTOM_THEME_REPO}")
     else
         # Use parameter expansion as a fallback
         OH_MY_ZSH_THEME_NAME=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
     fi
-
-    if [ -z "$OH_MY_ZSH_THEME_NAME" ]; then
+    if [[ -z "$OH_MY_ZSH_THEME_NAME" ]]; then
         log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
         exit 1
-    elif [ ! -d "$HOME/.oh-my-zsh/custom/themes/$OH_MY_ZSH_THEME_NAME" ]; then
-        log_info "Installing $OH_MY_ZSH_THEME_NAME theme..."
-        git clone --depth=1 https://github.com/"$OH_MY_ZSH_CUSTOM_THEME_REPO".git "$HOME"/.oh-my-zsh/custom/themes/"$OH_MY_ZSH_THEME_NAME"
-    else
-        log_info "$OH_MY_ZSH_THEME_NAME theme is already installed"
     fi
+    local theme_dir="${HOME}/.oh-my-zsh/custom/themes/${OH_MY_ZSH_THEME_NAME}"
+    if [[ ! -d "${theme_dir}" ]]; then
+        log_info "Installing ${OH_MY_ZSH_THEME_NAME} theme..."
+        git clone --depth=1 https://github.com/"${OH_MY_ZSH_CUSTOM_THEME_REPO}".git "${theme_dir}"
+    else
+        log_info "${OH_MY_ZSH_THEME_NAME} theme is already installed"
+    fi
+    echo "OK. Theme installed successfully."
 }
 
 # ***************************

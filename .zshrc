@@ -143,7 +143,7 @@ alias tmux_source="tmux source-file ~/.tmux.conf"
 alias zsh_source="source ~/.zshrc"
 
 # Locally defined aliases
-if [ -f ~/.aliases ]; then
+if [[ -f ~/.aliases ]]; then
   source ~/.aliases
 fi
 
@@ -152,6 +152,11 @@ fi
 
 # Source powerlevel10k theme if it exists
 POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
-if [ -f "$POWERLEVEL10K_THEME" ]; then
+if [[ -f "$POWERLEVEL10K_THEME" ]]; then
   source "$POWERLEVEL10K_THEME"
+fi
+
+# Source local zsh configuration
+if [[ -f "$HOME/.zsh_local" ]]; then
+  source "$HOME/.zsh_local"
 fi
