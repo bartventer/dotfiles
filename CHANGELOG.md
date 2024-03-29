@@ -1,3 +1,11 @@
+## [3.10.4](https://github.com/bartventer/dotfiles/compare/v3.10.3...v3.10.4) (2024-03-29)
+
+
+### Bug Fixes
+
+* **config:** correct syntax error in json file ([a4abdc9](https://github.com/bartventer/dotfiles/commit/a4abdc9a858e53676346840c5a18d9ef71c6c6af))
+* **config:** update distro specific dependencies ([dc65f51](https://github.com/bartventer/dotfiles/commit/dc65f51d4cfb4dcc294ceec3bf8faf3a158d7818))
+
 ## [3.10.3](https://github.com/bartventer/dotfiles/compare/v3.10.2...v3.10.3) (2024-03-28)
 
 
