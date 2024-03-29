@@ -114,6 +114,7 @@ fi
 # Install Go Tools
 install_delve "$PACKAGE_MANAGER" "$ZSH_LOCAL"
 install_and_setup_golangci_lint "$ZSH_LOCAL"
+go install -v github.com/cosmtrek/air@latest
 
 # ... and other dependencies
 
