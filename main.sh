@@ -422,13 +422,18 @@ install_neovim_deps() {
     log_info "Installing Neovim dependencies..."
 
     # Create the directory for virtual environments
-    local venvs_dir="${HOME}/.venvs"
-    append_zshlocal_var "VENVS_DIR" "${venvs_dir}"
-    export VENVS_DIR="${venvs_dir}"
+    local venvs_dir_escaped="\${HOME}/.venvs"
+    append_zshlocal_var "VENVS_DIR" "${venvs_dir_escaped}"
+    export VENVS_DIR
+    VENVS_DIR=$(eval echo "${venvs_dir_escaped}")
+
     # Nvim virtual environment
-    local nvim_venv="${venvs_dir}/nvim"
-    append_zshlocal_var "NVIM_VENV" "${nvim_venv}"
-    export NVIM_VENV="${nvim_venv}"
+    local nvim_venv_escaped
+    nvim_venv_escaped="${venvs_dir_escaped}/nvim"
+    append_zshlocal_var "NVIM_VENV" "${nvim_venv_escaped}"
+    export NVIM_VENV
+    NVIM_VENV=$(eval echo "${nvim_venv_escaped}")
+
     # Get the Python command
     local PYTHON_CMD=""
     PYTHON_CMD=$(command -v python3 || command -v python)
@@ -436,11 +441,11 @@ install_neovim_deps() {
         log_error "Python is not installed. Please install Python and run this script again."
         exit 1
     fi
-    local python_venv_activate="${nvim_venv}/bin/activate"
+    local python_venv_activate="${NVIM_VENV}/bin/activate"
     if [[ ! -f "${python_venv_activate}" ]]; then
         log_info "Creating virtual environment for Neovim..."
-        mkdir -p "${nvim_venv}"
-        "${PYTHON_CMD}" -m venv "${nvim_venv}"
+        mkdir -p "${NVIM_VENV}"
+        "${PYTHON_CMD}" -m venv "${NVIM_VENV}"
         log_success "OK. Virtual environment created successfully!"
     fi
 
