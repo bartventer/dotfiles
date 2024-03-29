@@ -87,7 +87,7 @@
             "python3-pip",
             "nodejs",
             "gdb",
-            "build-essential",
+            "build-essential"
         ],
         "fedora": [
             "lua",
