@@ -585,8 +585,11 @@ configure_neovim() {
 
         for cmd in "${commands[@]}"; do
             log_info "Running command: ${cmd}..."
-            run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache" # Fix permissions for npm cache
-            npm config set cache "${HOME}/.npm-cache"
+            if [ "${DISTRO}" != "macos" ]; then
+                # Fix permissions for npm cache
+                run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache"
+                npm config set cache "${HOME}/.npm-cache"
+            fi
             if [[ "$CI" == "true" ]]; then
                 log_info "Skipping headless commands."
             else
