@@ -20,7 +20,12 @@ vim.cmd([[ set noswapfile ]])
 vim.wo.number = true
 
 -- Python3 provider
-vim.g.python3_host_prog = os.getenv("NVIM_VENV") .. "/bin/python"
+local nvim_venv = os.getenv("NVIM_VENV")
+if nvim_venv then
+  vim.g.python3_host_prog = nvim_venv .. "/bin/python"
+else
+  print("Warning: NVIM_VENV is not set")
+end
 
 -- Setting up clipboard configuration
 vim.g.clipboard = {
