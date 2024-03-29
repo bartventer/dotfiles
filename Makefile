@@ -218,7 +218,7 @@ true-color: ## Displays a series of colored squares if true color is supported
 .PHONY: devcontainer-up
 devcontainer-up: ## Create and run the devcontainer image
 	@echo "Creating and running the devcontainer image ($(IMAGE_NAME))..."
-	$(DEVCONTAINER_UP) $(DEVCONTAINER_EXEC_FLAGS)
+	$(DEVCONTAINER_UP) $(DEVCONTAINER_UP_FLAGS)
 	@if [ -f "$(DOTFILES_INSTALL_SCRIPT)" ]; then \
 		echo "⚠️ Running the install.sh script in the devcontainer as dotfiles repository is not set..."; \
 		$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\

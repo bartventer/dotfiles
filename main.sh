@@ -39,7 +39,7 @@ fi
 CONFIG_FILE="$DOTFILES_CONIG_DIR/config.json"
 PKG_MANAGER=""
 COMMON_PKGS=("$(jq -r '.common_packages[]' "${CONFIG_FILE}")")
-if [[ -z "${COMMON_PKGS}" ]]; then
+if [[ ${#COMMON_PKGS[@]} -eq 0 ]]; then
     log_error "No common packages found in the config file."
     exit 1
 fi
@@ -278,10 +278,11 @@ install_packages() {
         done
     fi
     echo "OK. Pre-install commands executed."
-
-    local packages_json=$(printf '%s\n' "${COMMON_PKGS[@]}" "${DISTRO_PKGS[@]}" | jq -R . | jq -s .) # Convert bash arrays to JSON arrays
-    local packages_str=$(jq -rj '.[] | . + " "' <<<"$packages_json")                                 # Convert the JSON array to a string
-    packages_str=${packages_str%" "}                                                                 # Remove trailing space
+    local packages_json=""
+    local packages_str=""
+    packages_json=$(printf '%s\n' "${COMMON_PKGS[@]}" "${DISTRO_PKGS[@]}" | jq -R . | jq -s .) # Convert bash arrays to JSON arrays
+    packages_str=$(jq -rj '.[] | . + " "' <<<"$packages_json")                                 # Convert the JSON array to a string
+    packages_str=${packages_str%" "}                                                           # Remove trailing space
 
     echo ":: Running the package manager install command..."
     echo "Packages: ${packages_str}"
@@ -293,9 +294,7 @@ install_packages() {
             run_sudo_cmd "${INSTALL_CMD} ${packages_str}"
         fi
         ;;
-    *)
-        run_sudo_cmd "${INSTALL_CMD} ${packages_str}"
-        ;;
+    *) run_sudo_cmd "${INSTALL_CMD} ${packages_str}" ;;
     esac
     echo "OK. Packages installed."
 
@@ -425,12 +424,14 @@ install_neovim_deps() {
     append_zshlocal_var "VENVS_DIR" "${venvs_dir}"
     local nvim_venv="${venvs_dir}/nvim"
     append_zshlocal_var "NVIM_VENV" "${nvim_venv}"
-    local PYTHON_CMD=$(command -v python3 || command -v python)
+    local PYTHON_CMD=""
+    PYTHON_CMD=$(command -v python3 || command -v python)
     if [[ -z "${PYTHON_CMD}" ]]; then
         log_error "Python is not installed. Please install Python and run this script again."
         exit 1
     fi
-    if [[ ! -f "${nvim_venv}/bin/activate" ]]; then
+    local python_venv_activate="${nvim_venv}/bin/activate"
+    if [[ ! -f "${python_venv_activate}" ]]; then
         log_info "Creating virtual environment for Neovim..."
         mkdir -p "${nvim_venv}"
         "${PYTHON_CMD}" -m venv "${nvim_venv}"
@@ -468,8 +469,10 @@ install_neovim_deps() {
     if [[ -n "${pip_packages}" ]]; then
         log_info "Installing pip packages: ${pip_packages}"
         echo "Activating the virtual environment..."
-        source "${nvim_venv}/bin/activate"
-        local PIP_CMD=$(command -v pip3 || command -v pip)
+        # shellcheck disable=SC1090
+        source "${python_venv_activate}"
+        local PIP_CMD=""
+        PIP_CMD=$(command -v pip3 || command -v pip)
         if [[ -z "${PIP_CMD}" ]]; then
             log_error "pip is not installed. Please install pip and run this script again."
             deactivate
@@ -556,9 +559,9 @@ configure_neovim() {
             local items
             items=$(jq -r ".nvim_profiles.${profile}.${key}[]? | @sh" "${CONFIG_FILE}" | tr -d "'")
             if [[ "${key}" == "parsers" && -n "${items}" ]]; then
-                IFS=$'\n' parsers=($items)
+                IFS=$'\n' parsers=("$items")
             else
-                IFS=$'\n' mason_deps+=($items)
+                IFS=$'\n' mason_deps+=("$items")
             fi
         done
         log_info "Profile ${profile} configuration:"
@@ -576,12 +579,14 @@ configure_neovim() {
                 mason_install_command+=" ${dep}"
             done
             mason_install_command+=" --force"
+            mason_install_command=$(echo "${mason_install_command}" | tr -d "'")
             commands+=("${mason_install_command}")
         fi
 
         for cmd in "${commands[@]}"; do
             log_info "Running command: ${cmd}..."
-            npm config set cache ~/.npm-cache
+            run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache" # Fix permissions for npm cache
+            npm config set cache "${HOME}/.npm-cache"
             if [[ "$CI" == "true" ]]; then
                 log_info "Skipping headless commands."
             else

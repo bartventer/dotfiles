@@ -110,8 +110,8 @@ fi
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 # Install Go Tools
-install_delve $PACKAGE_MANAGER $ZSH_LOCAL
-install_and_setup_golangci_lint $ZSH_LOCAL
+install_delve "$PACKAGE_MANAGER" "$ZSH_LOCAL"
+install_and_setup_golangci_lint "$ZSH_LOCAL"
 
 # ... and other dependencies
 
