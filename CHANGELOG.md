@@ -1,3 +1,17 @@
+## [3.10.5](https://github.com/bartventer/dotfiles/compare/v3.10.4...v3.10.5) (2024-03-29)
+
+
+### Bug Fixes
+
+* **install.sh:** correct `PATH` on ubuntu and debian ([52f140c](https://github.com/bartventer/dotfiles/commit/52f140c9c772e20a9384003d508ef12c26cf804f))
+* **install.sh:** correct macOS permissions for npm-cache ([70f8cc3](https://github.com/bartventer/dotfiles/commit/70f8cc30d3f929e7b1bef2143333fa41b6605018))
+* **install.sh:** export venv variables ([8fab623](https://github.com/bartventer/dotfiles/commit/8fab62359e320574827a3c7293fda02338dcb8ab))
+* **install.sh:** fix package installation step ([a3a5ad6](https://github.com/bartventer/dotfiles/commit/a3a5ad612a1f775b01561e17190795a12420be68))
+* **install.sh:** modify go install script and add `venv` for Neovim ([b5485dd](https://github.com/bartventer/dotfiles/commit/b5485ddb753ddb959a7a34ebfdda70820a418eae))
+* **install.sh:** skip setting path on CI ([595a29d](https://github.com/bartventer/dotfiles/commit/595a29deb941c1b38b76d016d0b0051627a5629a))
+* **neovim:** add check for `NVIM_VENV` ([4c7398e](https://github.com/bartventer/dotfiles/commit/4c7398ed957663f1fa5122230a8b31f6c9f3b159))
+* **scripts:** adjust path modification on CI runner ([5fff859](https://github.com/bartventer/dotfiles/commit/5fff859e008bb98463319e2effb048e6fbecd0a9))
+
 ## [3.10.4](https://github.com/bartventer/dotfiles/compare/v3.10.3...v3.10.4) (2024-03-29)
 
 
