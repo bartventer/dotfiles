@@ -93,10 +93,10 @@ install_and_setup_golangci_lint() {
     echo "OK. golangci-lint installed."
 
     log_info "Generating Zsh autocompletion script for golangci-lint..."
-    golangci-lint completion zsh >~/.golangci-lint-completion.zsh
+    golangci-lint completion zsh >"${HOME}/.golangci-lint-completion.zsh"
     echo "OK. Autocompletion script generated."
 
-    update_zsh_local "${zsh_local}" 'source ~/.golangci-lint-completion.zsh'
+    update_zsh_local "${zsh_local}" "source ${HOME}/.golangci-lint-completion.zsh"
 }
 
 log_info "Setting up go..."
@@ -107,8 +107,10 @@ if ! command -v go &>/dev/null; then
 fi
 
 # Set up Go environment
-export GOPATH="$HOME/go"
-export PATH="$GOPATH/bin:$PATH"
+if [[ "${CI}" != "true" ]]; then
+    export GOPATH="$HOME/go"
+    export PATH="$GOPATH/bin:$PATH"
+fi
 # Install Go Tools
 install_delve "$PACKAGE_MANAGER" "$ZSH_LOCAL"
 install_and_setup_golangci_lint "$ZSH_LOCAL"
