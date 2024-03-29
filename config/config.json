@@ -69,7 +69,10 @@
             "fd",
             "python",
             "python-pip",
-            "nodejs"
+            "nodejs",
+            "gdb",
+            "gcc",
+            "procps-ng"
         ],
         "debian": [
             "lua5.4",
@@ -82,17 +85,23 @@
             "locales",
             "python3",
             "python3-pip",
-            "nodejs"
+            "nodejs",
+            "gdb",
+            "build-essential",
         ],
         "fedora": [
             "lua",
             "ripgrep",
             "fd-find",
             "python3-devel",
+            "glibc-all-langpacks",
             "glibc-locale-source",
             "glibc-langpack-en",
             "python3-pip",
-            "nodejs"
+            "nodejs",
+            "gdb",
+            "gcc",
+            "procps-ng"
         ],
         "ubuntu": [
             "lua5.4",
@@ -101,7 +110,10 @@
             "python3-venv",
             "locales",
             "python3-pip",
-            "nodejs"
+            "nodejs",
+            "gdb",
+            "build-essential",
+            "procps"
         ],
         "macos": [
             "lua",
