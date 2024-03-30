@@ -1,3 +1,10 @@
+# [3.13.0](https://github.com/bartventer/dotfiles/compare/v3.12.2...v3.13.0) (2024-03-30)
+
+
+### Features
+
+* **main.sh:** optimize script performance ([b81ae69](https://github.com/bartventer/dotfiles/commit/b81ae69c2d4b978047e16f53204ec58a8997d802))
+
 ## [3.12.2](https://github.com/bartventer/dotfiles/compare/v3.12.1...v3.12.2) (2024-03-30)
 
 
