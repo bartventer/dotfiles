@@ -505,20 +505,25 @@ configure_neovim() {
     log_info "Configuring Neovim (package manager: $PKG_MANAGER)..."
 
     # Parse variables from config.json
+    local nvim_profiles_data
+    nvim_profiles_data=$(jq -rS '.nvim_profiles' "${CONFIG_FILE}")
     local nvim_profiles
-    nvim_profiles=$(jq -rS 'try (.nvim_profiles | keys[]) // empty' "${CONFIG_FILE}")
+    nvim_profiles=$(jq -r 'keys[]' <<<"${nvim_profiles_data}")
     if [[ -z "${nvim_profiles}" ]]; then
         log_error "No Neovim profiles found in the config file. Please check the ${CONFIG_FILE} file and ensure the profiles are defined."
         exit 1
     fi
-
+    # Run the Neovim headless commands
+    nvim --headless -c "Lazy sync" -c "MasonUpdate" -c "quitall"
     for profile in ${nvim_profiles}; do
+        local profile_data
+        profile_data=$(jq -r ".${profile}" <<<"${nvim_profiles_data}")
         local checks_required
         local checks_one_of
         local custom_script
-        checks_required=$(jq -r "try (.nvim_profiles.${profile}.checks.required[]) // empty" "${CONFIG_FILE}")
-        checks_one_of=$(jq -r ".nvim_profiles.${profile}.checks.one_of[]?" "${CONFIG_FILE}")
-        custom_script=$(jq -r ".nvim_profiles.${profile}.custom_script?" "${CONFIG_FILE}")
+        checks_required=$(echo "${profile_data}" | jq -r 'try (.checks.required[]) // empty')
+        checks_one_of=$(echo "${profile_data}" | jq -r '.checks.one_of[]?')
+        custom_script=$(echo "${profile_data}" | jq -r '.custom_script?')
         # debug info
         log_info "Configuring Neovim profile: $profile"
         log_info "Required checks: ${checks_required[*]}"
@@ -566,7 +571,7 @@ configure_neovim() {
         local parsers=()
         for key in "${keys[@]}"; do
             local items
-            items=$(jq -r ".nvim_profiles.${profile}.${key}[]? | @sh" "${CONFIG_FILE}" | tr -d "'")
+            items=$(echo "${profile_data}" | jq -r ".${key}[]? | @sh" | tr -d "'")
             if [[ "${key}" == "parsers" && -n "${items}" ]]; then
                 IFS=$'\n' parsers=("$items")
             else
@@ -576,12 +581,11 @@ configure_neovim() {
         log_info "Profile ${profile} configuration:"
         log_info "Parsers: ${parsers[*]}"
         log_info "Mason dependencies: ${mason_deps[*]}"
-        # nvim headless commands
-        local commands=('Lazy sync')
+        # Profile commands
+        local commands=()
         if [[ -n "${parsers[*]}" ]]; then
             commands+=("TSInstallSync! ${parsers[@]}")
         fi
-        commands+=('MasonUpdate')
         if [[ -n "${mason_deps[*]}" ]]; then
             local mason_install_command="MasonInstall"
             for dep in "${mason_deps[@]}"; do
@@ -591,21 +595,23 @@ configure_neovim() {
             mason_install_command=$(echo "${mason_install_command}" | tr -d "'")
             commands+=("${mason_install_command}")
         fi
-
         for cmd in "${commands[@]}"; do
-            log_info "Running command: ${cmd}..."
-            if [ "${DISTRO}" != "macos" ]; then
-                # Fix permissions for npm cache
-                run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache"
-                npm config set cache "${HOME}/.npm-cache"
-            fi
-            if [[ "$CI" == "true" ]]; then
-                log_info "Skipping headless commands."
-            else
-                cmd=$(echo "${cmd}" | tr '\n' ' ') # Clean up the command
-                nvim --headless -c "${cmd}" -c "quitall"
-            fi
+            {
+                log_info "Running command: ${cmd}..."
+                if [ "${DISTRO}" != "macos" ]; then
+                    # Fix permissions for npm cache
+                    run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache"
+                    npm config set cache "${HOME}/.npm-cache"
+                fi
+                if [[ "$CI" == "true" ]]; then
+                    log_info "Skipping headless commands."
+                else
+                    cmd=$(echo "${cmd}" | tr '\n' ' ') # Clean up the command
+                    nvim --headless -c "${cmd}" -c "quitall"
+                fi
+            } &
         done
+        wait
 
         # Run custom script
         if [[ "${custom_script}" != "null" ]]; then
@@ -679,22 +685,26 @@ install_fonts() {
     local font_files=()
     if [[ "$FONT_NAME" = MesloLG* ]] && [[ "$OH_MY_ZSH_CUSTOM_THEME_REPO" = "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" ]]; then
         # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
-        # Download the font files
+        # Download the font files in parallel
         for font_file in "Regular" "Bold" "Italic" "Bold Italic"; do
-            # Replace spaces in font_file with %20 for the URL
-            local url_font_file=${font_file// /%20}
-            log_info "Downloading MesloLGS NF ${font_file}.ttf..."
-            wget -nv -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${url_font_file}.ttf"
-            # Add the full path to the downloaded file to the array
-            font_files+=("$tmp_dir/MesloLGS NF $font_file.ttf")
+            (
+                # Replace spaces in font_file with %20 for the URL
+                local url_font_file=${font_file// /%20}
+                log_info "Downloading MesloLGS NF ${font_file}.ttf..."
+                curl -sSLo "$tmp_dir/MesloLGS NF $font_file.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${url_font_file}.ttf"
+                # Add the full path to the downloaded file to the array
+                font_files+=("$tmp_dir/MesloLGS NF $font_file.ttf")
+                echo "OK. MesloLGS NF ${font_file}.ttf downloaded successfully."
+            ) &
         done
+        wait # Wait for all background tasks to finish
     else
         # Download the font file from the URL
         log_info "Downloading ${FONT_NAME} font..."
-        wget -nv -P "$tmp_dir" "$FONT_URL"
+        curl -sSLo "$tmp_dir/font.zip" "$FONT_URL"
 
         # Unzip the font file
-        unzip "$tmp_dir"/*.zip -d "$tmp_dir"
+        unzip -q "$tmp_dir/font.zip" -d "$tmp_dir"
         font_files=("$tmp_dir"/*.ttf)
     fi
 
@@ -783,23 +793,27 @@ create_symlinks() {
 clone_plugins_and_themes() {
     log_info "Cloning oh-my-zsh plugins and theme..."
     for index in "${!plugins_keys[@]}"; do
-        local plugin="${plugins_keys[$index]}"
-        local url="${plugins_values[$index]}"
-        local dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
-        log_info "Checking $dir..."
-        mkdir -p "$dir" # Ensure the directory exists
-        if [ -d "$dir/.git" ]; then
-            echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
-            git -C "$dir" stash
-            git -C "$dir" pull --rebase=false
-            if [ "$(git -C "$dir" stash list)" ]; then
-                git -C "$dir" stash apply
+        (
+            local plugin="${plugins_keys[$index]}"
+            local url="${plugins_values[$index]}"
+            local dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
+            log_info "Checking $dir..."
+            mkdir -p "$dir" # Ensure the directory exists
+            if [ -d "$dir/.git" ]; then
+                echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
+                git -C "$dir" stash
+                git -C "$dir" pull --rebase=false
+                if [ "$(git -C "$dir" stash list)" ]; then
+                    git -C "$dir" stash apply
+                fi
+            else
+                echo "Cloning $url into $dir..."
+                git clone --depth=1 "$url" "$dir"
             fi
-        else
-            echo "Cloning $url into $dir..."
-            git clone --depth=1 "$url" "$dir" # Clone the repository
-        fi
+            echo "OK. $plugin cloned successfully."
+        ) &
     done
+    wait # Wait for all background tasks to finish
 }
 
 # ************************
@@ -809,23 +823,27 @@ clone_plugins_and_themes() {
 clone_tmux_plugins() {
     log_info "Cloning tmux plugins..."
     for index in "${!tmux_plugins_keys[@]}"; do
-        local plugin="${tmux_plugins_keys[$index]}"
-        local url="${tmux_plugins_values[$index]}"
-        local dir="$HOME/.tmux/plugins/$plugin"
-        log_info "Checking $dir..."
-        mkdir -p "$dir" # Ensure the directory exists
-        if [ -d "$dir/.git" ]; then
-            echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
-            git -C "$dir" stash
-            git -C "$dir" pull --rebase=false
-            if [ "$(git -C "$dir" stash list)" ]; then
-                git -C "$dir" stash apply
+        (
+            local plugin="${tmux_plugins_keys[$index]}"
+            local url="${tmux_plugins_values[$index]}"
+            local dir="$HOME/.tmux/plugins/$plugin"
+            log_info "Checking $dir..."
+            mkdir -p "$dir" # Ensure the directory exists
+            if [ -d "$dir/.git" ]; then
+                echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
+                git -C "$dir" stash
+                git -C "$dir" pull --rebase=false
+                if [ "$(git -C "$dir" stash list)" ]; then
+                    git -C "$dir" stash apply
+                fi
+            else
+                echo "Cloning $url into $dir..."
+                git clone --depth=1 "$url" "$dir"
             fi
-        else
-            echo "Cloning $url into $dir..."
-            git clone --depth=1 "$url" "$dir" # Clone the repository
-        fi
+            echo "OK. $plugin cloned successfully."
+        ) &
     done
+    wait # Wait for all background tasks to finish
 }
 
 # **************************

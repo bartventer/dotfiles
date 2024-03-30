@@ -103,6 +103,6 @@ else
     fi
 fi
 log_info "Installing Go tools..."
-echo "${GO_TOOLS}" | xargs -n 1 go install
+echo "${GO_TOOLS}" | xargs -n 1 -P 8 go install
 
 log_success "Done. Go setup complete."
