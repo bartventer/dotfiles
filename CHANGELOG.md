@@ -1,3 +1,10 @@
+## [3.12.1](https://github.com/bartventer/dotfiles/compare/v3.12.0...v3.12.1) (2024-03-30)
+
+
+### Bug Fixes
+
+* **install.sh, scripts:** stash git changes and refactor util script ([aef2553](https://github.com/bartventer/dotfiles/commit/aef25535b98a6ec55a2a4fac0a82a306e3f32822))
+
 # [3.12.0](https://github.com/bartventer/dotfiles/compare/v3.11.0...v3.12.0) (2024-03-29)
 
 
