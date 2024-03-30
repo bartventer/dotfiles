@@ -1,3 +1,10 @@
+## [3.12.2](https://github.com/bartventer/dotfiles/compare/v3.12.1...v3.12.2) (2024-03-30)
+
+
+### Bug Fixes
+
+* **main.sh:** remove post install hook ([be2039f](https://github.com/bartventer/dotfiles/commit/be2039f3cc976b8258d0762d17d29b7506882da2))
+
 ## [3.12.1](https://github.com/bartventer/dotfiles/compare/v3.12.0...v3.12.1) (2024-03-30)
 
 
