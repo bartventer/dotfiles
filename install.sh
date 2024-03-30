@@ -59,6 +59,8 @@ esac
 echo "✅ OK. Bash is installed."
 
 # Source the util script.
+# shellcheck disable=SC1091
+# shellcheck source=scripts/util.sh
 . scripts/util.sh
 
 debug_system

@@ -27,7 +27,12 @@
 
 set -e
 
-# Declare and validate arguments
+DOTFILES_SCRIPTS_DIR="${DOTFILES_SCRIPTS_DIR:-$HOME/dotfiles/scripts}"
+# shellcheck disable=SC1091
+# shellcheck source=scripts/util.sh
+. "${DOTFILES_SCRIPTS_DIR}/util.sh"
+
+# Validate arguments
 if [[ $# -ne 2 ]]; then
     echo "Usage: $0 <package_manager> <zsh_local>"
     exit 1
@@ -41,17 +46,6 @@ fi
 
 PACKAGE_MANAGER=$1
 ZSH_LOCAL=$2
-
-update_zsh_local() {
-    local zsh_local=$1
-    local line_to_add=$2
-    log_info "Updating ${zsh_local} with ${line_to_add}..."
-    if ! grep -q "${line_to_add}" "${zsh_local}"; then
-        echo "Line not found. Adding..."
-        echo "${line_to_add}" >>"${zsh_local}"
-    fi
-    echo "OK. ${zsh_local} updated."
-}
 
 install_and_setup_golangci_lint() {
     local zsh_local=$1
@@ -79,7 +73,7 @@ fi
 # Set up Go environment
 if [[ "${CI}" != "true" ]]; then
     export GOPATH="$HOME/go"
-    export PATH="$GOPATH/bin:$PATH"
+    update_path "$GOPATH/bin"
 fi
 
 # Install golangci-lint and set up autocompletion

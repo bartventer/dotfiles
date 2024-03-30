@@ -17,9 +17,12 @@ set -e
 
 # Initialization
 # shellcheck disable=SC1091
+# shellcheck source=init.sh
 source "init.sh"
 
 # Source the util script.
+# shellcheck disable=SC1091
+# shellcheck source=scripts/util.sh
 . scripts/util.sh
 
 log_info "Starting dotfiles installation..."
@@ -72,8 +75,8 @@ if [[ -z "$UPDATE_CMD" || -z "$INSTALL_CMD" ]]; then
 fi
 PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
 POST_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .post_install_commands[]?" "$CONFIG_FILE")
-if [[ "$CI" != "true" ]]; then
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
+if [[ ${CI} != "true" ]]; then
+    update_path /usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin
 fi
 
 # *******************
@@ -91,6 +94,17 @@ NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # User files
 ZSH_LOCAL="$HOME/.zsh_local"
+PROFILE="$HOME/.profile"
+for file in "$ZSH_LOCAL" "$PROFILE"; do
+    if [[ ! -f "$file" ]]; then
+        touch "$file"
+        if [[ "$DISTRO" == "macos" ]]; then
+            run_sudo_cmd "chown ${USER}:staff ${file}"
+        else
+            run_sudo_cmd "chown ${USER}:${USER} ${file}"
+        fi
+    fi
+done
 
 # This function parses a JSON object and stores the keys and values in separate arrays.
 # It takes three arguments:
@@ -204,50 +218,67 @@ done
 # ** Debug information **
 # ***********************
 
-log_info "
-Debug information:
+log_config() {
+    # shellcheck disable=SC2155
+    local is_terminal=$(tput colors 2>/dev/null)
+    local color_green=""
+    local color_yellow=""
+    local color_none="" # No Color
+    if [ -n "$is_terminal" ]; then
+        color_green=$(tput setaf 2)  # Green
+        color_yellow=$(tput setaf 3) # Yellow
+        color_none=$(tput sgr0)      # Reset
+    fi
+    local hyphens
+    hyphens=$(printf '%*s' 80 '' | tr ' ' '-')
 
-User: ${USER}
-Distribution: ${DISTRO}
-Package manager: ${PKG_MANAGER}
-Install command: ${INSTALL_CMD}
-Update command: ${UPDATE_CMD}
-Pre-install commands: ${PRE_INSTALL_CMDS}
-Post-install commands: ${POST_INSTALL_CMDS}
+    cat <<EOF
 
-Paths:
+${color_green}[CONFIGURATION]${color_none}
+${hyphens}
+${color_yellow}User:${color_none} ${USER}
+${color_yellow}Distribution:${color_none} ${DISTRO}
+${color_yellow}Package manager:${color_none} ${PKG_MANAGER}
+${color_yellow}Install command:${color_none} ${INSTALL_CMD}
+${color_yellow}Update command:${color_none} ${UPDATE_CMD}
+${color_yellow}Pre-install commands:${color_none} ${PRE_INSTALL_CMDS}
+${color_yellow}Post-install commands:${color_none} ${POST_INSTALL_CMDS}
+${hyphens}
+${color_yellow}Paths:${color_none}
     ZSHRC: ${ZSHRC}
     NVIM_CONFIG_DIR: ${NVIM_CONFIG_DIR}
     NVIM_SCRIPTS_DIR: ${NVIM_SCRIPTS_DIR}
     NVIM_OPTIONS_FILE: ${NVIM_OPTIONS_FILE}
     NVIM_CLIPBOARD_SCRIPT: ${NVIM_CLIPBOARD_SCRIPT}
     NVIM_LANGUAGE_SCRIPT_DIR: ${NVIM_LANGUAGE_SCRIPT_DIR}
-
-Configuration file: ${CONFIG_FILE}
-Font file: ${DOTFILES_FONTS_CONFIG}
-
-Options:
+${hyphens}
+${color_yellow}Configuration file:${color_none} ${CONFIG_FILE}
+${color_yellow}Font file:${color_none} ${DOTFILES_FONTS_CONFIG}
+${hyphens}
+${color_yellow}Options:${color_none}
     OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: ${OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT}
     OH_MY_ZSH_CUSTOM_THEME_REPO: ${OH_MY_ZSH_CUSTOM_THEME_REPO}
     FONT_NAME: ${FONT_NAME}
     FONT_URL: ${FONT_URL}
-
-Relative paths: ${relative_paths[*]}
-
-Plugins:
+${hyphens}
+${color_yellow}Relative paths:${color_none} ${relative_paths[*]}
+${hyphens}
+${color_yellow}Plugins:${color_none}
     plugins_keys: ${plugins_keys[*]}
     plugins_values: ${plugins_values[*]}
-
-Tmux plugins:
+${hyphens}
+${color_yellow}Tmux plugins:${color_none}
     tmux_plugins_keys: ${tmux_plugins_keys[*]}
     tmux_plugins_values: ${tmux_plugins_values[*]}
+${hyphens}
+${color_yellow}Terminal color:${color_none} ${TERM_COLOR}
+${hyphens}
+${color_yellow}Common packages:${color_none} ${COMMON_PKGS[*]}
+${color_yellow}Distro-specific packages:${color_none} ${DISTRO_PKGS[*]}
+${hyphens}
 
-Terminal color: ${TERM_COLOR}
-
-Common packages: ${COMMON_PKGS[*]}
-Distro-specific packages: ${DISTRO_PKGS[*]}
-
-"
+EOF
+}
 
 # ******************
 # ** Source Zshrc **
@@ -313,39 +344,6 @@ install_packages() {
     log_success "Packages installed successfully!"
 }
 
-# *******************************
-# ** Append zsh local variable **
-# *******************************
-
-append_zshlocal_var() {
-    # If the variable is already set but commented out, it will be uncommented
-    # If the variable is not set, it will be added to the end of the file
-
-    # Name of the environment variable
-    local var_name="$1"
-    # Value of the environment variable
-    local var_value="$2"
-
-    if [ ! -f "$ZSH_LOCAL" ]; then
-        touch "$ZSH_LOCAL"
-        if [[ "$DISTRO" == "macos" ]]; then
-            run_sudo_cmd "chown ${USER}:staff ${ZSH_LOCAL}"
-        else
-            run_sudo_cmd "chown ${USER}:${USER} ${ZSH_LOCAL}"
-        fi
-    fi
-
-    # If the variable is already set but commented out, uncomment it
-    if grep -q "^#.*export ${var_name}=${var_value}" "${ZSH_LOCAL}"; then
-        log_info "Uncommenting ${var_name} environment variable"
-        sed -i "s/^#.*export ${var_name}=${var_value}/export ${var_name}=${var_value}/" "${ZSH_LOCAL}"
-    # If the variable is not set, add it to the end of the file
-    elif ! grep -q "${var_name}=${var_value}" "${ZSH_LOCAL}"; then
-        log_info "Setting ${var_name} environment variable"
-        echo -e "\nexport ${var_name}=${var_value}" >>"${ZSH_LOCAL}"
-    fi
-}
-
 # ********************
 # ** Install Neovim **
 # ********************
@@ -381,8 +379,8 @@ install_neovim() {
             # Remove the temporary directory
             rm -r "$nvim_tmpdir"
             # Add the Neovim binary directory to the PATH in .zshenv
-            append_zshlocal_var "PATH" "\"\$PATH:$nvim_bin_dir\""
-            export PATH="$PATH:$nvim_bin_dir"
+            update_zsh_local "${ZSH_LOCAL}" "export PATH=\"\$PATH:$nvim_bin_dir\""
+            update_path "$nvim_bin_dir"
             # Install tree-sitter
             echo "Installing tree-sitter..."
 
@@ -423,14 +421,14 @@ install_neovim_deps() {
 
     # Create the directory for virtual environments
     local venvs_dir_escaped="\${HOME}/.venvs"
-    append_zshlocal_var "VENVS_DIR" "${venvs_dir_escaped}"
+    update_zsh_local "${ZSH_LOCAL}" "export VENVS_DIR=${venvs_dir_escaped}"
     export VENVS_DIR
     VENVS_DIR=$(eval echo "${venvs_dir_escaped}")
 
     # Nvim virtual environment
     local nvim_venv_escaped
     nvim_venv_escaped="${venvs_dir_escaped}/nvim"
-    append_zshlocal_var "NVIM_VENV" "${nvim_venv_escaped}"
+    update_zsh_local "${ZSH_LOCAL}" "export NVIM_VENV=${nvim_venv_escaped}"
     export NVIM_VENV
     NVIM_VENV=$(eval echo "${nvim_venv_escaped}")
 
@@ -654,6 +652,7 @@ install_fonts() {
     log_info "Installing ${FONT_NAME} fonts..."
 
     # Determine the OS and set the font directory accordingly
+    local font_dir
     case "$(uname)" in
     *nix | *ux)
         font_dir=~/.fonts
@@ -677,13 +676,13 @@ install_fonts() {
     tmp_dir=$(mktemp -d)
 
     # Check if the font starts with MesloLG and OH_MY_ZSH_CUSTOM_THEME_REPO equals OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
+    local font_files=()
     if [[ "$FONT_NAME" = MesloLG* ]] && [[ "$OH_MY_ZSH_CUSTOM_THEME_REPO" = "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" ]]; then
         # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
         # Download the font files
-        font_files=() # Clear the array
         for font_file in "Regular" "Bold" "Italic" "Bold Italic"; do
             # Replace spaces in font_file with %20 for the URL
-            url_font_file=${font_file// /%20}
+            local url_font_file=${font_file// /%20}
             log_info "Downloading MesloLGS NF ${font_file}.ttf..."
             wget -nv -P "$tmp_dir" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${url_font_file}.ttf"
             # Add the full path to the downloaded file to the array
@@ -719,37 +718,46 @@ install_fonts() {
 # *******************************
 # ** Install zsh and oh-my-zsh **
 # *******************************
-
 install_zsh_and_oh_my_zsh() {
     # Check if zsh is installed
-    ZSH_INSTALLED=false
-    OH_MY_ZSH_INSTALLED=false
-    OH_MY_ZSH_DIR="$HOME"/.oh-my-zsh
+    local zsh_installed=false
+    local oh_my_zsh_installed=false
+    local oh_my_zsh_dir="$HOME"/.oh-my-zsh
     log_info "Checking if zsh is installed..."
     if [ -n "$(command -v zsh)" ]; then
         echo "zsh is installed"
-        ZSH_INSTALLED=true
+        zsh_installed=true
 
         # Check if oh-my-zsh.sh is present
-        if [ ! -f "$OH_MY_ZSH_DIR"/oh-my-zsh.sh ]; then
+        if [ -f "$oh_my_zsh_dir"/oh-my-zsh.sh ]; then
+            echo "oh-my-zsh is already installed"
+            oh_my_zsh_installed=true
+
+            # Check if oh-my-zsh is a git repository
+            if [ -d "$oh_my_zsh_dir/.git" ]; then
+                echo "oh-my-zsh directory is a git repository. Stashing local changes and pulling latest changes..."
+                git -C "$oh_my_zsh_dir" stash
+                git -C "$oh_my_zsh_dir" pull --rebase=false
+                if [ "$(git -C "$oh_my_zsh_dir" stash list)" ]; then
+                    git -C "$oh_my_zsh_dir" stash apply
+                fi
+            fi
+        else
             # Backup existing oh-my-zsh installation if it exists
-            if [ -d "$OH_MY_ZSH_DIR" ]; then
+            if [ -d "$oh_my_zsh_dir" ]; then
                 echo "Backing up existing oh-my-zsh installation..."
-                mv "$OH_MY_ZSH_DIR" "$OH_MY_ZSH_DIR".bak
+                mv "$oh_my_zsh_dir" "$oh_my_zsh_dir".bak
             fi
 
             # Install oh-my-zsh
             echo "Installing oh-my-zsh..."
             sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-            OH_MY_ZSH_INSTALLED=true
-        else
-            echo "oh-my-zsh is already installed"
-            OH_MY_ZSH_INSTALLED=true
+            oh_my_zsh_installed=true
         fi
     fi
 
     # If either zsh or oh-my-zsh are not installed, exit the script
-    if [ "$ZSH_INSTALLED" = false ] || [ "$OH_MY_ZSH_INSTALLED" = false ]; then
+    if [ "$zsh_installed" = false ] || [ "$oh_my_zsh_installed" = false ]; then
         log_error "Either zsh or oh-my-zsh is not installed, cannot source .zshrc file"
         exit 1
     fi
@@ -762,8 +770,8 @@ install_zsh_and_oh_my_zsh() {
 create_symlinks() {
     # Create symlinks for all files in the relative_paths array
     for relative_path in "${relative_paths[@]}"; do
-        src="${DOTFILES_DIR}/${relative_path}"
-        target="$HOME/$relative_path"
+        local src="${DOTFILES_DIR}/${relative_path}"
+        local target="$HOME/$relative_path"
         create_symlink "$src" "$target"
     done
 }
@@ -775,14 +783,18 @@ create_symlinks() {
 clone_plugins_and_themes() {
     log_info "Cloning oh-my-zsh plugins and theme..."
     for index in "${!plugins_keys[@]}"; do
-        plugin="${plugins_keys[$index]}"
-        url="${plugins_values[$index]}"
-        dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
+        local plugin="${plugins_keys[$index]}"
+        local url="${plugins_values[$index]}"
+        local dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
         log_info "Checking $dir..."
         mkdir -p "$dir" # Ensure the directory exists
         if [ -d "$dir/.git" ]; then
-            echo "Directory $dir already exists. Pulling latest changes..."
+            echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
+            git -C "$dir" stash
             git -C "$dir" pull --rebase=false
+            if [ "$(git -C "$dir" stash list)" ]; then
+                git -C "$dir" stash apply
+            fi
         else
             echo "Cloning $url into $dir..."
             git clone --depth=1 "$url" "$dir" # Clone the repository
@@ -797,14 +809,18 @@ clone_plugins_and_themes() {
 clone_tmux_plugins() {
     log_info "Cloning tmux plugins..."
     for index in "${!tmux_plugins_keys[@]}"; do
-        plugin="${tmux_plugins_keys[$index]}"
-        url="${tmux_plugins_values[$index]}"
-        dir="$HOME/.tmux/plugins/$plugin"
+        local plugin="${tmux_plugins_keys[$index]}"
+        local url="${tmux_plugins_values[$index]}"
+        local dir="$HOME/.tmux/plugins/$plugin"
         log_info "Checking $dir..."
         mkdir -p "$dir" # Ensure the directory exists
         if [ -d "$dir/.git" ]; then
-            echo "Directory $dir already exists. Pulling latest changes..."
+            echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
+            git -C "$dir" stash
             git -C "$dir" pull --rebase=false
+            if [ "$(git -C "$dir" stash list)" ]; then
+                git -C "$dir" stash apply
+            fi
         else
             echo "Cloning $url into $dir..."
             git clone --depth=1 "$url" "$dir" # Clone the repository
@@ -818,27 +834,35 @@ clone_tmux_plugins() {
 
 install_tmux_plugins() {
     # Ensure tpm is installed
-    TPM_DIR="$HOME/.tmux/plugins/tpm"
-    if [ ! -d "$TPM_DIR" ]; then
+    local tpm_dir="$HOME/.tmux/plugins/tpm"
+    if [[ -d "$tpm_dir" ]]; then
+        log_info "Tmux Plugin Manager found. Updating..."
+        git -C "$tpm_dir" stash
+        git -C "$tpm_dir" pull --rebase=false
+        if [ "$(git -C "$tpm_dir" stash list)" ]; then
+            git -C "$tpm_dir" stash apply
+        fi
+    else
         log_info "Tmux Plugin Manager not found. Cloning..."
-        git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+        git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
     fi
 
     # Install tmux plugins
     log_info "Installing tmux plugins..."
-    SESSION_NAME="temp_$(date +%s)"
-    if tmux new-session -d -s "$SESSION_NAME"; then
+    local session_name
+    session_name="temp_$(date +%s)"
+    if tmux new-session -d -s "$session_name"; then
         if ! tmux source-file "$TMUX_CONF"; then
             log_error "Failed to source .tmux.conf"
         fi
-        if ! "$TPM_DIR/bin/install_plugins"; then
+        if ! "$tpm_dir/bin/install_plugins"; then
             log_error "Failed to install tmux plugins"
         fi
-        tmux kill-session -t "$SESSION_NAME"
+        tmux kill-session -t "$session_name"
     else
         log_error "Failed to create new tmux session"
     fi
-    append_zshlocal_var "TERM" "$TERM_COLOR"
+    update_zsh_local "${ZSH_LOCAL}" "export TERM=\"$TERM_COLOR\""
 }
 
 # *********************
@@ -874,8 +898,8 @@ configure_docker() {
         # Set the language environment variables
         local language="en_US"
         local character_encoding="UTF-8"
-        append_zshlocal_var "LANG" "C.${character_encoding}"
-        append_zshlocal_var "LC_ALL" "${language}.${character_encoding}"
+        update_zsh_local "${ZSH_LOCAL}" "export LANG=C.${character_encoding}"
+        update_zsh_local "${ZSH_LOCAL}" "export LC_ALL=${language}.${character_encoding}"
 
         case "$(uname)" in
         "Darwin")
@@ -903,23 +927,28 @@ configure_docker() {
 # *****************************
 
 install_oh_my_zsh_theme() {
-    local OH_MY_ZSH_THEME_NAME=""
+    local oh_my_zsh_theme_name=""
     if command -v basename &>/dev/null; then
-        OH_MY_ZSH_THEME_NAME=$(basename "${OH_MY_ZSH_CUSTOM_THEME_REPO}")
+        oh_my_zsh_theme_name=$(basename "${OH_MY_ZSH_CUSTOM_THEME_REPO}")
     else
         # Use parameter expansion as a fallback
-        OH_MY_ZSH_THEME_NAME=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
+        oh_my_zsh_theme_name=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
     fi
-    if [[ -z "$OH_MY_ZSH_THEME_NAME" ]]; then
+    if [[ -z "$oh_my_zsh_theme_name" ]]; then
         log_error "Failed to extract theme name from $OH_MY_ZSH_CUSTOM_THEME_REPO"
         exit 1
     fi
-    local theme_dir="${HOME}/.oh-my-zsh/custom/themes/${OH_MY_ZSH_THEME_NAME}"
+    local theme_dir="${HOME}/.oh-my-zsh/custom/themes/${oh_my_zsh_theme_name}"
     if [[ ! -d "${theme_dir}" ]]; then
-        log_info "Installing ${OH_MY_ZSH_THEME_NAME} theme..."
+        log_info "Installing ${oh_my_zsh_theme_name} theme..."
         git clone --depth=1 https://github.com/"${OH_MY_ZSH_CUSTOM_THEME_REPO}".git "${theme_dir}"
     else
-        log_info "${OH_MY_ZSH_THEME_NAME} theme is already installed"
+        log_info "${oh_my_zsh_theme_name} theme is already installed. Pulling latest changes..."
+        git -C "${theme_dir}" stash
+        git -C "${theme_dir}" pull --rebase=false
+        if [ "$(git -C "${theme_dir}" stash list)" ]; then
+            git -C "${theme_dir}" stash apply
+        fi
     fi
     echo "OK. Theme installed successfully."
 }
@@ -942,12 +971,30 @@ configure_permissions() {
     echo "OK. Permissions configured for user ${USER}."
 }
 
+# ***********************
+# ** Post install hook **
+# ***********************
+
+post_install_hook() {
+    log_info "Running post-install hook..."
+
+    # Create the .profile file if it doesn't exist
+    if [ ! -f "$PROFILE" ]; then
+        touch "$PROFILE"
+        run_sudo_cmd "chown ${USER}:${USER} ${PROFILE}"
+    fi
+
+    source_zshrc
+    echo "OK. Post-install hook executed successfully."
+}
+
 # **********
 # ** Main **
 # **********
 
 main() {
     log_info "🚀 Starting dotfiles installation (distro: ${DISTRO})..."
+    log_config
     if [ "${DISTRO}" != "macos" ]; then
         configure_permissions
     fi
@@ -986,6 +1033,9 @@ main() {
 
     # Configure Neovim
     configure_neovim
+
+    # Post-install hook
+    post_install_hook
 
     # Finish
     log_success "✅ Dotfiles installation complete!"

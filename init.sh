@@ -11,6 +11,7 @@
 set -e
 
 # shellcheck disable=SC1091
+# shellcheck source=scripts/log.sh
 source "$(dirname "$0")/scripts/log.sh"
 
 log_info "Initializing..."
