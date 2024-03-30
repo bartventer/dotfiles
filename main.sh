@@ -971,23 +971,6 @@ configure_permissions() {
     echo "OK. Permissions configured for user ${USER}."
 }
 
-# ***********************
-# ** Post install hook **
-# ***********************
-
-post_install_hook() {
-    log_info "Running post-install hook..."
-
-    # Create the .profile file if it doesn't exist
-    if [ ! -f "$PROFILE" ]; then
-        touch "$PROFILE"
-        run_sudo_cmd "chown ${USER}:${USER} ${PROFILE}"
-    fi
-
-    source_zshrc
-    echo "OK. Post-install hook executed successfully."
-}
-
 # **********
 # ** Main **
 # **********
@@ -1033,9 +1016,6 @@ main() {
 
     # Configure Neovim
     configure_neovim
-
-    # Post-install hook
-    post_install_hook
 
     # Finish
     log_success "✅ Dotfiles installation complete!"
