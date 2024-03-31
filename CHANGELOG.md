@@ -1,3 +1,10 @@
+# [3.14.0](https://github.com/bartventer/dotfiles/compare/v3.13.0...v3.14.0) (2024-03-31)
+
+
+### Features
+
+* **neovim:** add conditional language support ([b9ad93f](https://github.com/bartventer/dotfiles/commit/b9ad93f11c3ecd9a10ca42d09dda726da17c884a))
+
 # [3.13.0](https://github.com/bartventer/dotfiles/compare/v3.12.2...v3.13.0) (2024-03-30)
 
 
