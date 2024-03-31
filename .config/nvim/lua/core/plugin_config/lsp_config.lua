@@ -125,20 +125,18 @@ require("lspconfig").lua_ls.setup({
 	},
 })
 
--- Ruby language server
--- require("lspconfig").solargraph.setup({
--- 	capabilities = capabilities,
--- })
-
 -- TypeScript language server
 require("lspconfig").tsserver.setup({
 	capabilities = capabilities,
 })
 
 -- Go language server
-require("lspconfig").gopls.setup({
-	capabilities = capabilities,
-})
+if vim.fn.executable("go") == 1 then
+	require("lspconfig").gopls.setup({
+		capabilities = capabilities,
+	})
+end
+
 
 -- Python language server
 require("lspconfig").pyright.setup({
