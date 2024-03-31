@@ -242,6 +242,11 @@ devcontainer-test: ## Test the devcontainer image
 			ls -a; \
 		fi'
 
+.PHONY: devcontainer-exec
+devcontainer-exec: ## Run a shell in the devcontainer.
+	@echo "Running shell in devcontainer ($(IMAGE_NAME))..."
+	$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/zsh
+
 .PHONY: docker-exec
 docker-exec: ## Run a shell in the devcontainer image
 	@echo "Running a shell in the devcontainer image ($(IMAGE_NAME))..."
