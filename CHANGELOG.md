@@ -1,3 +1,10 @@
+# [3.15.0](https://github.com/bartventer/dotfiles/compare/v3.14.0...v3.15.0) (2024-03-31)
+
+
+### Features
+
+* **neovim:** update Neovim profiles ([482b4ff](https://github.com/bartventer/dotfiles/commit/482b4ff98027699b964533cd5d5f970ba8362c6f))
+
 # [3.14.0](https://github.com/bartventer/dotfiles/compare/v3.13.0...v3.14.0) (2024-03-31)
 
 
