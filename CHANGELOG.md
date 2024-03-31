@@ -1,3 +1,10 @@
+## [3.15.1](https://github.com/bartventer/dotfiles/compare/v3.15.0...v3.15.1) (2024-03-31)
+
+
+### Bug Fixes
+
+* **scripts:** correct fonts update script python virtual environment ([822cc47](https://github.com/bartventer/dotfiles/commit/822cc47343f91dc3da9aaf6941c39cfb8a6f74b7))
+
 # [3.15.0](https://github.com/bartventer/dotfiles/compare/v3.14.0...v3.15.0) (2024-03-31)
 
 
