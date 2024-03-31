@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # update_fonts.sh
 #
@@ -52,21 +52,28 @@ if [[ -z "${PYTHON_CMD}" ]]; then
     log_error "Python is not installed. Please install Python and run this script again."
     exit 1
 fi
-DOTFILES_VENV_ACTIVATE="${DOTFILES_VENV_DIR}/bin/activate"
+DOTFILES_VENV_BIN_DIR="${DOTFILES_VENV_DIR}/bin"
+DOTFILES_VENV_ACTIVATE="${DOTFILES_VENV_BIN_DIR}/activate"
 if [[ ! -f "${DOTFILES_VENV_ACTIVATE}" ]]; then
     log_info "Creating virtual environment for Fonts..."
     "${PYTHON_CMD}" -m venv "${DOTFILES_VENV_DIR}"
     echo "OK. Virtual environment created successfully!"
 fi
+DOTFILES_PYTHON_CMD="${DOTFILES_VENV_BIN_DIR}/python"
+
+log_info "Activating virtual environment (${DOTFILES_VENV_ACTIVATE})..."
 # shellcheck disable=SC1090
 source "${DOTFILES_VENV_ACTIVATE}"
+echo "OK. Virtual environment activated."
 
+log_info "Checking for pip..."
 PIP_CMD=$(command -v pip3 || command -v pip)
 if [[ -z "${PIP_CMD}" ]]; then
     log_error "pip is not installed. Please install pip and run this script again."
     deactivate
     exit 1
 fi
+echo "OK. pip found."
 
 # Install python requirements
 log_info "Installing python requirements (${DOTFILES_REQUIREMENTS})..."
@@ -75,11 +82,12 @@ echo "OK. Python requirements installed."
 
 # Fetch fonts
 log_info "Fetching fonts..."
-"${PYTHON_CMD}" "${FETCH_FONTS_SCRIPT}"
+"${DOTFILES_PYTHON_CMD}" "${FETCH_FONTS_SCRIPT}"
 echo "OK. Fonts fetched."
 
 # Deactivate venv
 log_info "Deactivating virtual environment..."
 deactivate
+echo "OK. Virtual environment deactivated."
 
-log_success "Fonts update complete."
+log_success "Done. Fonts updated successfully."
