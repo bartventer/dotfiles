@@ -28,46 +28,72 @@ local code_actions = null_ls.builtins.code_actions
 -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
 local diagnostics = null_ls.builtins.diagnostics
 
--- Default sources
-local formatter_set = {
+-- Default formatters
+local source_set = {
 	-- Lua
 	[formatting.stylua] = true,
+
 	-- TypeScript
+	-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#eslint_d-2
+	-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#eslint_d
+	-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#prettierd
 	[diagnostics.eslint_d] = true,
 	[code_actions.eslint_d] = true,
 	[formatting.prettierd] = true,
+
 	-- Python
+	-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#black
 	[formatting.black] = true,
+
+	-- Github Actions (FYI requires `go`)
+	-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#actionlint
+	[diagnostics.actionlint] = true,
 }
 
--- Language specific formatters
-local optional_formatters = {
-	go = { "goimports_reviser", "golines" },
+-- Language specific sources (key is the executable name to check)
+local optional_sources = {
+	["go"] = {
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#gomodifytags
+		code_actions.gomodifytags,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#impl
+		code_actions.impl,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#golangci_lint
+		diagnostics.golangci_lint,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#staticcheck
+		diagnostics.staticcheck,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#actionlint
+		diagnostics.revive,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#golines
+		formatting.golines,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#goimports_reviser
+		formatting.goimports_reviser,
+	},
+	["bash"] = {
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#shellcheck
+		[code_actions.shellcheck] = true,
+		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#beautysh
+		[formatting.beautysh] = true,
+	}
 	-- Add more languages and their formatters here
 }
 
-for lang, formatters in pairs(optional_formatters) do
+for lang, sources in pairs(optional_sources) do
 	if vim.fn.executable(lang) == 1 then
-		for _, formatter in ipairs(formatters) do
-			local formatter_name = formatter:gsub("-", "_")
-			if formatting[formatter_name] then
-				formatter_set[formatting[formatter_name]] = true
-			else
-				vim.api.nvim_err_writeln("Invalid formatter: " .. formatter)
-			end
+		for _, source in ipairs(sources) do
+			source_set[source] = true
 		end
 	end
 end
 
 -- Convert set back to list
-local formatters = {}
-for formatter in pairs(formatter_set) do
-	table.insert(formatters, formatter)
+local sources = {}
+for source in pairs(source_set) do
+	table.insert(sources, source)
 end
 
 null_ls.setup({
 	debug = false,
-	sources = formatters,
+	sources = sources,
 	on_attach = function(client, bufnr)
 		enable_format_on_save(client, bufnr)
 	end,

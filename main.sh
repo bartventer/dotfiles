@@ -487,7 +487,7 @@ install_neovim_deps() {
             deactivate
             exit 1
         fi
-        "${PIP_CMD}" install "${pip_packages}"
+        "${PIP_CMD}" install --upgrade pip && "${PIP_CMD}" install "${pip_packages}"
         log_success "OK. Pip packages installed successfully!"
         deactivate
         echo "Deactivated the virtual environment."

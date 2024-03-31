@@ -141,12 +141,34 @@
                 "markdown_inline"
             ],
             "lsps": [
-                "lua-language-server"
+                "lua-language-server",
+                "yaml-language-server",
+                "json-lsp"
             ],
             "daps": [],
-            "linters": [],
+            "linters": [
+                "actionlint"
+            ],
             "formatters": [
                 "stylua"
+            ]
+        },
+        "bash": {
+            "checks": {
+                "required": [
+                    "bash"
+                ]
+            },
+            "parsers": [],
+            "lsps": [
+                "bash-language-server"
+            ],
+            "daps": [],
+            "linters": [
+                "shellcheck"
+            ],
+            "formatters": [
+                "beautysh"
             ]
         },
         "golang": {
@@ -161,12 +183,15 @@
             "daps": [
                 "go-debug-adapter"
             ],
-            "linters": [],
+            "linters": [
+                "golangci-lint"
+            ],
             "formatters": [
                 "goimports-reviser",
                 "golines",
                 "gomodifytags",
-                "gotests"
+                "gotests",
+                "impl"
             ],
             "custom_script": "golang.sh"
         },
@@ -206,6 +231,35 @@
             "formatters": [
                 "black"
             ]
+        },
+        "docker": {
+            "checks": {
+                "required": [
+                    "docker"
+                ]
+            },
+            "lsps": [
+                "dockerfile-language-server"
+            ],
+            "daps": [],
+            "linters": [],
+            "formatters": [],
+            "parsers": [
+                "dockerfile"
+            ]
+        },
+        "docker_compose": {
+            "checks": {
+                "required": [
+                    "docker-compose"
+                ]
+            },
+            "lsps": [
+                "docker-compose-language-service"
+            ],
+            "daps": [],
+            "linters": [],
+            "formatters": []
         }
     }
 }
