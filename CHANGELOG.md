@@ -1,3 +1,12 @@
+## [3.15.3](https://github.com/bartventer/dotfiles/compare/v3.15.2...v3.15.3) (2024-04-01)
+
+
+### Bug Fixes
+
+* **all:** correct path bugs due to folder restructuring ([7d990a3](https://github.com/bartventer/dotfiles/commit/7d990a340de35bdc02668f90306ecd24d408b2ae))
+* **all:** correct script shebangs ([634acec](https://github.com/bartventer/dotfiles/commit/634acec9870358f63c2650632a19b9851e43f81f))
+* **all:** restructure entire project ([f6d3f56](https://github.com/bartventer/dotfiles/commit/f6d3f56a6a7291890607ad752426aec19d90dd58))
+
 ## [3.15.2](https://github.com/bartventer/dotfiles/compare/v3.15.1...v3.15.2) (2024-04-01)
 
 
