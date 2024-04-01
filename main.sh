@@ -89,7 +89,6 @@ TMUX_CONF="$HOME/.tmux.conf"
 NVIM_CONFIG_DIR="$DOTFILES_DIR/.config/nvim"
 NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
 NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
-NVIM_CLIPBOARD_SCRIPT="${NVIM_SCRIPTS_DIR}/clipboard.sh"
 NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
 
 # User files
@@ -249,7 +248,6 @@ ${color_yellow}Paths:${color_none}
     NVIM_CONFIG_DIR: ${NVIM_CONFIG_DIR}
     NVIM_SCRIPTS_DIR: ${NVIM_SCRIPTS_DIR}
     NVIM_OPTIONS_FILE: ${NVIM_OPTIONS_FILE}
-    NVIM_CLIPBOARD_SCRIPT: ${NVIM_CLIPBOARD_SCRIPT}
     NVIM_LANGUAGE_SCRIPT_DIR: ${NVIM_LANGUAGE_SCRIPT_DIR}
 ${hyphens}
 ${color_yellow}Configuration file:${color_none} ${CONFIG_FILE}
