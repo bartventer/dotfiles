@@ -3,7 +3,21 @@ name: CI
 on: [push, pull_request]
 
 jobs:
+    validate-config:
+        runs-on: ubuntu-latest
+        name: Validate Config
+        steps: 
+            - uses: actions/checkout@v4
+            - name: Install ajv CLI
+              run: npm install -g ajv-cli ajv-formats
+            - name: Validate
+              run: |
+                ajv validate \
+                    -s ./config/config.schema.json \
+                    -d ./config/config.json \
+                    -c ajv-formats
     test-linux:
+        needs: validate-config
         runs-on: ubuntu-latest
         name: Test on Linux
         strategy:
@@ -60,6 +74,7 @@ jobs:
                   slug: ${{ github.repository }}
 
     test-macos:
+        needs: validate-config
         runs-on: macos-latest
         name: Test on macOS
         steps:
