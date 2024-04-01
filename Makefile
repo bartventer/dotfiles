@@ -109,7 +109,7 @@ ACT_OUTPUT_DIR=output
 ACT_OUTPUT_FORMAT=%Y%m%d%H%M%S
 
 # Dependencies
-DOTFILES_COMMON_DEPS = init.sh $(wildcard scripts/*)
+DOTFILES_COMMON_DEPS = $(wildcard scripts/*)
 
 # Error handling function
 define error_exit
