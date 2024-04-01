@@ -18,7 +18,7 @@ INSTALL_FONT?="MesloLGS NF"## The font to install. Defaults to "MesloLGS NF"
 
 # Dotfiles path variables
 DOTFILES_CONFIG_DIR=config
-DOTFILES_UPDATE_FONTS_SCRIPT=update_fonts.sh
+DOTFILES_UPDATE_FONTS_SCRIPT=tools/update_fonts.sh
 DOTFILES_INSTALL_SCRIPT=install.sh
 ifeq ($(CI),true)
 	DOTFILES_REPO_FLAGS=\

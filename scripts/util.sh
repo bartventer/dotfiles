@@ -2,7 +2,7 @@
 
 set -e
 
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$1")"
 if [[ ! -d "$SCRIPT_DIR" ]]; then
     echo "Error: SCRIPT_DIR ($SCRIPT_DIR) does not exist."
     exit 1

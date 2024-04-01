@@ -28,7 +28,6 @@ You should have the following software installed for the main script:
 | ----------------------------------------------------- | ----------------------------- | --------------------------------- | --------------- |
 | [Zsh](http://www.zsh.org/)                            | The Zsh shell with Oh My Zsh. | `sudo pacman -S zsh`              | Shell setup     |
 | [Node.js](https://nodejs.org/)                        | JavaScript runtime.           | `sudo pacman -S nodejs`           | Neovim plugins  |
-| [npm](https://www.npmjs.com/)                         | Node.js package manager.      | `sudo pacman -S npm`              | Neovim plugins  |
 | [jq](https://stedolan.github.io/jq/)                  | Command-line JSON processor.  | `sudo pacman -S jq`               | Scripting       |
 | [ps](https://man7.org/linux/man-pages/man1/ps.1.html) | Process status.               | `sudo pacman -S procps-ng`        | Shell detection |
 | [Python3](https://www.python.org/)                    | Python programming language.  | `sudo pacman -S python`           | Scripting       |
@@ -69,9 +68,10 @@ Please note that the script is designed to work with recent versions of these op
 | [`.tmux.conf`](.tmux.conf)           | This file contains configuration for tmux.                            |
 | [`.config/nvim`](.config/nvim)       | This directory contains configuration files for Neovim.               |
 | [`install.sh`](install.sh)           | This script installs the dotfiles on your system.                     |
-| [`update_fonts.sh`](update_fonts.sh) | This script updates the fonts.json file.                              |
-| [`fonts.json`](config/fonts.json)    | This file contains a list of available fonts.                         |
-| [`config.json`](config/config.json)  | This file contains configuration options for the installation script. |
+| [`tools/update_fonts.sh`](tools/update_fonts.sh) | This script updates the fonts.json file.                              |
+| [`config/fonts.json`](config/fonts.json)    | This file contains a list of available fonts.                         |
+| [`config/config.json`](config/config.json)  | This file contains configuration options for the installation script. |
+| [`tools/fetch_fonts.py`](tools/fetch_fonts.py) | This script fetches the latest fonts for the project. |
 
 ## Installation
 
