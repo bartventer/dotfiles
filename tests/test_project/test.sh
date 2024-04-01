@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")" || exit
+
+DOTFILES_DIR=""
+if [[ $CI == "true" ]]; then
+    DOTFILES_DIR=${GITHUB_WORKSPACE}
+else
+    DOTFILES_DIR=$(git rev-parse --show-toplevel)
+fi
+if [[ ! -f "$DOTFILES_DIR/scripts/init.sh" ]]; then
+    echo "Cannot find init.sh script"
+    exit 1
+fi
+# shellcheck disable=SC1091
+# shellcheck source=../../scripts/init.sh
+source "$DOTFILES_DIR/scripts/init.sh"
 
 # shellcheck disable=SC1091
-# shellcheck source=../../scripts/util.sh
-source ../../scripts/util.sh
+# shellcheck source="${DOTFILES_UTIL_SCRIPT}"
+source "${DOTFILES_UTIL_SCRIPT}"
 
 debug_system
 
