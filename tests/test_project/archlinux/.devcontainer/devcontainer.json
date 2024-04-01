@@ -1,7 +1,7 @@
 {
     "name": "Test-Dotfiles Arch Linux",
     "build": {
-        "context": "../../..",
+        "context": "../../../..",
         "dockerfile": "Dockerfile"
     },
     "features": {

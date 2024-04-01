@@ -1,7 +1,7 @@
 {
     "name": "Test-Dotfiles Debian",
     "build": {
-        "context": "../../..",
+        "context": "../../../..",
         "dockerfile": "Dockerfile"
     },
     "features": {
