@@ -7,7 +7,7 @@
 # Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
 # Maintainer: Bart Venter <https://github.com/bartventer>
 #
-# This script sets up Go development environment.
+# This script sets up the Go development environment.
 #
 # Usage: ./golang.sh <package_manager> <zsh_local>
 # Arguments:
@@ -38,13 +38,13 @@ source "${DOTFILES_UTIL_SCRIPT}"
 
 # Validate arguments
 if [[ $# -ne 2 ]]; then
-    echo "Usage: $0 <package_manager> <zsh_local>"
+    log_error "Usage: $0 <package_manager> <zsh_local>"
     exit 1
 elif [[ -z $1 ]]; then
-    echo "Error: package manager not provided."
+    log_error "Error: package manager not provided."
     exit 1
 elif [[ -z $2 ]] || [[ ! -f $2 ]]; then
-    echo "Error: zsh_local not provided or does not exist."
+    log_error "Error: zsh_local not provided or does not exist."
     exit 1
 fi
 

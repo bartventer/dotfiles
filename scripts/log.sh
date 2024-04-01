@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #-----------------------------------------------------------------------------------------------------------------
 # Copyright (c) Bart Venter.
 # Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
@@ -72,13 +72,22 @@ log_message() {
         pwd -P
     )/$(basename "$file_name")
 
+    local level_name
+    case "$level" in
+    0) level_name="SUCCESS" ;;
+    1) level_name="INFO" ;;
+    2) level_name="WARN" ;;
+    3) level_name="ERROR" ;;
+    4) level_name="TRACE" ;;
+    esac
+
     if [ "$level" -ge "$LOG_LEVEL" ]; then
         local timestamp
         timestamp=$(TZ=UTC date +"%Y-%m-%d %H:%M:%S")
         if [ "$level" -eq "4" ]; then # If level is 4 (trace), print function name
-            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}][${color}${func_name}${NC}]"
+            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}][${color}${func_name}${NC}][${color}${level_name}${NC}]"
         else
-            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}]"
+            echo -e "\n${NC}[${color}${timestamp}${NC}][${color}${abs_file_name}:${line_number}${NC}][${color}${level_name}${NC}]"
         fi
         echo -e "${NC}${message}" # Message is now white
     fi

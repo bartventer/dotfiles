@@ -19,7 +19,12 @@
                 "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "golang.go",
-                "github.vscode-github-actions"
+                "github.vscode-github-actions",
+                "mads-hartmann.bash-ide-vscode",
+                "foxundermoon.shell-format",
+                "timonwong.shellcheck",
+                "Remisa.shellman",
+                "rpinski.shebang-snippets"
             ]
         }
     }

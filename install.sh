@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #-----------------------------------------------------------------------------------------------------------------
 # Copyright (c) Bart Venter.
 # Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
@@ -6,6 +6,12 @@
 #
 # Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
 # Maintainer: Bart Venter <https://github.com/bartventer>
+#
+# Usage: ./install.sh
+#
+# This script installs the dotfiles on the system.
+#-----------------------------------------------------------------------------------------------------------------
+
 set -e
 
 CI=${CI:-false}
@@ -58,17 +64,10 @@ macos) sudo_if "brew update && brew install bash" ;;
 esac
 echo "✅ OK. Bash is installed."
 
-# Source the util script.
-# shellcheck disable=SC1091
-# shellcheck source=scripts/util.sh
-. scripts/util.sh
-
 # Source init script.
 # shellcheck disable=SC1091
 # shellcheck source=scripts/init.sh
 . scripts/init.sh
-
-debug_system
 
 # Execute main script
 echo "🚀 Executing main script (OS:$OS)..."

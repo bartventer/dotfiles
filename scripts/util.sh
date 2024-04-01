@@ -1,21 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#-----------------------------------------------------------------------------------------------------------------
+# Copyright (c) Bart Venter.
+# Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
+#-----------------------------------------------------------------------------------------------------------------
+#
+# Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
+# Maintainer: Bart Venter <https://github.com/bartventer>
+#
+# This script provides utility functions for bash scripts.
+#
+# Usage: ./scripts/util.sh
+#-----------------------------------------------------------------------------------------------------------------
 
 set -e
 
-SCRIPT_DIR="$(dirname "$1")"
-if [[ ! -d "$SCRIPT_DIR" ]]; then
-    echo "Error: SCRIPT_DIR ($SCRIPT_DIR) does not exist."
+DOTFILES_SCRIPTS_DIR="${DOTFILES_SCRIPTS_DIR:-}"
+if [[ -z "${DOTFILES_SCRIPTS_DIR}" || ! -d "${DOTFILES_SCRIPTS_DIR}" ]]; then
+    echo "Error: DOTFILES_SCRIPTS_DIR (${DOTFILES_SCRIPTS_DIR}) not set or does not exist."
     exit 1
 fi
 
-LOG_SCRIPT="$SCRIPT_DIR/log.sh"
+LOG_SCRIPT="$DOTFILES_SCRIPTS_DIR/log.sh"
 if [[ ! -f "$LOG_SCRIPT" ]]; then
     echo "Error: log.sh script ($LOG_SCRIPT) not found."
     exit 1
 fi
 # shellcheck disable=SC1091
 # shellcheck source=scripts/log.sh
-. "$SCRIPT_DIR/log.sh"
+. "$DOTFILES_SCRIPTS_DIR/log.sh"
 
 # run_cmd Run commands in a way that works both locally and in CI.
 # It also ensures that dnf check-update does not cause the script to exit when using set -e.
@@ -85,7 +97,7 @@ debug_system() {
 
     cat <<EOF
 
-${color_purple}[DEBUG]${color_none}
+${color_purple}[OS-DEBUG]${color_none}
 ${hyphens}
 Date: $(TZ=UTC date +"%Y-%m-%d %H:%M:%S")
 User: $(whoami)

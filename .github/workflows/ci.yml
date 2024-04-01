@@ -9,13 +9,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                imageName:
-                    [
-                        'debian',
-                        'ubuntu',
-                        'fedora',
-                        'archlinux',
-                    ]
+                imageName: ['debian', 'ubuntu', 'fedora', 'archlinux']
                 include:
                     - imageName: 'archlinux'
                       coverage: true # only generate coverage on archlinux
@@ -104,9 +98,9 @@ jobs:
             - name: Run Dotfiles Tests
               shell: bash
               run: |
-                cd test_project
-                chmod +x ./test.sh
-                ./test.sh
+                  cd tests/test_project
+                  chmod +x ./test.sh
+                  ./test.sh
 
             - name: Run Python Script Tests
               shell: bash

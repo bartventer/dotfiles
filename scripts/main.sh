@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #-----------------------------------------------------------------------------------------------------------------
 # Copyright (c) Bart Venter.
 # Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
@@ -19,7 +19,7 @@
 #   - additional_arguments: Any additional arguments to be passed to the script.
 #
 # Dependencies: zsh, git, curl, jq, unzip, wget
-#
+#-----------------------------------------------------------------------------------------------------------------
 set -e
 
 CI=${CI:-"false"}
@@ -38,11 +38,14 @@ if [[ -z "${CONFIG_FILE}" || ! -f "${CONFIG_FILE}" ]]; then
     echo "Error: CONFIG_FILE (${CONFIG_FILE}) is not set or does not exist."
     exit 1
 fi
+
 # shellcheck disable=SC1091
 # shellcheck source=scripts/util.sh
 source "${DOTFILES_UTIL_SCRIPT}"
 
 log_info "Starting dotfiles installation..."
+
+debug_system
 
 USER="${USER:-$(whoami)}"
 DISTRO=${1:-}
