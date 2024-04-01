@@ -1,3 +1,11 @@
+## [3.15.2](https://github.com/bartventer/dotfiles/compare/v3.15.1...v3.15.2) (2024-04-01)
+
+
+### Bug Fixes
+
+* **neovim/clipboard:** remove clipboard install script ([e3325d4](https://github.com/bartventer/dotfiles/commit/e3325d49f4b844d055ec3f1dcd22c7c5c5a3e1f6))
+* **neovim/go:** remove unnecessary go package installations ([f1ad9d0](https://github.com/bartventer/dotfiles/commit/f1ad9d09bd4ff82b48425fb572eafa34d38e7508))
+
 ## [3.15.1](https://github.com/bartventer/dotfiles/compare/v3.15.0...v3.15.1) (2024-03-31)
 
 
