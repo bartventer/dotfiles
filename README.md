@@ -120,7 +120,9 @@ Example:
 Or with `make`:
 
 ```bash
-make install r="agnoster/agnoster" f="Source Code Pro"
+make OHMYZSH_THEME_REPO="agnoster/agnoster" \
+    DOTFILES_FONT="Source Code Pro" \
+    install
 ```
 
 ## Font Update

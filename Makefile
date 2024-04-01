@@ -12,9 +12,8 @@ DEVCONTAINER_TEST_SCRIPT?="test.sh"## The test script to run in the devcontainer
 LABEL_KEY=test-container## The label key to use for the test container. Defaults to "test-container"
 
 # Install variables
-INSTALL_ZSH_THEME_REPO?="romkatv/powerlevel10k"## The Zsh theme repository to install. Defaults to "romkatv/powerlevel10k"
-INSTALL_LANGUAGES?="golang"## The languages to install. Defaults to "golang"
-INSTALL_FONT?="MesloLGS NF"## The font to install. Defaults to "MesloLGS NF"
+OHMYZSH_THEME_REPO?="romkatv/powerlevel10k"## The Zsh theme repository to install. Defaults to "romkatv/powerlevel10k"
+DOTFILES_FONT?="MesloLGS NF"## The font to install. Defaults to "MesloLGS NF"
 
 # Dotfiles path variables
 DOTFILES_CONFIG_DIR=config
@@ -137,12 +136,11 @@ print-%: ## Helper target to print a variable. Usage: make print-VARIABLE
 	@printf '%s' "$($*)"
 
 
-install: $(DOTFILES_COMMON_DEPS) $(DOTFILES_CONFIG_DIR) .config $(DOTFILES_INSTALL_SCRIPT) .tmux.conf .zshrc ## Run the install.sh script (optional args: INSTALL_ZSH_THEME_REPO, INSTALL_LANGUAGES, INSTALL_FONT)
+install: $(DOTFILES_COMMON_DEPS) $(DOTFILES_CONFIG_DIR) .config $(DOTFILES_INSTALL_SCRIPT) .tmux.conf .zshrc ## Run the install.sh script (optional args: OHMYZSH_THEME_REPO, DOTFILES_FONT)
 	chmod +x $(DOTFILES_INSTALL_SCRIPT) || $(call error_exit,"Failed to make $(DOTFILES_INSTALL_SCRIPT) executable")
 	./$(DOTFILES_INSTALL_SCRIPT) \
-		-r $(INSTALL_ZSH_THEME_REPO) \
-		-l $(INSTALL_LANGUAGES) \
-		-f $(INSTALL_FONT) || $(call error_exit,"Failed to run $(DOTFILES_INSTALL_SCRIPT)")
+		-r $(OHMYZSH_THEME_REPO) \
+		-f $(DOTFILES_FONT) || $(call error_exit,"Failed to run $(DOTFILES_INSTALL_SCRIPT)")
 
 .PHONY: update
 update: ## Pull the latest changes from the repository
