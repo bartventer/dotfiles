@@ -128,7 +128,7 @@ make install r="agnoster/agnoster" f="Source Code Pro"
 To update the fonts, run the `update_fonts.sh` script from the root of the repository. This script scrapes the latest fonts from the [Nerd Fonts](https://www.nerdfonts.com/) website and updates the `fonts.json` file.
 
 ```bash
-./update_fonts.sh
+./tools/update_fonts.sh
 ```
 
 Or with `make`:
