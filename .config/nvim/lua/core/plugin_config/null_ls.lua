@@ -70,9 +70,10 @@ local optional_sources = {
 	},
 	["bash"] = {
 		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#shellcheck
-		[code_actions.shellcheck] = true,
+		diagnostics.shellcheck,
+		code_actions.shellcheck,
 		-- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#beautysh
-		[formatting.beautysh] = true,
+		formatting.beautysh,
 	}
 	-- Add more languages and their formatters here
 }

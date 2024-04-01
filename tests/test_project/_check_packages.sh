@@ -1,13 +1,16 @@
 #!/bin/bash
 
 # shellcheck disable=SC1091
+# shellcheck source=test-utils.sh
 source test-utils.sh
-source ../scripts/util.sh
+# shellcheck source=../../scripts/util.sh
+source ../../scripts/util.sh
 
 check_packages() {
     # Initialize the status
     status=0
 
+    # shellcheck disable=SC2155
     local distro=$(detect_distro)
     echo "Detected distribution: $distro"
 

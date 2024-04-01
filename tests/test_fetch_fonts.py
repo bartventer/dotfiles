@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
-from scripts.fetch_fonts import fetch_fonts
+from tools.fetch_fonts import fetch_fonts
 
 
 class TestFetchFonts(unittest.TestCase):

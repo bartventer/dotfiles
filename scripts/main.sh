@@ -1,4 +1,11 @@
 #!/bin/bash
+#-----------------------------------------------------------------------------------------------------------------
+# Copyright (c) Bart Venter.
+# Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
+#-----------------------------------------------------------------------------------------------------------------
+#
+# Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
+# Maintainer: Bart Venter <https://github.com/bartventer>
 #
 # This script installs the dotfiles on your system.
 # It configures permissions (if not macOS), installs zsh and oh-my-zsh, creates symbolic links, installs packages,
@@ -15,19 +22,28 @@
 #
 set -e
 
-# Initialization
-# shellcheck disable=SC1091
-# shellcheck source=init.sh
-source "init.sh"
-
-# Source the util script.
+CI=${CI:-"false"}
+DOTFILES_UTIL_SCRIPT="${DOTFILES_UTIL_SCRIPT:-}"
+if [[ -z "${DOTFILES_UTIL_SCRIPT}" || ! -f "${DOTFILES_UTIL_SCRIPT}" ]]; then
+    echo "Error: DOTFILES_UTIL_SCRIPT (${DOTFILES_UTIL_SCRIPT}) not set or does not exist."
+    exit 1
+fi
+DOTFILES_DIR=${DOTFILES_DIR:-}
+if [[ -z "${DOTFILES_DIR}" || ! -d "${DOTFILES_DIR}" ]]; then
+    echo "Error: DOTFILES_DIR (${DOTFILES_DIR}) is not set or does not exist."
+    exit 1
+fi
+CONFIG_FILE="${CONFIG_FILE:-}"
+if [[ -z "${CONFIG_FILE}" || ! -f "${CONFIG_FILE}" ]]; then
+    echo "Error: CONFIG_FILE (${CONFIG_FILE}) is not set or does not exist."
+    exit 1
+fi
 # shellcheck disable=SC1091
 # shellcheck source=scripts/util.sh
-. scripts/util.sh
+source "${DOTFILES_UTIL_SCRIPT}"
 
 log_info "Starting dotfiles installation..."
 
-CI="${CI:-false}"
 USER="${USER:-$(whoami)}"
 DISTRO=${1:-}
 if [[ -z "$DISTRO" ]]; then
@@ -39,19 +55,13 @@ fi
 # ** Package manager detection **
 # *******************************
 
-CONFIG_FILE="$DOTFILES_CONIG_DIR/config.json"
 PKG_MANAGER=""
 COMMON_PKGS=("$(jq -r '.common_packages[]' "${CONFIG_FILE}")")
 if [[ ${#COMMON_PKGS[@]} -eq 0 ]]; then
     log_error "No common packages found in the config file."
     exit 1
 fi
-DISTRO_PKGS=("$(jq -r ".distro_packages.""${DISTRO}"[]"" "${CONFIG_FILE}")")
-# shellcheck disable=SC2128
-if [[ -z "${DISTRO_PKGS}" ]]; then
-    log_error "No packages found for the $DISTRO distribution in the config file."
-    exit 1
-fi
+DISTRO_PKGS=("$(jq -re ".distro_packages.""${DISTRO}"[]"" "${CONFIG_FILE}")")
 
 log_info "Detecting package manager (distro: ${DISTRO})..."
 for manager in $(jq -r '.pkg_managers | keys[]' "${CONFIG_FILE}"); do
@@ -67,12 +77,8 @@ if [[ -z "$PKG_MANAGER" ]]; then
     log_error "No package manager found."
     exit 1
 fi
-INSTALL_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .install_cmd" "$CONFIG_FILE")
-UPDATE_CMD=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .update_cmd" "$CONFIG_FILE")
-if [[ -z "$UPDATE_CMD" || -z "$INSTALL_CMD" ]]; then
-    log_error "No update or install command found for the package manager: ${PKG_MANAGER}"
-    exit 1
-fi
+INSTALL_CMD=$(jq -re ".pkg_managers[\"${PKG_MANAGER}\"] | .install_cmd" "$CONFIG_FILE")
+UPDATE_CMD=$(jq -re ".pkg_managers[\"${PKG_MANAGER}\"] | .update_cmd" "$CONFIG_FILE")
 PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
 POST_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .post_install_commands[]?" "$CONFIG_FILE")
 if [[ ${CI} != "true" ]]; then
@@ -105,40 +111,6 @@ for file in "$ZSH_LOCAL" "$PROFILE"; do
     fi
 done
 
-# This function parses a JSON object and stores the keys and values in separate arrays.
-# It takes three arguments:
-#   - A JSON key
-#   - The name of the array to store the keys
-#   - The name of the array to store the values
-parse_json_object() {
-    # Store the arguments in local variables
-    local json_key="$1"
-    local keys_array_name="$2"
-    local values_array_name="$3"
-
-    # Initialize arrays to hold the keys and values
-    local keys=()
-    local values=()
-
-    # Extract the JSON object associated with the key from the global json_data variable
-    local json_object
-    json_object=$(jq -r ".$json_key" "$CONFIG_FILE")
-
-    # Loop over the keys in the JSON object
-    while IFS=$'\n' read -r key; do
-        # Add the key to the keys array
-        keys+=("$key")
-        # Use jq to extract the value corresponding to the key from the JSON object
-        # Add the value to the values array
-        values+=("$(jq -r ".\"$key\"" <<<"$json_object")")
-    done < <(jq -r 'keys[]' <<<"$json_object") # Use jq to extract the keys from the JSON object
-
-    # Use eval to assign the keys and values to the arrays specified by keys_array_name and values_array_name
-    # The \${keys[@]} and \${values[@]} syntaxes are used to expand the arrays into a list of quoted elements
-    eval "$keys_array_name=(\"\${keys[@]}\")"
-    eval "$values_array_name=(\"\${values[@]}\")"
-}
-
 # Options
 TERM_COLOR="$(jq -r '.term_color' "$CONFIG_FILE")"
 if [[ -z "$TERM_COLOR" || "$TERM_COLOR" == "null" ]]; then
@@ -164,15 +136,18 @@ while IFS= read -r line; do
     relative_paths+=("$line")
 done < <(jq -r '.relative_paths[]' "$CONFIG_FILE")
 
-# Plugins, common packages, distro-specific packages
-plugins_values=()
-plugins_keys=()
-parse_json_object 'plugins' plugins_keys plugins_values
+# Oh-my-zsh plugins
+# Example:
+# {"key":"zsh-syntax-highlighting","value":"https://github.com/zsh-users/zsh-syntax-highlighting.git"}
+# {"key":"zsh-autosuggestions","value":"https://github.com/zsh-users/zsh-autosuggestions.git"}
+# {"key":"zsh-history-substring-search","value":"https://github.com/zsh-users/zsh-history-substring-search.git"}
+OHMYZSH_PLUGIN_DATA=$(jq -c '.ohmyzsh_plugins | to_entries[]' "$CONFIG_FILE")
 
 # Tmux plugins
-tmux_plugins_keys=()
-tmux_plugins_values=()
-parse_json_object 'tmux_plugins' tmux_plugins_keys tmux_plugins_values
+# Example:
+# {"key":"tpm","value":"https://github.com/tmux-plugins/tpm.git"}
+# {"key":"dracula","value":"https://github.com/dracula/tmux.git"}
+TMUX_PLUGIN_DATA=$(jq -c '.tmux_plugins | to_entries[]' "$CONFIG_FILE")
 
 # Load the fonts dictionary from the fonts.json file
 font_names=()
@@ -261,13 +236,11 @@ ${color_yellow}Options:${color_none}
 ${hyphens}
 ${color_yellow}Relative paths:${color_none} ${relative_paths[*]}
 ${hyphens}
-${color_yellow}Plugins:${color_none}
-    plugins_keys: ${plugins_keys[*]}
-    plugins_values: ${plugins_values[*]}
+${color_yellow}Oh My ZSH Plugins:${color_none}
+${OHMYZSH_PLUGIN_DATA}
 ${hyphens}
 ${color_yellow}Tmux plugins:${color_none}
-    tmux_plugins_keys: ${tmux_plugins_keys[*]}
-    tmux_plugins_values: ${tmux_plugins_values[*]}
+${TMUX_PLUGIN_DATA}
 ${hyphens}
 ${color_yellow}Terminal color:${color_none} ${TERM_COLOR}
 ${hyphens}
@@ -523,21 +496,21 @@ configure_neovim() {
         checks_one_of=$(echo "${profile_data}" | jq -r '.checks.one_of[]?')
         custom_script=$(echo "${profile_data}" | jq -r '.custom_script?')
         # debug info
-        log_info "Configuring Neovim profile: $profile"
+        log_info "Configuring Neovim profile: ${profile}..."
         log_info "Required checks: ${checks_required[*]}"
         log_info "One-of checks: ${checks_one_of[*]}"
         log_info "Custom script(null if not set): $custom_script"
 
         # Check required
         if [[ -z "${checks_required}" ]]; then
-            log_info "No required checks found for Neovim profile ${profile}. Skipping..."
+            log_info "No required checks found for Neovim profile ${profile}. Please check the ${CONFIG_FILE} file and ensure the checks are defined."
             continue
         else
             log_info "Checking required checks for Neovim profile ${profile}. Required checks: ${checks_required}"
             for check in ${checks_required}; do
                 if ! command -v "$check" &>/dev/null; then
                     log_warn "$check is required for Neovim profile ${profile}. Please install it and run this script again. Skipping..."
-                    continue
+                    continue 2
                 fi
                 echo -e "\nOK. Required check ${check} exists."
             done
@@ -790,11 +763,13 @@ create_symlinks() {
 
 clone_plugins_and_themes() {
     log_info "Cloning oh-my-zsh plugins and theme..."
-    for index in "${!plugins_keys[@]}"; do
+    while IFS= read -r plugin; do
         (
-            local plugin="${plugins_keys[$index]}"
-            local url="${plugins_values[$index]}"
-            local dir="$HOME/.oh-my-zsh/custom/plugins/$plugin"
+            local name
+            local url
+            name=$(echo "${plugin}" | jq -r '.key')
+            url=$(echo "${plugin}" | jq -r '.value')
+            local dir="$HOME/.oh-my-zsh/custom/plugins/$name"
             log_info "Checking $dir..."
             mkdir -p "$dir" # Ensure the directory exists
             if [ -d "$dir/.git" ]; then
@@ -810,8 +785,10 @@ clone_plugins_and_themes() {
             fi
             echo "OK. $plugin cloned successfully."
         ) &
-    done
+    done <<<"${OHMYZSH_PLUGIN_DATA}"
     wait # Wait for all background tasks to finish
+
+    log_success "OK. Oh-my-zsh plugins and theme cloned successfully!"
 }
 
 # ************************
@@ -820,11 +797,13 @@ clone_plugins_and_themes() {
 
 clone_tmux_plugins() {
     log_info "Cloning tmux plugins..."
-    for index in "${!tmux_plugins_keys[@]}"; do
+    while IFS= read -r plugin; do
         (
-            local plugin="${tmux_plugins_keys[$index]}"
-            local url="${tmux_plugins_values[$index]}"
-            local dir="$HOME/.tmux/plugins/$plugin"
+            local name
+            local url
+            name=$(echo "${plugin}" | jq -r '.key')
+            url=$(echo "${plugin}" | jq -r '.value')
+            local dir="$HOME/.tmux/plugins/$name"
             log_info "Checking $dir..."
             mkdir -p "$dir" # Ensure the directory exists
             if [ -d "$dir/.git" ]; then
@@ -840,8 +819,11 @@ clone_tmux_plugins() {
             fi
             echo "OK. $plugin cloned successfully."
         ) &
-    done
+    done <<<"${TMUX_PLUGIN_DATA}"
     wait # Wait for all background tasks to finish
+
+    log_success "OK. Tmux plugins cloned successfully!"
+
 }
 
 # **************************

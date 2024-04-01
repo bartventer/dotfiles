@@ -1,5 +1,12 @@
 #!/bin/bash
-
+#-----------------------------------------------------------------------------------------------------------------
+# Copyright (c) Bart Venter.
+# Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
+#-----------------------------------------------------------------------------------------------------------------
+#
+# Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
+# Maintainer: Bart Venter <https://github.com/bartventer>
+#
 # log.sh
 #
 # Description: This script provides a logging utility for bash scripts. It supports different log levels and colors for different types of logs.

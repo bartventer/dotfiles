@@ -26,14 +26,15 @@
 
 set -e
 
-DOTFILES_SCRIPTS_DIR="${DOTFILES_SCRIPTS_DIR:-$HOME/dotfiles/scripts}"
-if [[ ! -d $DOTFILES_SCRIPTS_DIR ]]; then
-    echo "Error: DOTFILES_SCRIPTS_DIR ($DOTFILES_SCRIPTS_DIR) does not exist."
+CI=${CI:-"false"}
+DOTFILES_UTIL_SCRIPT="${DOTFILES_UTIL_SCRIPT:-}"
+if [[ -z "${DOTFILES_UTIL_SCRIPT}" || ! -f "${DOTFILES_UTIL_SCRIPT}" ]]; then
+    echo "Error: DOTFILES_UTIL_SCRIPT (${DOTFILES_UTIL_SCRIPT}) not set or does not exist."
     exit 1
 fi
 # shellcheck disable=SC1091
 # shellcheck source=scripts/util.sh
-. "${DOTFILES_SCRIPTS_DIR}/util.sh"
+source "${DOTFILES_UTIL_SCRIPT}"
 
 # Validate arguments
 if [[ $# -ne 2 ]]; then

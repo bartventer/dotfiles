@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
-
+#-----------------------------------------------------------------------------------------------------------------
+# Copyright (c) Bart Venter.
+# Licensed under the MIT License. See https://github.com/bartventer/dotfiles for license information.
+#-----------------------------------------------------------------------------------------------------------------
+#
+# Docs: https://github.com/bartventer/dotfiles/tree/main/README.md
+# Maintainer: Bart Venter <https://github.com/bartventer>
+#
 # update_fonts.sh
 #
 # Description: This script updates the fonts for the system. It checks for necessary dependencies, sets up a Python virtual environment, installs requirements, and fetches the fonts.
@@ -19,15 +26,30 @@
 #     ./update_fonts.sh
 #
 
-set -e
+set -euo pipefail
+
+# log_info "Starting fonts update..."
+CI=${CI:-"false"}
+GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-""}
+if [[ "${CI}" == "true" ]]; then
+    GIT_ROOT="${GITHUB_WORKSPACE}"
+else
+    GIT_ROOT=$(git rev-parse --show-toplevel)
+fi
 
 # Initialization
+DOTFILES_SCRIPTS_DIR="${DOTFILES_SCRIPTS_DIR:-"${GIT_ROOT}/scripts"}"
+if [[ ! -d "${DOTFILES_SCRIPTS_DIR}" ]]; then
+    echo "Error: DOTFILES_SCRIPTS_DIR (${DOTFILES_SCRIPTS_DIR}) does not exist."
+    exit 1
+fi
 # shellcheck disable=SC1091
-# shellcheck source=init.sh
-source "init.sh"
+# shellcheck source=scripts/init.sh
+. "${DOTFILES_SCRIPTS_DIR}/init.sh"
 
-log_info "Starting fonts update..."
-DOTFILES_REQUIREMENTS="${DOTFILES_DIR}/requirements.txt"
+log_info "🚀 Starting fonts update..."
+
+DOTFILES_REQUIREMENTS="${GIT_ROOT}/requirements.txt"
 if [[ ! -f "${DOTFILES_REQUIREMENTS}" ]]; then
     log_error "Requirements file (${DOTFILES_REQUIREMENTS}) not found..."
     exit 1

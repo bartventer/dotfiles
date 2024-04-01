@@ -5,7 +5,8 @@ SHELL = /bin/bash
 # Devcontainer variables
 IMAGE_NAME?=archlinux## The name of the base image. Options: archlinux, debian, fedora, ubuntu. Defaults to "archlinux"
 DEVCONTAINER_WORKSPACE_FOLDER=.## The workspace folder to mount in the devcontainer. Defaults to "." (current directory)
-TEST_PROJECT_PATH?="test_project"## The path to the test project. Defaults to "test_project"
+TEST_DIR:=tests## The directory to run tests from. Defaults to "tests"
+TEST_PROJECT_PATH?="$(TEST_DIR)/test_project"## The path to the test project. Defaults to "test_project"
 DEVCONTAINER_CONFIG_PATH?="$(TEST_PROJECT_PATH)/$(IMAGE_NAME)/.devcontainer/devcontainer.json"## The path to the devcontainer build context. Defaults to "test_project/$(IMAGE_NAME)/.devcontainer"
 DEVCONTAINER_TEST_SCRIPT?="test.sh"## The test script to run in the devcontainer. Defaults to "test.sh"
 LABEL_KEY=test-container## The label key to use for the test container. Defaults to "test-container"
@@ -90,7 +91,7 @@ PYTHON_COVERAGE=$(VENV_ACTIVATE) coverage run --source=. -m $(UNITTEST_DISCOVER)
 PYTHON_COVERAGE_REPORT=$(VENV_ACTIVATE) coverage $(COVERAGE_REPORT_FORMAT)
 
 # Python flags
-PYTHON_TEST_FLAGS=-s tests/
+PYTHON_TEST_FLAGS=-s $(TEST_DIR)/
 PYTHON_COVERAGE_FLAGS=$(PYTHON_TEST_FLAGS)
 
 # ACT variables

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # shellcheck disable=SC1091
+# shellcheck source=test-utils.sh
 source test-utils.sh
 
 check_zsh_and_plugins() {
@@ -16,10 +17,9 @@ check_zsh_and_plugins() {
     config_file="$1"
 
     # Load the plugins from the JSON file
-    plugins=$(jq -r '.plugins | keys[]' "$config_file")
+    plugins=$(jq -r '.ohmyzsh_plugins | keys[]' "$config_file")
 
-    for plugin in $plugins
-    do
+    for plugin in $plugins; do
         if ! check "[zsh] Plugin ${plugin}" "[ -d $HOME/.oh-my-zsh/custom/plugins/${plugin} ]"; then
             status=1
         fi

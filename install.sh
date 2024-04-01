@@ -63,8 +63,18 @@ echo "✅ OK. Bash is installed."
 # shellcheck source=scripts/util.sh
 . scripts/util.sh
 
+# Source init script.
+# shellcheck disable=SC1091
+# shellcheck source=scripts/init.sh
+. scripts/init.sh
+
 debug_system
 
 # Execute main script
 echo "🚀 Executing main script (OS:$OS)..."
-exec $BASH_PATH "$(dirname "$0")/main.sh" "$OS" "$@"
+MAIN_SCRIPT="${DOTFILES_SCRIPTS_DIR}/main.sh"
+if [ ! -f "$MAIN_SCRIPT" ]; then
+  echo "Error: Main script ($MAIN_SCRIPT) not found."
+  exit 1
+fi
+exec $BASH_PATH "${MAIN_SCRIPT}" "$OS" "$@"

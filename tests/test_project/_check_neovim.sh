@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # shellcheck disable=SC1091
+# shellcheck source=test-utils.sh
 source test-utils.sh
 
 check_neovim_and_plugins() {

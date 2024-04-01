@@ -1,22 +1,27 @@
 #!/bin/bash
 cd "$(dirname "$0")" || exit
 
-source ../scripts/util.sh
-source ../scripts/log.sh
+# shellcheck disable=SC1091
+# shellcheck source=../../scripts/util.sh
+source ../../scripts/util.sh
 
 debug_system
 
 log_info "Running tests..."
-
 # shellcheck disable=SC1091
+# shellcheck source=test-utils.sh
 source test-utils.sh
-
+# shellcheck disable=SC1091
+# shellcheck source=_check_packages.sh
 source _check_packages.sh
-
+# shellcheck disable=SC1091
+# shellcheck source=_check_zsh.sh
 source _check_zsh.sh
-
+# shellcheck disable=SC1091
+# shellcheck source=_check_neovim.sh
 source _check_neovim.sh
-
+# shellcheck disable=SC1091
+# shellcheck source=_check_tmux.sh
 source _check_tmux.sh
 
 # Run common tests
@@ -29,9 +34,11 @@ check "curl" "curl --version"
 check "git" "git --version"
 
 # Get the path to the JSON Config file
-script_dir=$(cd "$(dirname "$0")"; pwd)
-config_file="${script_dir}/../config/config.json"
-
+script_dir=$(
+    cd "$(dirname "$0")" || exit
+    pwd
+)
+config_file="../../config/config.json"
 # Check if zsh and plugins are installed
 check_zsh_and_plugins "$config_file"
 check "Oh My Zsh! (Powerlevel10k) theme" "test -e \"$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme\""

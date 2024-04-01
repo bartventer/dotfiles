@@ -2,6 +2,21 @@
 
 set -e
 
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+if [[ ! -d "$SCRIPT_DIR" ]]; then
+    echo "Error: SCRIPT_DIR ($SCRIPT_DIR) does not exist."
+    exit 1
+fi
+
+LOG_SCRIPT="$SCRIPT_DIR/log.sh"
+if [[ ! -f "$LOG_SCRIPT" ]]; then
+    echo "Error: log.sh script ($LOG_SCRIPT) not found."
+    exit 1
+fi
+# shellcheck disable=SC1091
+# shellcheck source=scripts/log.sh
+. "$SCRIPT_DIR/log.sh"
+
 # run_cmd Run commands in a way that works both locally and in CI.
 # It also ensures that dnf check-update does not cause the script to exit when using set -e.
 # Usage: run_cmd "command"
