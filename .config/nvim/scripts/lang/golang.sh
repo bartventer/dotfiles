@@ -75,7 +75,7 @@ if command -v golangci-lint &>/dev/null; then
 fi
 
 # Go tools to install (not available in Mason.nvim)
-# See https://github.com/bartventer/dotfiles/blob/c90c6137fce4dec07b830099cafc791cbfe6ce92/config/config.json#L174
+# See https://github.com/bartventer/dotfiles/blob/master/config/config.json#L174
 GO_TOOLS="\
     golang.org/x/lint/golint@latest \
     github.com/haya14busa/goplay/cmd/goplay@latest \
