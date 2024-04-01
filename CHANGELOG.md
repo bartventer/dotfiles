@@ -1,3 +1,15 @@
+# [3.16.0](https://github.com/bartventer/dotfiles/compare/v3.15.3...v3.16.0) (2024-04-01)
+
+
+### Bug Fixes
+
+* **config:** correct invalid properties ([d132fb7](https://github.com/bartventer/dotfiles/commit/d132fb725222d1d2a3367dca29fec6f15052b75d))
+
+
+### Features
+
+* **config:** add json schema for validation [skip ci] ([5605a6e](https://github.com/bartventer/dotfiles/commit/5605a6e8292056ab0090a6a5a2f56d656870c96f))
+
 ## [3.15.3](https://github.com/bartventer/dotfiles/compare/v3.15.2...v3.15.3) (2024-04-01)
 
 
