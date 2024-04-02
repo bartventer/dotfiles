@@ -107,6 +107,20 @@ ACT_REDIRECT_OUTPUT ?= 1  # Set to 1 to redirect output to a file, set to any ot
 ACT_OUTPUT_DIR=output
 ACT_OUTPUT_FORMAT=%Y%m%d%H%M%S
 
+# Config variables
+CONFIG_FILE=$(DOTFILES_CONFIG_DIR)/config.json
+CONFIG_SCHEMA=$(DOTFILES_CONFIG_DIR)/config.schema.json
+
+# Config Validation Command
+CONFIG_VALIDATE=ajv validate
+
+# Config Validation Flags
+CONFIG_VALIDATE_FLAGS=\
+	-s $(CONFIG_SCHEMA) \
+	-d $(CONFIG_FILE) \
+	-c ajv-formats \
+	--verbose
+
 # Dependencies
 DOTFILES_COMMON_DEPS = $(wildcard scripts/*)
 
@@ -271,3 +285,8 @@ clean: ## Clean up the act output directory and remove the devcontainers
 		echo "OK. Done removing containers."; \
 	fi
 
+.PHONY: validate-config
+validate-config: $(CONFIG_FILE) $(CONFIG_SCHEMA) ## Validate the config file
+	@echo "🚀 Validating the config file ($(CONFIG_FILE))..."
+	$(CONFIG_VALIDATE) $(CONFIG_VALIDATE_FLAGS) || (echo "❌ Error. Config file is invalid." && exit 1)
+	@echo "✅ OK. Config file is valid."
