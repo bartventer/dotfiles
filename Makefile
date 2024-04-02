@@ -143,11 +143,13 @@ define print-system-info
 	@echo "Home directory: $(HOME)"
 	@echo "Current directory: $(shell pwd)"
 	@echo -e "$(BLUE)OS info:$(RESET)"
-	if [ -f /etc/os-release ]; then
-		@cat /etc/os-release
-	elif [ -f /usr/bin/sw_vers ]; then
-		@sw_vers
-	fi
+	case "$(shell uname -s)" in
+		"Linux") cat /etc/os-release ;;
+		"Darwin") @sw_vers ;;
+	esac
+	@echo -e "$(BLUE)Environment variables:$(RESET)"
+	@env | sort
+	@echo -e "\n"
 endef
 
 .PHONY: help

@@ -4,7 +4,7 @@
         "context": "../../../..",
         "dockerfile": "Dockerfile"
     },
-    "postCreateCommand": "yarn install",
+    "postCreateCommand": "yarn install && ./tools/activate-venv.sh",
     "features": {
         "ghcr.io/devcontainers/features/go:1": {},
         "ghcr.io/devcontainers/features/node:1": {},

@@ -1,7 +1,7 @@
 {
     "name": "Dotfiles",
     "image": "mcr.microsoft.com/devcontainers/go:1.22-bullseye",
-    "postCreateCommand": "yarn install",
+    "postCreateCommand": "yarn install && ./tools/activate-venv.sh",
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {},
         "ghcr.io/devcontainers/features/node:1": {},
