@@ -143,9 +143,9 @@ define print-system-info
 	@echo "Home directory: $(HOME)"
 	@echo "Current directory: $(shell pwd)"
 	@echo -e "$(BLUE)OS info:$(RESET)"
-	case "$(shell uname -s)" in
-		"Linux") cat /etc/os-release ;;
-		"Darwin") @sw_vers ;;
+	@case "$(shell uname -s)" in \
+		"Linux") cat /etc/os-release ;; \
+		"Darwin") sw_vers ;; \
 	esac
 	@echo -e "$(BLUE)Environment variables:$(RESET)"
 	@env | sort
