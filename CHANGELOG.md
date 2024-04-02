@@ -1,3 +1,10 @@
+# [3.18.0](https://github.com/bartventer/dotfiles/compare/v3.17.0...v3.18.0) (2024-04-02)
+
+
+### Features
+
+* **config:** add package manager`post_install_commands` property ([21488f3](https://github.com/bartventer/dotfiles/commit/21488f3229e281a06e022e7ec54a23328508fed3))
+
 # [3.17.0](https://github.com/bartventer/dotfiles/compare/v3.16.0...v3.17.0) (2024-04-02)
 
 
