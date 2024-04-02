@@ -28,6 +28,15 @@
                             "minLength": 1
                         },
                         "minItems": 1
+                    },
+                    "post_install_commands": {
+                        "type": "array",
+                        "description": "Commands to run after installation",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "minItems": 1
                     }
                 },
                 "required": [
