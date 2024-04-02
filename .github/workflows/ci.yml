@@ -5,17 +5,13 @@ on: [push, pull_request]
 jobs:
     validate-config:
         runs-on: ubuntu-latest
-        name: Validate Config
+        name: Validate Configuration
         steps: 
             - uses: actions/checkout@v4
-            - name: Install ajv CLI
+            - name: Install Schema Validation Tools
               run: npm install -g ajv-cli ajv-formats
-            - name: Validate
-              run: |
-                ajv validate \
-                    -s ./config/config.schema.json \
-                    -d ./config/config.json \
-                    -c ajv-formats
+            - name: Run Schema Validation
+              run: make validate-config
     test-linux:
         needs: validate-config
         runs-on: ubuntu-latest
