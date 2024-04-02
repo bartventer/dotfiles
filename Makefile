@@ -17,7 +17,8 @@ DOTFILES_FONT?="MesloLGS NF"## The font to install. Defaults to "MesloLGS NF"
 
 # Dotfiles path variables
 DOTFILES_CONFIG_DIR=config
-DOTFILES_UPDATE_FONTS_SCRIPT=tools/update_fonts.sh
+DOTFILES_TOOLS_DIR=tools
+DOTFILES_UPDATE_FONTS_SCRIPT=$(DOTFILES_TOOLS_DIR)/update_fonts.sh
 DOTFILES_INSTALL_SCRIPT=install.sh
 ifeq ($(CI),true)
 	DOTFILES_REPO_FLAGS=\
@@ -29,7 +30,7 @@ else
 endif
 
 # Devcontainer command
-DEVCONTAINER=devcontainer
+DEVCONTAINER=npx devcontainer
 DEVCONTAINER_BUILD=$(DEVCONTAINER) build
 DEVCONTAINER_UP=$(DEVCONTAINER) up
 DEVCONTAINER_EXEC=$(DEVCONTAINER) exec
@@ -75,19 +76,16 @@ TMUX_NEWSESSION_FLAGS=-d
 TMUX_RUNSHELL_FLAGS="$(TMUX_PLUGIN_MANAGER_BIN)"
 
 # Python
-VENV=venv
-ifeq ($(CI),true)
-	VENV_ACTIVATE= # In CI, by default we don't activate the virtual environment
-else
-	VENV_ACTIVATE=. $(VENV)/bin/activate;
-endif
 COVERAGE_REPORT_FORMAT ?= html  # Default to HTML coverage report
 UNITTEST_DISCOVER=unittest discover
 
+# Virtual environment
+VENV_ACTIVATE=. $(HOME)/.venvs/dotfiles/bin/activate
+
 # Python commands
-PYTHON_TEST=$(VENV_ACTIVATE) python3 -m $(UNITTEST_DISCOVER)
-PYTHON_COVERAGE=$(VENV_ACTIVATE) coverage run --source=. -m $(UNITTEST_DISCOVER)
-PYTHON_COVERAGE_REPORT=$(VENV_ACTIVATE) coverage $(COVERAGE_REPORT_FORMAT)
+PYTHON_TEST=$(VENV_ACTIVATE); python3 -m $(UNITTEST_DISCOVER)
+PYTHON_COVERAGE=$(VENV_ACTIVATE); coverage run --source=. -m $(UNITTEST_DISCOVER)
+PYTHON_COVERAGE_REPORT=$(VENV_ACTIVATE); coverage $(COVERAGE_REPORT_FORMAT)
 
 # Python flags
 PYTHON_TEST_FLAGS=-s $(TEST_DIR)/
@@ -108,16 +106,17 @@ ACT_OUTPUT_DIR=output
 ACT_OUTPUT_FORMAT=%Y%m%d%H%M%S
 
 # Config variables
-CONFIG_FILE=$(DOTFILES_CONFIG_DIR)/config.json
+DOTFILES_CONFIG_PATH=$(DOTFILES_CONFIG_DIR)/config.json
 CONFIG_SCHEMA=$(DOTFILES_CONFIG_DIR)/config.schema.json
 
 # Config Validation Command
-CONFIG_VALIDATE=ajv validate
+AJV=npx ajv
+AJV_VALIDATE=$(AJV) validate
 
 # Config Validation Flags
-CONFIG_VALIDATE_FLAGS=\
+AJV_VALIDATE_FLAGS=\
 	-s $(CONFIG_SCHEMA) \
-	-d $(CONFIG_FILE) \
+	-d $(DOTFILES_CONFIG_PATH) \
 	-c ajv-formats \
 	--verbose
 
@@ -128,6 +127,27 @@ DOTFILES_COMMON_DEPS = $(wildcard scripts/*)
 define error_exit
 	@echo "Error: $(1)"
 	@exit 1
+endef
+
+# Color variables
+BLUE=\033[1;34m
+RESET=\033[0m
+
+define print-system-info
+	@echo -e "$(BLUE)System info:$(RESET)"
+	@echo "OS: $(shell uname -s)"
+	@echo "Kernel: $(shell uname -r)"
+	@echo "Architecture: $(shell uname -m)"
+	@echo "Hostname: $(shell hostname)"
+	@echo "Username: $(shell whoami)"
+	@echo "Home directory: $(HOME)"
+	@echo "Current directory: $(shell pwd)"
+	@echo -e "$(BLUE)OS info:$(RESET)"
+	if [ -f /etc/os-release ]; then
+		@cat /etc/os-release
+	elif [ -f /usr/bin/sw_vers ]; then
+		@sw_vers
+	fi
 endef
 
 .PHONY: help
@@ -149,12 +169,11 @@ help: ## Display this help message.
 print-%: ## Helper target to print a variable. Usage: make print-VARIABLE
 	@printf '%s' "$($*)"
 
-
 install: $(DOTFILES_COMMON_DEPS) $(DOTFILES_CONFIG_DIR) .config $(DOTFILES_INSTALL_SCRIPT) .tmux.conf .zshrc ## Run the install.sh script (optional args: OHMYZSH_THEME_REPO, DOTFILES_FONT)
-	chmod +x $(DOTFILES_INSTALL_SCRIPT) || $(call error_exit,"Failed to make $(DOTFILES_INSTALL_SCRIPT) executable")
+	chmod +x $(DOTFILES_INSTALL_SCRIPT)
 	./$(DOTFILES_INSTALL_SCRIPT) \
 		-r $(OHMYZSH_THEME_REPO) \
-		-f $(DOTFILES_FONT) || $(call error_exit,"Failed to run $(DOTFILES_INSTALL_SCRIPT)")
+		-f $(DOTFILES_FONT)
 
 .PHONY: update
 update: ## Pull the latest changes from the repository
@@ -192,16 +211,19 @@ define act-test
 	fi
 endef
 
-.PHONY: test
-test: ## Run the tests
+.PHONY: python-test
+python-test: ## Run the tests
+	$(call print-system-info)
 	$(PYTHON_TEST) $(PYTHON_TEST_FLAGS)
 
 .PHONY: coverage
 coverage: ## Run the tests with coverage
+	$(call print-system-info)
 	$(PYTHON_COVERAGE) $(PYTHON_COVERAGE_FLAGS)
 
 .PHONY: coverage-report
 coverage-report: ## Generate the coverage report (optional args: COVERAGE_REPORT_FORMAT=xml to generate XML report, defaults to html)
+	$(call print-system-info)
 	$(PYTHON_COVERAGE_REPORT)
 
 .PHONY: act-test-linux
@@ -235,25 +257,34 @@ devcontainer-up: ## Create and run the devcontainer image
 	@if [ -f "$(DOTFILES_INSTALL_SCRIPT)" ]; then \
 		echo "⚠️ Running the install.sh script in the devcontainer as dotfiles repository is not set..."; \
 		$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
-			set -e; \
-			if [ -f "$(DOTFILES_INSTALL_SCRIPT)" ]; then \
-				chmod +x $(DOTFILES_INSTALL_SCRIPT); \
-				./$(DOTFILES_INSTALL_SCRIPT); \
-			fi'; \
+		make install'; \
+	fi
+
+.PHONY: test
+test: ## Run the dotfiles tests
+	@echo "Running the dotfiles tests..."
+	$(call print-system-info)
+	set -e; \
+	if [ -f "$(TEST_PROJECT_PATH)/$(DEVCONTAINER_TEST_SCRIPT)" ]; then \
+		cd $(TEST_PROJECT_PATH); \
+		chmod +x $(DEVCONTAINER_TEST_SCRIPT); \
+		./$(DEVCONTAINER_TEST_SCRIPT); \
+	else \
+		echo "❌ Error. Dotfiles test script ($(DEVCONTAINER_TEST_SCRIPT)) not found."; \
+		exit 1; \
 	fi
 
 .PHONY: devcontainer-test
 devcontainer-test: ## Test the devcontainer image
 	@echo "Testing the devcontainer image ($(IMAGE_NAME))..."
 	$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
+		make test'
+
+.PHONY: devcontainer-python-test
+devcontainer-python-test: ## Run the Python tests in the devcontainer (runs `make test`)
+	$(DEVCONTAINER_EXEC) $(DEVCONTAINER_EXEC_FLAGS) /bin/sh -c '\
 		set -e; \
-		if [ -f "$(TEST_PROJECT_PATH)/$(DEVCONTAINER_TEST_SCRIPT)" ]; then \
-			cd $(TEST_PROJECT_PATH); \
-			chmod +x $(DEVCONTAINER_TEST_SCRIPT); \
-			./$(DEVCONTAINER_TEST_SCRIPT); \
-		else \
-			ls -a; \
-		fi'
+		make python-test'
 
 .PHONY: devcontainer-exec
 devcontainer-exec: ## Run a shell in the devcontainer.
@@ -285,7 +316,7 @@ clean: ## Clean up the act output directory and remove the devcontainers
 		echo "OK. Done removing containers."; \
 	fi
 
-validate-config: $(CONFIG_FILE) $(CONFIG_SCHEMA) ## Validate the config file
-	@echo "🚀 Validating the configuration file ($(CONFIG_FILE))..."
-	$(CONFIG_VALIDATE) $(CONFIG_VALIDATE_FLAGS) || (echo "❌ Error. Config file is invalid." && exit 1)
+validate-config: $(DOTFILES_CONFIG_PATH) $(CONFIG_SCHEMA) ## Validate the config file
+	@echo "🚀 Validating the configuration file ($(DOTFILES_CONFIG_PATH))..."
+	$(AJV_VALIDATE) $(AJV_VALIDATE_FLAGS) || (echo "❌ Error. Config file is invalid." && exit 1)
 	@echo "✅ OK. Config file is valid."

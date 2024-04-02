@@ -2,14 +2,27 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+    NODE_VERSION: '20.12.0'
+    NODE_CHECK_LATEST: true
+    NODE_CACHE: 'yarn'
+    NODE_CACHE_DEPENDENCY_PATH: '**/yarn.lock'
+
 jobs:
     validate-config:
         runs-on: ubuntu-latest
         name: Validate Configuration
         steps: 
             - uses: actions/checkout@v4
-            - name: Install Schema Validation Tools
-              run: npm install -g ajv-cli ajv-formats
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  check-latest: ${{ env.NODE_CHECK_LATEST }}
+                  cache: ${{ env.NODE_CACHE }}
+                  cache-dependency-path: ${{ env.NODE_CACHE_DEPENDENCY_PATH }}
+            - name: Install Dependencies
+              run: yarn install
             - name: Run Schema Validation
               run: make validate-config
     test-linux:
@@ -20,16 +33,20 @@ jobs:
             fail-fast: false
             matrix:
                 imageName: ['debian', 'ubuntu', 'fedora', 'archlinux']
-                include:
-                    - imageName: 'archlinux'
-                      coverage: true # only generate coverage on archlinux
 
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: 'Install devcontainer CLI'
-              run: npm install -g @devcontainers/cli
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: ${{ env.NODE_VERSION }}
+                check-latest: ${{ env.NODE_CHECK_LATEST }}
+                cache: ${{ env.NODE_CACHE }}
+                cache-dependency-path: ${{ env.NODE_CACHE_DEPENDENCY_PATH }}
+            - name: Install Node Dependencies
+              run: yarn install
 
             - name: Create and start '${{ matrix.imageName }}' devcontainer
               shell: bash
@@ -38,36 +55,9 @@ jobs:
             - name: Run Dotfiles Tests for '${{ matrix.imageName }}' devcontainer
               run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-test
 
-            - name: Install Python Dependencies
-              shell: bash
-              env:
-                  PIP_BREAK_SYSTEM_PACKAGES: 1
-              run: |
-                  python3 -m pip install -r requirements.txt
-                  python3 -m pip install coverage
-
             - name: Run Python Script Tests for '${{ matrix.imageName }}'
               shell: bash
-              run: |
-                  make test
-
-            - name: Generate coverage report
-              # Only generate coverage once, no need to do it for every OS
-              if: ${{ matrix.coverage }}
-              shell: bash
-              run: |
-                  make coverage
-                  make coverage-report COVERAGE_REPORT_FORMAT=xml
-
-            - name: Upload coverage to Codecov
-              # Only upload coverage once, no need to do it for every OS
-              if: ${{ matrix.coverage }}
-              uses: codecov/codecov-action@v3
-              with:
-                  file: ./coverage.xml
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  fail_ci_if_error: true
-                  slug: ${{ github.repository }}
+              run: make IMAGE_NAME=${{ matrix.imageName }} devcontainer-python-test
 
     test-macos:
         needs: validate-config
@@ -80,7 +70,10 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: latest
+                  node-version: ${{ env.NODE_VERSION }}
+                  check-latest: ${{ env.NODE_CHECK_LATEST }}
+                  cache: ${{ env.NODE_CACHE }}
+                  cache-dependency-path: ${{ env.NODE_CACHE_DEPENDENCY_PATH }}
 
             - name: Set up Python
               uses: actions/setup-python@v5
@@ -95,32 +88,43 @@ jobs:
 
             - name: Install Dependencies
               run: |
+                  # Brew
                   brew update
                   brew install zsh make
-                  # Install Python dependencies
+                  # Node
+                  yarn install
+                  # Python
                   pip install -r requirements.txt
 
             - name: Run Install Script
               shell: bash
-              run: |
-                  chmod +x install.sh
-                  ./install.sh
+              run: make install
 
             - name: Run Dotfiles Tests
               shell: bash
-              run: |
-                  cd tests/test_project
-                  chmod +x ./test.sh
-                  ./test.sh
+              run: make test
 
             - name: Run Python Script Tests
               shell: bash
+              run: make python-test
+
+            - name: Generate coverage report
+              shell: bash
               run: |
-                  make test
+                  make coverage
+                  make coverage-report COVERAGE_REPORT_FORMAT=xml
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v3
+              with:
+                  file: ./coverage.xml
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  fail_ci_if_error: true
+                  slug: ${{ github.repository }}
 
     semantic-release:
         name: Release
-        if: ${{ !github.event.act }} # skip during local actions testing
+        if: ${{ !github.event.act && github.event_name == 'push' }}
         needs: [test-linux, test-macos]
         runs-on: ubuntu-latest
         permissions:
@@ -128,10 +132,15 @@ jobs:
             issues: write
         steps:
             - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  check-latest: ${{ env.NODE_CHECK_LATEST }}
+                  cache: ${{ env.NODE_CACHE }}
+                  cache-dependency-path: ${{ env.NODE_CACHE_DEPENDENCY_PATH }}
+            - name: Install dependencies
+              run: yarn install
             - name: Run semantic-release
-              if: github.repository == 'bartventer/dotfiles' && github.event_name == 'push'
-              run: |
-                  yarn global add semantic-release@17 @semantic-release/changelog @semantic-release/git
-                  semantic-release
+              run: npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
