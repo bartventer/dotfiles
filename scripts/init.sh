@@ -27,24 +27,21 @@ if [ -z "$DOTFILES_DIR" ] || [ ! -d "$DOTFILES_DIR" ]; then
     echo "Error: DOTFILES_DIR ($DOTFILES_DIR) is not set or does not exist."
     exit 1
 fi
-export DOTFILES_DIR
 
 # Get the directory of this script
-SCRIPT_DIR="${DOTFILES_DIR}/scripts"
-if [ ! -d "$SCRIPT_DIR" ]; then
-    echo "Error: SCRIPT_DIR ($SCRIPT_DIR) does not exist."
+DOTFILES_SCRIPT_DIR="${DOTFILES_DIR}/scripts"
+if [ ! -d "$DOTFILES_SCRIPT_DIR" ]; then
+    echo "Error: DOTFILES_SCRIPT_DIR ($DOTFILES_SCRIPT_DIR) does not exist."
     exit 1
 fi
-DOTFILES_INIT_SCRIPT="$SCRIPT_DIR/$(basename "$0")"
-export DOTFILES_INIT_SCRIPT
+DOTFILES_INIT_SCRIPT="$DOTFILES_SCRIPT_DIR/$(basename "$0")"
 
 # Set the path to the util.sh script
-DOTFILES_UTIL_SCRIPT="$SCRIPT_DIR/util.sh"
-if [ ! -f "$DOTFILES_UTIL_SCRIPT" ]; then
-    echo "Error: util.sh script ($DOTFILES_UTIL_SCRIPT) not found."
+DOTFILES_UTIL_SCRIPT="$DOTFILES_SCRIPT_DIR/util.sh"
+if [ ! -x "$DOTFILES_UTIL_SCRIPT" ]; then
+    echo "Error: util.sh script ($DOTFILES_UTIL_SCRIPT) not found/missing execute permission..."
     exit 1
 fi
-export DOTFILES_UTIL_SCRIPT
 
 echo "Initializing..."
 
@@ -54,15 +51,13 @@ if [ ! -d "$DOTFILES_CONFIG_DIR" ]; then
     echo "Error: DOTFILES_CONFIG_DIR not found."
     exit 1
 fi
-export DOTFILES_CONFIG_DIR
 
-# Set CONFIG_FILE
-CONFIG_FILE="$DOTFILES_CONFIG_DIR/config.json"
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Error: CONFIG_FILE not found."
+# Set DOTFILES_CONFIG_PATH
+DOTFILES_CONFIG_PATH="$DOTFILES_CONFIG_DIR/config.json"
+if [ ! -r "$DOTFILES_CONFIG_PATH" ]; then
+    echo "Error: DOTFILES_CONFIG_PATH not found/missing read permission..."
     exit 1
 fi
-export CONFIG_FILE
 
 # Set DOTFILES_SCRIPTS_DIR
 DOTFILES_SCRIPTS_DIR="$DOTFILES_DIR/scripts"
@@ -70,14 +65,65 @@ if [ ! -d "$DOTFILES_SCRIPTS_DIR" ]; then
     echo "Error: DOTFILES_SCRIPTS_DIR not found."
     exit 1
 fi
-export DOTFILES_SCRIPTS_DIR
 
-# Set DOTFILES_FONTS_CONFIG
-DOTFILES_FONTS_CONFIG="$DOTFILES_CONFIG_DIR/fonts.json"
-if [ ! -f "$DOTFILES_FONTS_CONFIG" ]; then
-    echo "Error: DOTFILES_FONTS_CONFIG not found."
+# Set DOTFILES_FONTS_PATH
+DOTFILES_FONTS_PATH="$DOTFILES_CONFIG_DIR/fonts.json"
+if [ ! -r "$DOTFILES_FONTS_PATH" ]; then
+    echo "Error: DOTFILES_FONTS_PATH not found/missing read permission..."
     exit 1
 fi
-export DOTFILES_FONTS_CONFIG
+
+# Set DOTFILES_REQUIREMENTS
+DOTFILES_REQUIREMENTS="${DOTFILES_DIR}/requirements.txt"
+if [ ! -r "${DOTFILES_REQUIREMENTS}" ]; then
+    echo "Requirements file (${DOTFILES_REQUIREMENTS}) not found/missing read permission..."
+    exit 1
+fi
+
+# Set DOTFILES_TOOLS_DIR
+DOTFILES_TOOLS_DIR="${DOTFILES_DIR}/tools"
+if [ ! -d "${DOTFILES_TOOLS_DIR}" ]; then
+    echo "Tools directory (${DOTFILES_TOOLS_DIR}) not found..."
+    exit 1
+fi
+
+# Set DOTFILES_ACTIVATE_VENV
+DOTFILES_ACTIVATE_VENV="${DOTFILES_TOOLS_DIR}/activate-venv.sh"
+if [ ! -x "${DOTFILES_ACTIVATE_VENV}" ]; then
+    echo "Virtual environment script (${DOTFILES_ACTIVATE_VENV}) not found/missing execute permission..."
+    exit 1
+fi
+
+# Set DOTFILES_FETCH_FONTS_SCRIPT
+DOTFILES_FETCH_FONTS_SCRIPT="${DOTFILES_TOOLS_DIR}/fetch_fonts.py"
+if [ ! -x "${DOTFILES_FETCH_FONTS_SCRIPT}" ]; then
+    echo "Fetch fonts script (${DOTFILES_FETCH_FONTS_SCRIPT}) not found/missing execute permission..."
+    exit 1
+fi
+
+# Set DOTFILES_UPDATE_FONTS_SCRIPT
+DOTFILES_UPDATE_FONTS_SCRIPT="${DOTFILES_TOOLS_DIR}/update_fonts.sh"
+if [ ! -f "${DOTFILES_UPDATE_FONTS_SCRIPT}" ]; then
+    echo "Update fonts script (${DOTFILES_UPDATE_FONTS_SCRIPT}) not found..."
+    exit 1
+fi
+
+# Escaped version of VENVS_DIR
+VENVS_DIR_ESCAPED="\${HOME}/.venvs"
+# Escaped version of NVIM_VENV_DIR
+NVIM_VENV_DIR_ESCAPED="${VENVS_DIR_ESCAPED}/nvim"
+
+# Export variables
+export DOTFILES_DIR
+export DOTFILES_INIT_SCRIPT
+export DOTFILES_UTIL_SCRIPT
+export DOTFILES_CONFIG_DIR
+export DOTFILES_CONFIG_PATH
+export DOTFILES_SCRIPTS_DIR
+export DOTFILES_FONTS_PATH
+export DOTFILES_REQUIREMENTS
+
+export VENVS_DIR_ESCAPED
+export NVIM_VENV_DIR_ESCAPED
 
 echo "Successfully initialized."

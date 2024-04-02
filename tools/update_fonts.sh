@@ -14,7 +14,7 @@
 # Globals:
 #   DOTFILES_DIR: The directory containing the dotfiles.
 #   DOTFILES_REQUIREMENTS: The path to the Python requirements file.
-#   FETCH_FONTS_SCRIPT: The path to the Python script that fetches the fonts.
+#   DOTFILES_FETCH_FONTS_SCRIPT: The path to the Python script that fetches the fonts.
 #   VENVS_DIR: The directory for Python virtual environments.
 #   DOTFILES_VENV_DIR: The directory for the Python virtual environment for this script.
 #   PYTHON_CMD: The command to run Python.
@@ -28,14 +28,16 @@
 
 set -euo pipefail
 
-# log_info "Starting fonts update..."
 CI=${CI:-"false"}
-GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-""}
+GIT_ROOT="${DOTFILES_DIR:-""}"
+
+set +u
 if [[ "${CI}" == "true" ]]; then
     GIT_ROOT="${GITHUB_WORKSPACE}"
-else
+elif [[ -z "${GIT_ROOT}" ]]; then
     GIT_ROOT=$(git rev-parse --show-toplevel)
 fi
+set -u
 
 # Initialization
 DOTFILES_SCRIPTS_DIR="${DOTFILES_SCRIPTS_DIR:-"${GIT_ROOT}/scripts"}"
@@ -47,69 +49,24 @@ fi
 # shellcheck source=scripts/init.sh
 . "${DOTFILES_SCRIPTS_DIR}/init.sh"
 
+# shellcheck disable=SC1091
+# shellcheck source=scripts/util.sh
+. "${DOTFILES_UTIL_SCRIPT}"
+
 log_info "🚀 Starting fonts update..."
 
-DOTFILES_REQUIREMENTS="${GIT_ROOT}/requirements.txt"
-if [[ ! -f "${DOTFILES_REQUIREMENTS}" ]]; then
-    log_error "Requirements file (${DOTFILES_REQUIREMENTS}) not found..."
-    exit 1
-fi
-FETCH_FONTS_SCRIPT="${DOTFILES_SCRIPTS_DIR}/fetch_fonts.py"
-if [[ ! -f "${FETCH_FONTS_SCRIPT}" ]]; then
-    log_error "Fetch fonts script (${FETCH_FONTS_SCRIPT}) not found..."
-    exit 1
-fi
-
-VENVS_DIR=${VENVS_DIR:-""}
-if [[ -z "$VENVS_DIR" || ! -d "$VENVS_DIR" ]]; then
-    log_error "VENVS_DIR not set or directory does not exists..."
-    exit 1
-fi
-DOTFILES_VENV_DIR="${VENVS_DIR}/dotfiles"
-if [[ ! -d "${DOTFILES_VENV_DIR}" ]]; then
-    mkdir -p "${DOTFILES_VENV_DIR}"
-fi
-PYTHON_CMD=$(command -v python3 || command -v python)
-if [[ -z "${PYTHON_CMD}" ]]; then
-    log_error "Python is not installed. Please install Python and run this script again."
-    exit 1
-fi
-DOTFILES_VENV_BIN_DIR="${DOTFILES_VENV_DIR}/bin"
-DOTFILES_VENV_ACTIVATE="${DOTFILES_VENV_BIN_DIR}/activate"
-if [[ ! -f "${DOTFILES_VENV_ACTIVATE}" ]]; then
-    log_info "Creating virtual environment for Fonts..."
-    "${PYTHON_CMD}" -m venv "${DOTFILES_VENV_DIR}"
-    echo "OK. Virtual environment created successfully!"
-fi
-DOTFILES_PYTHON_CMD="${DOTFILES_VENV_BIN_DIR}/python"
-
-log_info "Activating virtual environment (${DOTFILES_VENV_ACTIVATE})..."
-# shellcheck disable=SC1090
-source "${DOTFILES_VENV_ACTIVATE}"
-echo "OK. Virtual environment activated."
-
-log_info "Checking for pip..."
-PIP_CMD=$(command -v pip3 || command -v pip)
-if [[ -z "${PIP_CMD}" ]]; then
-    log_error "pip is not installed. Please install pip and run this script again."
-    deactivate
-    exit 1
-fi
-echo "OK. pip found."
-
-# Install python requirements
-log_info "Installing python requirements (${DOTFILES_REQUIREMENTS})..."
-"${PIP_CMD}" install --upgrade pip && "${PIP_CMD}" install -r "${DOTFILES_REQUIREMENTS}"
-echo "OK. Python requirements installed."
+echo "DOTFILES_REQUIREMENTS: ${DOTFILES_REQUIREMENTS}"
+# Venv script
+# shellcheck disable=SC1091
+# shellcheck source=tools/activate-venv.sh
+. "${DOTFILES_ACTIVATE_VENV}" "${DOTFILES_REQUIREMENTS}"
 
 # Fetch fonts
 log_info "Fetching fonts..."
-"${DOTFILES_PYTHON_CMD}" "${FETCH_FONTS_SCRIPT}"
+"${DOTFILES_PYTHON_CMD}" "${DOTFILES_FETCH_FONTS_SCRIPT}"
 echo "OK. Fonts fetched."
 
 # Deactivate venv
-log_info "Deactivating virtual environment..."
-deactivate
-echo "OK. Virtual environment deactivated."
+deactivate_venv
 
 log_success "Done. Fonts updated successfully."

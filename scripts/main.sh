@@ -33,9 +33,19 @@ if [[ -z "${DOTFILES_DIR}" || ! -d "${DOTFILES_DIR}" ]]; then
     echo "Error: DOTFILES_DIR (${DOTFILES_DIR}) is not set or does not exist."
     exit 1
 fi
-CONFIG_FILE="${CONFIG_FILE:-}"
-if [[ -z "${CONFIG_FILE}" || ! -f "${CONFIG_FILE}" ]]; then
-    echo "Error: CONFIG_FILE (${CONFIG_FILE}) is not set or does not exist."
+DOTFILES_CONFIG_PATH="${DOTFILES_CONFIG_PATH:-}"
+if [[ -z "${DOTFILES_CONFIG_PATH}" || ! -f "${DOTFILES_CONFIG_PATH}" ]]; then
+    echo "Error: DOTFILES_CONFIG_PATH (${DOTFILES_CONFIG_PATH}) is not set or does not exist."
+    exit 1
+fi
+VENVS_DIR_ESCAPED="${VENVS_DIR_ESCAPED:-}"
+if [[ -z "${VENVS_DIR_ESCAPED}" ]]; then
+    echo "Error: VENVS_DIR_ESCAPED (${VENVS_DIR_ESCAPED}) is not set."
+    exit 1
+fi
+NVIM_VENV_DIR_ESCAPED="${NVIM_VENV_DIR_ESCAPED:-}"
+if [[ -z "${NVIM_VENV_DIR_ESCAPED}" ]]; then
+    echo "Error: NVIM_VENV_DIR_ESCAPED (${NVIM_VENV_DIR_ESCAPED}) is not set."
     exit 1
 fi
 
@@ -59,15 +69,15 @@ fi
 # *******************************
 
 PKG_MANAGER=""
-COMMON_PKGS=("$(jq -r '.common_packages[]' "${CONFIG_FILE}")")
+COMMON_PKGS=("$(jq -r '.common_packages[]' "${DOTFILES_CONFIG_PATH}")")
 if [[ ${#COMMON_PKGS[@]} -eq 0 ]]; then
     log_error "No common packages found in the config file."
     exit 1
 fi
-DISTRO_PKGS=("$(jq -re ".distro_packages.""${DISTRO}"[]"" "${CONFIG_FILE}")")
+DISTRO_PKGS=("$(jq -re ".distro_packages.""${DISTRO}"[]"" "${DOTFILES_CONFIG_PATH}")")
 
 log_info "Detecting package manager (distro: ${DISTRO})..."
-for manager in $(jq -r '.pkg_managers | keys[]' "${CONFIG_FILE}"); do
+for manager in $(jq -r '.pkg_managers | keys[]' "${DOTFILES_CONFIG_PATH}"); do
     if command -v "${manager}" >/dev/null 2>&1; then
         PKG_MANAGER="${manager}"
         echo "OK. Detected package manager: ${PKG_MANAGER}"
@@ -80,10 +90,10 @@ if [[ -z "$PKG_MANAGER" ]]; then
     log_error "No package manager found."
     exit 1
 fi
-INSTALL_CMD=$(jq -re ".pkg_managers[\"${PKG_MANAGER}\"] | .install_cmd" "$CONFIG_FILE")
-UPDATE_CMD=$(jq -re ".pkg_managers[\"${PKG_MANAGER}\"] | .update_cmd" "$CONFIG_FILE")
-PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$CONFIG_FILE")
-POST_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .post_install_commands[]?" "$CONFIG_FILE")
+INSTALL_CMD=$(jq -re ".pkg_managers[\"${PKG_MANAGER}\"] | .install_cmd" "$DOTFILES_CONFIG_PATH")
+UPDATE_CMD=$(jq -re ".pkg_managers[\"${PKG_MANAGER}\"] | .update_cmd" "$DOTFILES_CONFIG_PATH")
+PRE_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .pre_install_commands[]?" "$DOTFILES_CONFIG_PATH")
+POST_INSTALL_CMDS=$(jq -r ".pkg_managers[\"${PKG_MANAGER}\"] | .post_install_commands[]?" "$DOTFILES_CONFIG_PATH")
 if [[ ${CI} != "true" ]]; then
     update_path /usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin
 fi
@@ -115,11 +125,11 @@ for file in "$ZSH_LOCAL" "$PROFILE"; do
 done
 
 # Options
-TERM_COLOR="$(jq -r '.term_color' "$CONFIG_FILE")"
+TERM_COLOR="$(jq -r '.term_color' "$DOTFILES_CONFIG_PATH")"
 if [[ -z "$TERM_COLOR" || "$TERM_COLOR" == "null" ]]; then
     TERM_COLOR="xterm-256color"
 fi
-OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.oh_my_zsh_custom_theme_repo' "$CONFIG_FILE")"
+OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="$(jq -r '.oh_my_zsh_custom_theme_repo' "$DOTFILES_CONFIG_PATH")"
 if [[ -z "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" || "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" == "null" ]]; then
     OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT="romkatv/powerlevel10k"
 fi
@@ -127,7 +137,7 @@ OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 OH_MY_ZSH_CUSTOM_THEME_REPO=$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
 
 # Fonts
-FONT_NAME="$(jq -r '.font_name' "$CONFIG_FILE")"
+FONT_NAME="$(jq -r '.font_name' "$DOTFILES_CONFIG_PATH")"
 FONT_MESLOLGS_NF="MesloLGS NF"
 if [[ -z "$FONT_NAME" || "$FONT_NAME" == "null" ]]; then
     FONT_NAME="$FONT_MESLOLGS_NF"
@@ -137,20 +147,20 @@ FONT_URL="https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20N
 # Relative paths
 while IFS= read -r line; do
     relative_paths+=("$line")
-done < <(jq -r '.relative_paths[]' "$CONFIG_FILE")
+done < <(jq -r '.relative_paths[]' "$DOTFILES_CONFIG_PATH")
 
 # Oh-my-zsh plugins
 # Example:
 # {"key":"zsh-syntax-highlighting","value":"https://github.com/zsh-users/zsh-syntax-highlighting.git"}
 # {"key":"zsh-autosuggestions","value":"https://github.com/zsh-users/zsh-autosuggestions.git"}
 # {"key":"zsh-history-substring-search","value":"https://github.com/zsh-users/zsh-history-substring-search.git"}
-OHMYZSH_PLUGIN_DATA=$(jq -c '.ohmyzsh_plugins | to_entries[]' "$CONFIG_FILE")
+OHMYZSH_PLUGIN_DATA=$(jq -c '.ohmyzsh_plugins | to_entries[]' "$DOTFILES_CONFIG_PATH")
 
 # Tmux plugins
 # Example:
 # {"key":"tpm","value":"https://github.com/tmux-plugins/tpm.git"}
 # {"key":"dracula","value":"https://github.com/dracula/tmux.git"}
-TMUX_PLUGIN_DATA=$(jq -c '.tmux_plugins | to_entries[]' "$CONFIG_FILE")
+TMUX_PLUGIN_DATA=$(jq -c '.tmux_plugins | to_entries[]' "$DOTFILES_CONFIG_PATH")
 
 # Load the fonts dictionary from the fonts.json file
 font_names=()
@@ -158,7 +168,7 @@ font_urls=()
 while IFS=":" read -r key value; do
     font_names+=("$key")
     font_urls+=("$value")
-done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FONTS_CONFIG")
+done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FONTS_PATH")
 
 # ****************************
 # ** Argument parsing logic **
@@ -228,8 +238,8 @@ ${color_yellow}Paths:${color_none}
     NVIM_OPTIONS_FILE: ${NVIM_OPTIONS_FILE}
     NVIM_LANGUAGE_SCRIPT_DIR: ${NVIM_LANGUAGE_SCRIPT_DIR}
 ${hyphens}
-${color_yellow}Configuration file:${color_none} ${CONFIG_FILE}
-${color_yellow}Font file:${color_none} ${DOTFILES_FONTS_CONFIG}
+${color_yellow}Configuration file:${color_none} ${DOTFILES_CONFIG_PATH}
+${color_yellow}Font file:${color_none} ${DOTFILES_FONTS_PATH}
 ${hyphens}
 ${color_yellow}Options:${color_none}
     OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT: ${OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT}
@@ -394,17 +404,14 @@ install_neovim_deps() {
     log_info "Installing Neovim dependencies..."
 
     # Create the directory for virtual environments
-    local venvs_dir_escaped="\${HOME}/.venvs"
-    update_zsh_local "${ZSH_LOCAL}" "export VENVS_DIR=${venvs_dir_escaped}"
+    update_zsh_local "${ZSH_LOCAL}" "export VENVS_DIR=${VENVS_DIR_ESCAPED}"
     export VENVS_DIR
-    VENVS_DIR=$(eval echo "${venvs_dir_escaped}")
+    VENVS_DIR=$(eval echo "${VENVS_DIR_ESCAPED}")
 
     # Nvim virtual environment
-    local nvim_venv_escaped
-    nvim_venv_escaped="${venvs_dir_escaped}/nvim"
-    update_zsh_local "${ZSH_LOCAL}" "export NVIM_VENV=${nvim_venv_escaped}"
+    update_zsh_local "${ZSH_LOCAL}" "export NVIM_VENV=${NVIM_VENV_DIR_ESCAPED}"
     export NVIM_VENV
-    NVIM_VENV=$(eval echo "${nvim_venv_escaped}")
+    NVIM_VENV=$(eval echo "${NVIM_VENV_DIR_ESCAPED}")
 
     # Get the Python command
     local PYTHON_CMD=""
@@ -423,8 +430,8 @@ install_neovim_deps() {
 
     local node_packages
     local pip_packages
-    node_packages=$(jq -r '.nvim_deps.node_packages[]' "${CONFIG_FILE}")
-    pip_packages=$(jq -r '.nvim_deps.pip_packages[]' "${CONFIG_FILE}")
+    node_packages=$(jq -r '.nvim_deps.node_packages[]' "${DOTFILES_CONFIG_PATH}")
+    pip_packages=$(jq -r '.nvim_deps.pip_packages[]' "${DOTFILES_CONFIG_PATH}")
 
     # Install the node packages
     if [[ -n "${node_packages}" ]]; then
@@ -480,11 +487,11 @@ configure_neovim() {
 
     # Parse variables from config.json
     local nvim_profiles_data
-    nvim_profiles_data=$(jq -rS '.nvim_profiles' "${CONFIG_FILE}")
+    nvim_profiles_data=$(jq -rS '.nvim_profiles' "${DOTFILES_CONFIG_PATH}")
     local nvim_profiles
     nvim_profiles=$(jq -r 'keys[]' <<<"${nvim_profiles_data}")
     if [[ -z "${nvim_profiles}" ]]; then
-        log_error "No Neovim profiles found in the config file. Please check the ${CONFIG_FILE} file and ensure the profiles are defined."
+        log_error "No Neovim profiles found in the config file. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the profiles are defined."
         exit 1
     fi
     # Run the Neovim headless commands
@@ -506,12 +513,15 @@ configure_neovim() {
 
         # Check required
         if [[ -z "${checks_required}" ]]; then
-            log_info "No required checks found for Neovim profile ${profile}. Please check the ${CONFIG_FILE} file and ensure the checks are defined."
+            log_info "No required checks found for Neovim profile ${profile}. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the checks are defined."
             continue
         else
             log_info "Checking required checks for Neovim profile ${profile}. Required checks: ${checks_required}"
             for check in ${checks_required}; do
-                if ! command -v "$check" &>/dev/null; then
+                if [[ "$check" =~ ^(python|typescript|bash)$ ]]; then
+                    # Already checked...
+                    :
+                elif ! command -v "$check" &>/dev/null; then
                     log_warn "$check is required for Neovim profile ${profile}. Please install it and run this script again. Skipping..."
                     continue 2
                 fi
@@ -597,7 +607,7 @@ configure_neovim() {
                 source "${script}" "${PKG_MANAGER}" "${ZSH_LOCAL}"
                 echo "OK. Custom script ${script} executed successfully."
             else
-                log_error "Invalid custom script: ${script}. Please check the ${CONFIG_FILE} file and ensure the script exists in ${NVIM_LANGUAGE_SCRIPT_DIR}."
+                log_error "Invalid custom script: ${script}. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the script exists in ${NVIM_LANGUAGE_SCRIPT_DIR}."
                 exit 1
             fi
         fi

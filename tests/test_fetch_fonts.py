@@ -3,11 +3,10 @@ import unittest
 from unittest.mock import patch, mock_open, MagicMock
 from tools.fetch_fonts import fetch_fonts
 
-
 class TestFetchFonts(unittest.TestCase):
     @patch("requests.get")
     @patch("builtins.open", new_callable=mock_open)
-    @patch.dict(os.environ, {"DOTFILES_FONTS_CONFIG": "/path/to/dir"}, clear=True)
+    @patch.dict(os.environ, {"DOTFILES_FONTS_PATH": "/path/to/dir"}, clear=True)
     def test_fetch_fonts(self, mock_open, mock_get):
         # Mock the response from requests.get
         mock_response = MagicMock()
@@ -52,7 +51,7 @@ class TestFetchFonts(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             fetch_fonts()
         self.assertTrue(
-            "DOTFILES_FONTS_CONFIG environment variable not set"
+            "DOTFILES_FONTS_PATH environment variable not set"
             in str(context.exception)
         )
 

@@ -46,9 +46,9 @@ def fetch_fonts():
                 )
                 fonts[font_name] = font_download_link
 
-    fonts_file = os.environ.get("DOTFILES_FONTS_CONFIG")
+    fonts_file = os.environ.get("DOTFILES_FONTS_PATH")
     if fonts_file is None:
-        raise Exception("DOTFILES_FONTS_CONFIG environment variable not set")
+        raise Exception("DOTFILES_FONTS_PATH environment variable not set")
 
     try:
         with open(fonts_file, "w") as file:
