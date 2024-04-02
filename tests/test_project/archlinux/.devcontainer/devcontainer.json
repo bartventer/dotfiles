@@ -4,6 +4,7 @@
         "context": "../../../..",
         "dockerfile": "Dockerfile"
     },
+    "postCreateCommand": "yarn install",
     "features": {
         "ghcr.io/bartventer/devcontainer-features/common-utils:latest": {
             "installZsh": true,
@@ -11,7 +12,7 @@
             "installOhMyZsh": true,
             "installOhMyZshConfig": false,
             "upgradePackages": true,
-            "additionalPackages": "curl make git gdb gcc nodejs npm jq python python-pip procps-ng go"
+            "additionalPackages": "curl make git gdb gcc nodejs npm yarn jq python python-pip procps-ng go"
         }
     },
     "remoteUser": "vscode"

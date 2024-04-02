@@ -5,6 +5,9 @@ __pycache__/
 htmlcov
 .coverage
 
+# Node
+node_modules/
+
 # act tests
 output/
 .nvimlog
