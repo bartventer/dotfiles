@@ -1,3 +1,17 @@
+# [3.17.0](https://github.com/bartventer/dotfiles/compare/v3.16.0...v3.17.0) (2024-04-02)
+
+
+### Bug Fixes
+
+* **config:** modify `minItems` property for `profiles` `oneOf` check ([98ca610](https://github.com/bartventer/dotfiles/commit/98ca610daac5fbd74efe203c438eb67c4c206853))
+* **devcontainer:** update `postCreateCommand` hook ([3cfe0ab](https://github.com/bartventer/dotfiles/commit/3cfe0ab5f72a0bd2b8ddfcb0c1caa7e8e01fe159))
+* **scripts:** modify shell flags for venv activation script ([6890559](https://github.com/bartventer/dotfiles/commit/6890559ef6393389bd4c4ab2801d1053392abea7))
+
+
+### Features
+
+* **tools:** add activate-venv script ([4c67975](https://github.com/bartventer/dotfiles/commit/4c6797550b2e0066974889099a9ee577c2ecae82))
+
 # [3.16.0](https://github.com/bartventer/dotfiles/compare/v3.15.3...v3.16.0) (2024-04-01)
 
 
