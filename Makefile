@@ -285,8 +285,7 @@ clean: ## Clean up the act output directory and remove the devcontainers
 		echo "OK. Done removing containers."; \
 	fi
 
-.PHONY: validate-config
 validate-config: $(CONFIG_FILE) $(CONFIG_SCHEMA) ## Validate the config file
-	@echo "🚀 Validating the config file ($(CONFIG_FILE))..."
+	@echo "🚀 Validating the configuration file ($(CONFIG_FILE))..."
 	$(CONFIG_VALIDATE) $(CONFIG_VALIDATE_FLAGS) || (echo "❌ Error. Config file is invalid." && exit 1)
 	@echo "✅ OK. Config file is valid."
