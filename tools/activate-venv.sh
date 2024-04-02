@@ -41,14 +41,17 @@ fi
 REQUIREMENTS_FILE="${1:-"${DOTFILES_REQUIREMENTS}"}"
 VENVS_DIR="${VENVS_DIR:-"$(eval echo "$VENVS_DIR_ESCAPED")"}"
 
+set +u
 # shellcheck disable=SC1091
 # shellcheck source=scripts/util.sh
 source "${DOTFILES_UTIL_SCRIPT}"
+set -u
 
 # Sytem Venvs directory
 if [[ -z "$VENVS_DIR" || ! -d "$VENVS_DIR" ]]; then
-    log_error "VENVS_DIR not set or directory does not exists..."
-    exit 1
+    log_warn "VENVS_DIR ($VENVS_DIR) does not exist. Creating..."
+    mkdir -p "$VENVS_DIR"
+    echo "OK. VENVS_DIR created successfully!"
 fi
 DOTFILES_VENV_DIR="${VENVS_DIR}/dotfiles"
 if [[ ! -d "${DOTFILES_VENV_DIR}" ]]; then

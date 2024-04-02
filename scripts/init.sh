@@ -17,6 +17,7 @@ set -e
 
 # Set DOTFILES_DIR
 DOTFILES_DIR=""
+CI="${CI:-false}"
 if [ "$CI" = "true" ]; then
     DOTFILES_DIR="$GITHUB_WORKSPACE"
 else
