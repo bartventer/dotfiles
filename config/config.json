@@ -23,7 +23,7 @@
         },
         "pacman": {
             "update_cmd": "pacman -Syu --noconfirm",
-            "install_cmd": "pacman -Syu --noconfirm"
+            "install_cmd": "pacman -Syu --noconfirm --needed"
         },
         "brew": {
             "update_cmd": "brew update",
