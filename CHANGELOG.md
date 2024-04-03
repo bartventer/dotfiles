@@ -1,3 +1,10 @@
+## [3.19.1](https://github.com/bartventer/dotfiles/compare/v3.19.0...v3.19.1) (2024-04-03)
+
+
+### Bug Fixes
+
+* **neovim:** refactor keymaps ([f73a8cf](https://github.com/bartventer/dotfiles/commit/f73a8cf3a860952dc9f7e834c897e2fb30f707fa))
+
 # [3.19.0](https://github.com/bartventer/dotfiles/compare/v3.18.0...v3.19.0) (2024-04-03)
 
 
