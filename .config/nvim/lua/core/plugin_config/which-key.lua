@@ -100,35 +100,41 @@ local opts = {
 }
 
 local mappings = {
-	["a"] = { "<cmd>Alpha<cr>", "Alpha" },
+	-- General
 	["e"] = { "<cmd>NvimTreeToggle<cr>", "Explorer" }, -- File Explorer
 	["k"] = { "<cmd>bdelete<CR>", "Kill Buffer" },  -- Close current file
+	["D"] = { "<cmd>Dashboard<CR>", "Dashboard" },  -- Dashboard
+	["I"] = { "<cmd>LspInfo<cr>", "Info" },         -- LSP Info
+	["L"] = { "<cmd>luafile %<CR>", "Reload Lua" }, -- Reload Lua config
 	["m"] = { "<cmd>Mason<cr>", "Mason" },          -- LSP Manager
 	["p"] = { "<cmd>Lazy<CR>", "Plugin Manager" },  -- Invoking plugin manager
 	["q"] = { "<cmd>wqall!<CR>", "Quit" },          -- Quit Neovim after saving the file
 	["w"] = { "<cmd>w!<CR>", "Save" },              -- Save current file,
+	["y"] = { "<cmd>:%y+<CR>", "Yank File" },       -- Yank entire file to clipboard
 
 	-- Language Support
 	l = {
 		name = "LSP",
-		i = { "<cmd>LspInfo<cr>", "Info" },
-		r = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
+		f = { "<cmd>lua vim.lsp.buf.format{async=true}<cr>", "Reformat Code" },
 		s = { "<cmd>Telescope lsp_document_symbols<cr>", "Document Symbols" },
 		S = {
 			"<cmd>Telescope lsp_dynamic_workspace_symbols<cr>",
 			"Workspace Symbols",
 		},
-		f = { "<cmd>lua vim.lsp.buf.format{async=true}<cr>", "Reformat Code" },
 	},
 
 	-- Telescope
+	["h"] = { "<cmd>Telescope help_tags<cr>", "Find Help" },
+	["M"] = { "<cmd>Telescope man_pages<cr>", "Man Pages" },
+	["R"] = { "<cmd>Telescope registers<cr>", "Registers" },
+	["K"] = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
+	["C"] = { "<cmd>Telescope commands<cr>", "Commands" },
 	f = {
 		name = "File Search",
 		f = { "<cmd>lua require('telescope.builtin').find_files()<cr>", "Find files" },
 		t = { "<cmd>Telescope live_grep <cr>", "Find Text Pattern" },
 		r = { "<cmd>Telescope oldfiles<cr>", "Recent Files" },
 	},
-
 	t = {
 		name = "Advanced Search",
 		c = { "<cmd>Telescope colorscheme<cr>", "Colorscheme" },
@@ -164,8 +170,8 @@ local mappings = {
 		name = "LSP Saga",
 		h = { "<cmd>Lspsaga lsp_finder<CR>", "LSP Finder" },
 		a = { "<cmd>Lspsaga code_action<CR>", "Code Action" },
-		r = { "<cmd>Lspsaga rename<CR>", "Rename" },
-		p = { "<cmd>Lspsaga rename ++project<CR>", "Rename Project" },
+		R = { "<cmd>Lspsaga rename<CR>", "Rename" },
+		r = { "<cmd>Lspsaga rename ++project<CR>", "Rename Project-wide" },
 		d = { "<cmd>Lspsaga peek_definition<CR>", "Peek Definition" },
 		t = { "<cmd>Lspsaga peek_type_definition<CR>", "Peek Type Definition" },
 		l = { "<cmd>Lspsaga show_line_diagnostics<CR>", "Show Line Diagnostics" },
@@ -179,15 +185,6 @@ local mappings = {
 		D = { "<cmd>Lspsaga term_toggle<CR>", "Toggle Terminal" },
 	},
 
-	-- Utilities
-	u = {
-		name = "Utilities",
-		y = { "<cmd>:%y+<CR>", "Yank File" },                    -- Yank entire file to clipboard
-		s = { "<cmd>:w !sudo tee % > /dev/null<CR>", "Save as Sudo" }, -- Save file as sudo
-		r = { "<cmd>:source %<CR>", "Reload File" },             -- Reload the current file
-		e = { "<cmd>:e %:h<CR>", "Explore File Directory" },     -- Open the directory of the current file in a new buffer
-		t = { "<cmd>:terminal<CR>", "Open Terminal" },           -- Open a terminal in a new buffer
-	},
 }
 
 which_key.setup(setup)
