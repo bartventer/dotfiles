@@ -19,13 +19,13 @@ local plugins = {
 		"dracula/vim",
 		lazy = false,
 	},
-	"nvim-tree/nvim-tree.lua", -- file tree
-	"nvim-tree/nvim-web-devicons", -- file tree icons
-	"nvim-lualine/lualine.nvim", -- status line
+	"nvim-tree/nvim-tree.lua",      -- file tree
+	"nvim-tree/nvim-web-devicons",  -- file tree icons
+	"nvim-lualine/lualine.nvim",    -- status line
 	"nvim-treesitter/nvim-treesitter", -- syntax highlighting
-	"bluz71/vim-nightfly-colors", -- colorscheme
-	"vim-test/vim-test", -- test runner
-	"lewis6991/gitsigns.nvim", -- git signs
+	"bluz71/vim-nightfly-colors",   -- colorscheme
+	"vim-test/vim-test",            -- test runner
+	"lewis6991/gitsigns.nvim",      -- git signs
 	-- tmux
 	"preservim/vimux",
 	{
@@ -41,7 +41,7 @@ local plugins = {
 			require("core.plugin_config.vim-tmux-navigator")
 		end,
 	},
-	"tpope/vim-fugitive", -- git
+	"tpope/vim-fugitive",  -- git
 	"windwp/nvim-autopairs", -- auto pairs
 	"windwp/nvim-ts-autotag", -- auto close tag
 	"numToStr/Comment.nvim", -- comments gcc and gc
@@ -74,12 +74,23 @@ local plugins = {
 		lazy = true,
 	},
 	-- Debugging
-	"nvim-neotest/nvim-nio",
-	"mfussenegger/nvim-dap",
-	"leoluz/nvim-dap-go",
-	"rcarriga/nvim-dap-ui",
+	{
+		"rcarriga/nvim-dap-ui",
+		dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" }
+	},
 	"theHamsta/nvim-dap-virtual-text",
 }
+
+-- Optional plugins (map of command to check to list of plugins to add)
+local optional_plugins = {
+	["go"] = { "leoluz/nvim-dap-go" },
+}
+
+for cmd, plugin in pairs(optional_plugins) do
+	if vim.fn.executable(cmd) == 1 then
+		table.insert(plugins, plugin)
+	end
+end
 
 local opts = {}
 

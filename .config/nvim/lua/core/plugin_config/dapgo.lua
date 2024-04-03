@@ -1,3 +1,4 @@
+-- https://github.com/leoluz/nvim-dap-go
 require('dap-go').setup {
     -- Additional dap configurations can be added.
     -- dap_configurations accepts a list of tables where each entry
@@ -35,12 +36,3 @@ require('dap-go').setup {
         build_flags = "",
     },
 }
-
--- Debug a test function (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
-vim.keymap.set('n', '<Leader>dt', function()
-    dap_go.debug_test()
-end)
--- Debug the last test (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
-vim.keymap.set('n', '<Leader>dlt', function()
-    dap_go.debug_last_test()
-end)

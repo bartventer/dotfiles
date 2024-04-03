@@ -99,6 +99,15 @@ vim.keymap.set("n", "<leader>dq", function()
   require("dapui").close()
 end, { noremap = true, silent = true })
 
+-- Debug a test function (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
+vim.keymap.set('n', '<Leader>dt', function()
+  require('dap-go').debug_test()
+end)
+-- Debug the last test (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
+vim.keymap.set('n', '<Leader>dlt', function()
+  require('dap-go').debug_last_test()
+end)
+
 
 -- ============================================================================
 -- LSP SAGA MAPPINGS
@@ -181,3 +190,25 @@ vim.keymap.set("n", "K", "<Cmd>Lspsaga hover_doc<cr>", opts)
 
 -- Floating terminal
 vim.keymap.set({ "n", "t" }, "<A-d>", "<cmd>Lspsaga term_toggle<CR>", opts)
+
+-- ============================================================================
+-- NVIM TREE MAPPINGS
+-- https://github.com/nvim-tree/nvim-tree.lua
+-- ============================================================================
+
+vim.keymap.set("n", "<c-n>", ":NvimTreeFindFileToggle<CR>")
+
+-- ============================================================================
+-- TELESCOPE MAPPINGS
+-- https://github.com/nvim-telescope/telescope.nvim
+-- ============================================================================
+
+-- Refer to the plugin_config/telescope.lua file for mappings
+
+-- ============================================================================
+-- VIM TEST MAPPINGS
+-- https://github.com/vim-test/vim-test
+-- ============================================================================
+
+vim.keymap.set('n', '<leader>t', ':TestNearest<CR>')
+vim.keymap.set('n', '<leader>T', ':TestFile<CR>')
