@@ -1,3 +1,12 @@
+## [3.19.2](https://github.com/bartventer/dotfiles/compare/v3.19.1...v3.19.2) (2024-04-03)
+
+
+### Bug Fixes
+
+* **config:** add `needed` flag to pacman installations ([b2727ca](https://github.com/bartventer/dotfiles/commit/b2727ca25699927c4d6da60114786736e00b4866))
+* **config:** modify node package manager preference ordering ([e10ada5](https://github.com/bartventer/dotfiles/commit/e10ada5d8542f5266c5757554d82a6094592408d))
+* **main.sh:** correct yarn and pnpm global installation ([7e28006](https://github.com/bartventer/dotfiles/commit/7e28006435592ed7cf73ce59ddc58b5fa6694199))
+
 ## [3.19.1](https://github.com/bartventer/dotfiles/compare/v3.19.0...v3.19.1) (2024-04-03)
 
 
