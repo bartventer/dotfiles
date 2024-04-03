@@ -19,13 +19,13 @@ local plugins = {
 		"dracula/vim",
 		lazy = false,
 	},
-	"nvim-tree/nvim-tree.lua",      -- file tree
-	"nvim-tree/nvim-web-devicons",  -- file tree icons
-	"nvim-lualine/lualine.nvim",    -- status line
+	"nvim-tree/nvim-tree.lua", -- file tree
+	"nvim-tree/nvim-web-devicons", -- file tree icons
+	"nvim-lualine/lualine.nvim", -- status line
 	"nvim-treesitter/nvim-treesitter", -- syntax highlighting
-	"bluz71/vim-nightfly-colors",   -- colorscheme
-	"vim-test/vim-test",            -- test runner
-	"lewis6991/gitsigns.nvim",      -- git signs
+	"bluz71/vim-nightfly-colors", -- colorscheme
+	"vim-test/vim-test", -- test runner
+	"lewis6991/gitsigns.nvim", -- git signs
 	-- tmux
 	"preservim/vimux",
 	{
@@ -39,9 +39,9 @@ local plugins = {
 		},
 		config = function()
 			require("core.plugin_config.vim-tmux-navigator")
-		end
+		end,
 	},
-	"tpope/vim-fugitive",  -- git
+	"tpope/vim-fugitive", -- git
 	"windwp/nvim-autopairs", -- auto pairs
 	"windwp/nvim-ts-autotag", -- auto close tag
 	"numToStr/Comment.nvim", -- comments gcc and gc

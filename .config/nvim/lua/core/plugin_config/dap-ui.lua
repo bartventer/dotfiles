@@ -1,6 +1,7 @@
 require("dapui").setup()
 
 -- Listen to the events from dap and dapui
+-- https://github.com/rcarriga/nvim-dap-ui?tab=readme-ov-file#usage
 local dap, dapui = require("dap"), require("dapui")
 dap.listeners.before.attach.dapui_config = function()
     dapui.open()
