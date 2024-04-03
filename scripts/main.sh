@@ -450,7 +450,17 @@ install_neovim_deps() {
                 local node_pkg_manager_path
                 node_pkg_manager_path=$(command -v "${node_pkg_manager}")
                 run_sudo_cmd "${UPDATE_CMD}"
-                run_sudo_cmd "${node_pkg_manager_path} install -g ${node_packages}"
+                case "${node_pkg_manager}" in
+                "npm")
+                    run_sudo_cmd "${node_pkg_manager_path} install -g ${node_packages}"
+                    ;;
+                "yarn")
+                    run_sudo_cmd "${node_pkg_manager_path} global add ${node_packages}"
+                    ;;
+                "pnpm")
+                    run_sudo_cmd "${node_pkg_manager_path} add -g ${node_packages}"
+                    ;;
+                esac
                 node_deps_installed=true
                 break
             fi
