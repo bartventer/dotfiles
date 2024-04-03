@@ -1,3 +1,17 @@
+# [3.19.0](https://github.com/bartventer/dotfiles/compare/v3.18.0...v3.19.0) (2024-04-03)
+
+
+### Bug Fixes
+
+* **install.sh:** export neovim directory and files ([b54a502](https://github.com/bartventer/dotfiles/commit/b54a502a38237e04bc99b6beba7f030be0b02f37))
+* **neovim:** modify whichkey mappings ([de32552](https://github.com/bartventer/dotfiles/commit/de325521b73e2fcf3dbe53f8be9a98aeeb6da3c7))
+* **neovim:** update keymaps ([0bca399](https://github.com/bartventer/dotfiles/commit/0bca399fd52d035cd435d583af563ca84c6d3947))
+
+
+### Features
+
+* **neovim:** add plugin config sync script ([27dbe6d](https://github.com/bartventer/dotfiles/commit/27dbe6dff42b47b60c268798f1f8359bc1ec5d46))
+
 # [3.18.0](https://github.com/bartventer/dotfiles/compare/v3.17.0...v3.18.0) (2024-04-02)
 
 
