@@ -105,10 +105,17 @@ fi
 # Paths
 ZSHRC="$HOME/.zshrc"
 TMUX_CONF="$HOME/.tmux.conf"
-NVIM_CONFIG_DIR="$DOTFILES_DIR/.config/nvim"
-NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
-NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
-NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
+# Neovim
+NVIM_CONFIG_DIR="${NVIM_CONFIG_DIR:-}"
+NVIM_SCRIPTS_DIR="${NVIM_SCRIPTS_DIR:-}"
+NVIM_OPTIONS_FILE="${NVIM_OPTIONS_FILE:-}"
+NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_LANGUAGE_SCRIPT_DIR:-}"
+for v in NVIM_CONFIG_DIR NVIM_SCRIPTS_DIR NVIM_OPTIONS_FILE NVIM_LANGUAGE_SCRIPT_DIR; do
+    if [[ -z "${!v}" ]]; then
+        log_error "Variable ${v} is not set."
+        exit 1
+    fi
+done
 
 # User files
 ZSH_LOCAL="$HOME/.zsh_local"

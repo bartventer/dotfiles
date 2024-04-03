@@ -114,6 +114,12 @@ VENVS_DIR_ESCAPED="\${HOME}/.venvs"
 # Escaped version of NVIM_VENV_DIR
 NVIM_VENV_DIR_ESCAPED="${VENVS_DIR_ESCAPED}/nvim"
 
+# Neovim
+NVIM_CONFIG_DIR="$DOTFILES_DIR/.config/nvim"
+NVIM_SCRIPTS_DIR="${NVIM_CONFIG_DIR}/scripts"
+NVIM_OPTIONS_FILE="${NVIM_CONFIG_DIR}/lua/core/options.lua"
+NVIM_LANGUAGE_SCRIPT_DIR="${NVIM_SCRIPTS_DIR}/lang"
+
 # Export variables
 export DOTFILES_DIR
 export DOTFILES_INIT_SCRIPT
@@ -126,5 +132,11 @@ export DOTFILES_REQUIREMENTS
 
 export VENVS_DIR_ESCAPED
 export NVIM_VENV_DIR_ESCAPED
+
+# NVIM
+export NVIM_CONFIG_DIR
+export NVIM_SCRIPTS_DIR
+export NVIM_OPTIONS_FILE
+export NVIM_LANGUAGE_SCRIPT_DIR
 
 echo "Successfully initialized."
