@@ -1,3 +1,10 @@
+## [3.19.3](https://github.com/bartventer/dotfiles/compare/v3.19.2...v3.19.3) (2024-04-04)
+
+
+### Bug Fixes
+
+* **config:** configure node package preferences ([7ec8674](https://github.com/bartventer/dotfiles/commit/7ec8674c5958dc747f975c31183e6920d833e6b1))
+
 ## [3.19.2](https://github.com/bartventer/dotfiles/compare/v3.19.1...v3.19.2) (2024-04-03)
 
 
