@@ -1,3 +1,4 @@
+local opts = { silent = true }
 -- ============================================================================
 -- GENERAL MAPPINGS
 -- ============================================================================
@@ -19,70 +20,73 @@ vim.keymap.set("n", "<A-k>", ":m .-2<CR>==")
 -- Insert a new line below without entering insert mode.
 vim.keymap.set("n", "<leader>o", "o<Esc>")
 
+-- Some VSCode-like keybindings
+vim.keymap.set("n", "<F2>", "<cmd>Lspsaga rename ++project<CR>", opts) -- Rename
+
 -- ============================================================================
 -- DAP MAPPINGS
 -- https://github.com/mfussenegger/nvim-dap?tab=readme-ov-file#dap-debug-adapter-protocol
 -- ============================================================================
 vim.keymap.set("n", "<F5>", function()
-  require("dap").continue()
+	require("dap").continue()
 end)
 vim.keymap.set("n", "<F10>", function()
-  require("dap").step_over()
+	require("dap").step_over()
 end)
 vim.keymap.set("n", "<F11>", function()
-  require("dap").step_into()
+	require("dap").step_into()
 end)
 vim.keymap.set("n", "<F12>", function()
-  require("dap").step_out()
+	require("dap").step_out()
 end)
 vim.keymap.set("n", "<Leader>b", function()
-  require("dap").toggle_breakpoint()
+	require("dap").toggle_breakpoint()
 end)
 vim.keymap.set("n", "<Leader>B", function()
-  require("dap").set_breakpoint()
+	require("dap").set_breakpoint()
 end)
 vim.keymap.set("n", "<Leader>lp", function()
-  require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
+	require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
 end)
 vim.keymap.set("n", "<Leader>dr", function()
-  require("dap").repl.open()
+	require("dap").repl.open()
 end)
 vim.keymap.set("n", "<Leader>dl", function()
-  require("dap").run_last()
+	require("dap").run_last()
 end)
 vim.keymap.set({ "n", "v" }, "<Leader>dh", function()
-  require("dap.ui.widgets").hover()
+	require("dap.ui.widgets").hover()
 end)
 vim.keymap.set({ "n", "v" }, "<Leader>dp", function()
-  require("dap.ui.widgets").preview()
+	require("dap.ui.widgets").preview()
 end)
 vim.keymap.set("n", "<Leader>df", function()
-  local widgets = require("dap.ui.widgets")
-  widgets.centered_float(widgets.frames)
+	local widgets = require("dap.ui.widgets")
+	widgets.centered_float(widgets.frames)
 end)
 vim.keymap.set("n", "<Leader>ds", function()
-  local widgets = require("dap.ui.widgets")
-  widgets.centered_float(widgets.scopes)
+	local widgets = require("dap.ui.widgets")
+	widgets.centered_float(widgets.scopes)
 end)
 -- Debug a test file
 vim.keymap.set("n", "<Leader>dtf", function()
-  require("dap").run({
-    type = "go",
-    name = "Debug test file",
-    request = "launch",
-    mode = "test",
-    program = "${file}",
-  })
+	require("dap").run({
+		type = "go",
+		name = "Debug test file",
+		request = "launch",
+		mode = "test",
+		program = "${file}",
+	})
 end)
 -- Debug a test package
 vim.keymap.set("n", "<Leader>dtp", function()
-  require("dap").run({
-    type = "go",
-    name = "Debug test package",
-    request = "launch",
-    mode = "test",
-    program = "${fileDirname}",
-  })
+	require("dap").run({
+		type = "go",
+		name = "Debug test package",
+		request = "launch",
+		mode = "test",
+		program = "${fileDirname}",
+	})
 end)
 
 -- ============================================================================
@@ -90,30 +94,28 @@ end)
 -- https://github.com/rcarriga/nvim-dap-ui
 -- ============================================================================
 vim.keymap.set("n", "<leader>do", function()
-  require("dapui").open()
+	require("dapui").open()
 end, { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>ds", function()
-  require("dapui").toggle_sidebar()
+	require("dapui").toggle_sidebar()
 end, { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>dq", function()
-  require("dapui").close()
+	require("dapui").close()
 end, { noremap = true, silent = true })
 
 -- Debug a test function (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
-vim.keymap.set('n', '<Leader>dt', function()
-  require('dap-go').debug_test()
+vim.keymap.set("n", "<Leader>dt", function()
+	require("dap-go").debug_test()
 end)
 -- Debug the last test (https://github.com/leoluz/nvim-dap-go?tab=readme-ov-file#debugging-individual-tests)
-vim.keymap.set('n', '<Leader>dlt', function()
-  require('dap-go').debug_last_test()
+vim.keymap.set("n", "<Leader>dlt", function()
+	require("dap-go").debug_last_test()
 end)
-
 
 -- ============================================================================
 -- LSP SAGA MAPPINGS
 -- https://github.com/nvimdev/lspsaga.nvim
 -- ============================================================================
-local opts = { silent = true }
 
 -- LSP finder - Find the symbol's definition
 -- If there is no definition, it will instead be hidden
@@ -171,10 +173,10 @@ vim.keymap.set("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>", opts)
 
 -- Diagnostic jump with filters such as only jumping to an error
 vim.keymap.set("n", "[E", function()
-  require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
+	require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
 end)
 vim.keymap.set("n", "]E", function()
-  require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
+	require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
 end)
 
 -- Toggle outline
@@ -210,5 +212,11 @@ vim.keymap.set("n", "<c-n>", ":NvimTreeFindFileToggle<CR>")
 -- https://github.com/vim-test/vim-test
 -- ============================================================================
 
-vim.keymap.set('n', '<leader>t', ':TestNearest<CR>')
-vim.keymap.set('n', '<leader>T', ':TestFile<CR>')
+vim.keymap.set("n", "<leader>t", ":TestNearest<CR>")
+vim.keymap.set("n", "<leader>T", ":TestFile<CR>")
+
+-- ============================================================================
+-- COPILOT MAPPINGS
+-- ============================================================================
+
+vim.keymap.set("i", "<C-Right>", "<Plug>(copilot-accept-word)")

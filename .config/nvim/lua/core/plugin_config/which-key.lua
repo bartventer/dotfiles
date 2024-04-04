@@ -58,7 +58,7 @@ local setup = {
 		spacing = 3,                                                               -- spacing between columns
 		align = "left",                                                            -- align columns left, center or right
 	},
-	ignore_missing = false,                                                        -- enable this to hide mappings for which you didn't specify a label
+	ignore_missing = true,                                                         -- enable this to hide mappings for which you didn't specify a label
 	hidden = { "<silent>", "<cmd>", "<Cmd>", "<CR>", "^:", "^ ", "^call ", "^lua " }, -- hide mapping boilerplate
 	show_help = true,                                                              -- show a help message in the command line for using WhichKey
 	show_keys = true,                                                              -- show the currently pressed key and its label as a message in the command line
@@ -103,19 +103,29 @@ local mappings = {
 	-- General
 	["e"] = { "<cmd>NvimTreeToggle<cr>", "Explorer" }, -- File Explorer
 	["k"] = { "<cmd>bdelete<CR>", "Kill Buffer" },  -- Close current file
-	["D"] = { "<cmd>Dashboard<CR>", "Dashboard" },  -- Dashboard
-	["I"] = { "<cmd>LspInfo<cr>", "Info" },         -- LSP Info
+	["d"] = { "<cmd>Dashboard<CR>", "Dashboard" },  -- Dashboard
+	["I"] = { "<cmd>LspInfo<cr>", "LSP Info" },     -- LSP Info
 	["L"] = { "<cmd>luafile %<CR>", "Reload Lua" }, -- Reload Lua config
-	["m"] = { "<cmd>Mason<cr>", "Mason" },          -- LSP Manager
-	["p"] = { "<cmd>Lazy<CR>", "Plugin Manager" },  -- Invoking plugin manager
+	["M"] = { "<cmd>Mason<cr>", "Mason" },          -- LSP Manager
+	["P"] = { "<cmd>Lazy<CR>", "Plugin Manager" },  -- Invoking plugin manager
 	["q"] = { "<cmd>wqall!<CR>", "Quit" },          -- Quit Neovim after saving the file
-	["w"] = { "<cmd>w!<CR>", "Save" },              -- Save current file,
-	["y"] = { "<cmd>:%y+<CR>", "Yank File" },       -- Yank entire file to clipboard
+	["w"] = { "<cmd>w!<CR>", "Save" },              -- Save current file
+	["Y"] = { "<cmd>:%y+<CR>", "Yank File" },       -- Yank entire file to clipboard
+	["h"] = { "<cmd>Telescope help_tags<cr>", "Find Help" },
+	["N"] = { "<cmd>Telescope man_pages<cr>", "Man Pages" },
+	["R"] = { "<cmd>Telescope registers<cr>", "Registers" },
+	["K"] = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
+	["C"] = { "<cmd>Telescope commands<cr>", "Commands" },
+	["t"] = { "<cmd>Lspsaga term_toggle<CR>", "Terminal" }, -- Terminal
+	["F"] = { "<cmd>lua vim.lsp.buf.formatting()<cr>", "Format Code" },
+	["O"] = { "<cmd>Telescope colorscheme<cr>", "Colorscheme" },
 
-	-- Language Support
-	l = {
-		name = "LSP",
-		f = { "<cmd>lua vim.lsp.buf.format{async=true}<cr>", "Reformat Code" },
+	-- Telescope
+	["S"] = {
+		name = "Search",
+		f = { "<cmd>lua require('telescope.builtin').find_files()<cr>", "Find files" },
+		t = { "<cmd>Telescope live_grep <cr>", "Find Text Pattern" },
+		r = { "<cmd>Telescope oldfiles<cr>", "Recent Files" },
 		s = { "<cmd>Telescope lsp_document_symbols<cr>", "Document Symbols" },
 		S = {
 			"<cmd>Telescope lsp_dynamic_workspace_symbols<cr>",
@@ -123,51 +133,38 @@ local mappings = {
 		},
 	},
 
-	-- Telescope
-	["h"] = { "<cmd>Telescope help_tags<cr>", "Find Help" },
-	["M"] = { "<cmd>Telescope man_pages<cr>", "Man Pages" },
-	["R"] = { "<cmd>Telescope registers<cr>", "Registers" },
-	["K"] = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
-	["C"] = { "<cmd>Telescope commands<cr>", "Commands" },
-	f = {
-		name = "File Search",
-		f = { "<cmd>lua require('telescope.builtin').find_files()<cr>", "Find files" },
-		t = { "<cmd>Telescope live_grep <cr>", "Find Text Pattern" },
-		r = { "<cmd>Telescope oldfiles<cr>", "Recent Files" },
-	},
-	t = {
-		name = "Advanced Search",
-		c = { "<cmd>Telescope colorscheme<cr>", "Colorscheme" },
-		h = { "<cmd>Telescope help_tags<cr>", "Find Help" },
-		m = { "<cmd>Telescope man_pages<cr>", "Man Pages" },
-		r = { "<cmd>Telescope registers<cr>", "Registers" },
-		k = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
-		C = { "<cmd>Telescope commands<cr>", "Commands" },
-	},
-
 	-- DAP Mappings
-	d = {
-		name = "DAP",
+	["D"] = {
+		name = "Debug",
 		c = { "<cmd>lua require('dap').continue()<cr>", "Continue" },
 		o = { "<cmd>lua require('dap').step_over()<cr>", "Step Over" },
 		i = { "<cmd>lua require('dap').step_into()<cr>", "Step Into" },
 		u = { "<cmd>lua require('dap').step_out()<cr>", "Step Out" },
 		b = { "<cmd>lua require('dap').toggle_breakpoint()<cr>", "Toggle Breakpoint" },
 		B = { "<cmd>lua require('dap').set_breakpoint()<cr>", "Set Breakpoint" },
-		p = { "<cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<cr>", "Set Log Point" },
+		p = {
+			"<cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<cr>",
+			"Set Log Point",
+		},
 		r = { "<cmd>lua require('dap').repl.open()<cr>", "Open REPL" },
 		l = { "<cmd>lua require('dap').run_last()<cr>", "Run Last" },
 		h = { "<cmd>lua require('dap.ui.widgets').hover()<cr>", "Hover" },
 		P = { "<cmd>lua require('dap.ui.widgets').preview()<cr>", "Preview" },
 		f = { "<cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').frames)<cr>", "Frames" },
 		s = { "<cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').scopes)<cr>", "Scopes" },
-		t = { "<cmd>lua require('dap').run({type = 'go', name = 'Debug test file', request = 'launch', mode = 'test', program = '${file}'})<cr>", "Debug Test File" },
-		T = { "<cmd>lua require('dap').run({type = 'go', name = 'Debug test package', request = 'launch', mode = 'test', program = '${fileDirname}'})<cr>", "Debug Test Package" },
+		t = {
+			"<cmd>lua require('dap').run({type = 'go', name = 'Debug test file', request = 'launch', mode = 'test', program = '${file}'})<cr>",
+			"Debug Test File",
+		},
+		T = {
+			"<cmd>lua require('dap').run({type = 'go', name = 'Debug test package', request = 'launch', mode = 'test', program = '${fileDirname}'})<cr>",
+			"Debug Test Package",
+		},
 	},
 
 	-- LSP Saga Mappings
-	s = {
-		name = "LSP Saga",
+	["A"] = {
+		name = "Action",
 		h = { "<cmd>Lspsaga lsp_finder<CR>", "LSP Finder" },
 		a = { "<cmd>Lspsaga code_action<CR>", "Code Action" },
 		R = { "<cmd>Lspsaga rename<CR>", "Rename" },
@@ -182,13 +179,8 @@ local mappings = {
 		E = { "<cmd>Lspsaga diagnostic_jump_next<CR>", "Diagnostic Jump Next" },
 		o = { "<cmd>Lspsaga outline<CR>", "Outline" },
 		K = { "<Cmd>Lspsaga hover_doc<cr>", "Hover Doc" },
-		D = { "<cmd>Lspsaga term_toggle<CR>", "Toggle Terminal" },
 	},
-
 }
-
-which_key.setup(setup)
-which_key.register(mappings, opts)
 
 which_key.setup(setup)
 which_key.register(mappings, opts)
