@@ -1,3 +1,11 @@
+# [3.20.0](https://github.com/bartventer/dotfiles/compare/v3.19.3...v3.20.0) (2024-04-04)
+
+
+### Features
+
+* **neovim:** add auto-session plugin ([37b8320](https://github.com/bartventer/dotfiles/commit/37b83206b33e71fab8d1c0d22454692f34ffb287))
+* **neovim:** add session management ([ed93694](https://github.com/bartventer/dotfiles/commit/ed93694fe9ef6aae3f02713b33a0a561b7b2a34f))
+
 ## [3.19.3](https://github.com/bartventer/dotfiles/compare/v3.19.2...v3.19.3) (2024-04-04)
 
 
