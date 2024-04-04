@@ -132,8 +132,8 @@
                     "node"
                 ],
                 "one_of": [
-                    "yarn",
                     "npm",
+                    "yarn",
                     "pnpm"
                 ]
             },

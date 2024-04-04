@@ -444,9 +444,10 @@ install_neovim_deps() {
     if [[ -n "${node_packages}" ]]; then
         log_info "Installing node packages: ${node_packages}"
         local node_deps_installed=false
+        echo "Checking for node package manager..."
         for node_pkg_manager in npm yarn pnpm; do
             if command -v "${node_pkg_manager}" &>/dev/null; then
-                log_info "Using ${node_pkg_manager} to install node packages..."
+                echo "Check. Using ${node_pkg_manager} to install node packages..."
                 local node_pkg_manager_path
                 node_pkg_manager_path=$(command -v "${node_pkg_manager}")
                 run_sudo_cmd "${UPDATE_CMD}"
@@ -523,17 +524,17 @@ configure_neovim() {
         checks_one_of=$(echo "${profile_data}" | jq -r '.checks.one_of[]?')
         custom_script=$(echo "${profile_data}" | jq -r '.custom_script?')
         # debug info
-        log_info "Configuring Neovim profile: ${profile}..."
-        log_info "Required checks: ${checks_required[*]}"
-        log_info "One-of checks: ${checks_one_of[*]}"
-        log_info "Custom script(null if not set): $custom_script"
+        echo ":: Configuring Neovim profile: ${profile}..."
+        echo ":: Required checks: ${checks_required[*]}"
+        echo ":: One-of checks: ${checks_one_of[*]}"
+        echo ":: Custom script(null if not set): $custom_script"
 
         # Check required
         if [[ -z "${checks_required}" ]]; then
-            log_info "No required checks found for Neovim profile ${profile}. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the checks are defined."
+            log_warn "No required checks found for Neovim profile ${profile}. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the checks are defined."
             continue
         else
-            log_info "Checking required checks for Neovim profile ${profile}. Required checks: ${checks_required}"
+            echo "Checking required checks for Neovim profile ${profile}. Required checks: ${checks_required}"
             for check in ${checks_required}; do
                 if [[ "$check" =~ ^(python|typescript|bash)$ ]]; then
                     # Already checked...
@@ -550,7 +551,7 @@ configure_neovim() {
         if [[ -z "${checks_one_of}" ]]; then
             echo "OK. No one-of checks found for Neovim profile ${profile}."
         else
-            log_info "Checking one-of checks for Neovim profile ${profile}. One-of checks: ${checks_one_of}"
+            echo "Checking one-of checks for Neovim profile ${profile}. One-of checks: ${checks_one_of}"
             local one_of_exists=false
             for check in ${checks_one_of}; do
                 echo "Checking one of ${check}..."
@@ -579,9 +580,9 @@ configure_neovim() {
                 IFS=$'\n' mason_deps+=("$items")
             fi
         done
-        log_info "Profile ${profile} configuration:"
-        log_info "Parsers: ${parsers[*]}"
-        log_info "Mason dependencies: ${mason_deps[*]}"
+        echo ":: Profile ${profile} configuration:"
+        echo ":: Parsers: ${parsers[*]}"
+        echo ":: Mason dependencies: ${mason_deps[*]}"
         # Profile commands
         local commands=()
         if [[ -n "${parsers[*]}" ]]; then
@@ -598,14 +599,14 @@ configure_neovim() {
         fi
         for cmd in "${commands[@]}"; do
             {
-                log_info "Running command: ${cmd}..."
+                echo ":: Running command: ${cmd}..."
                 if [ "${DISTRO}" != "macos" ]; then
                     # Fix permissions for npm cache
                     run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache"
                     npm config set cache "${HOME}/.npm-cache"
                 fi
                 if [[ "$CI" == "true" ]]; then
-                    log_info "Skipping headless commands."
+                    log_warn "CI is true. Skipping headless commands..."
                 else
                     cmd=$(echo "${cmd}" | tr '\n' ' ') # Clean up the command
                     nvim --headless -c "${cmd}" -c "quitall"
@@ -618,7 +619,7 @@ configure_neovim() {
         if [[ "${custom_script}" != "null" ]]; then
             local script="${NVIM_LANGUAGE_SCRIPT_DIR}/${custom_script}"
             if [[ -f "$script" ]]; then
-                log_info "Custom script found: ${script}. Running script..."
+                echo ":: Custom script found: ${script}. Running script..."
                 # Usage: <script> <package_manager> <zsh_local>
                 # shellcheck disable=SC1090
                 source "${script}" "${PKG_MANAGER}" "${ZSH_LOCAL}"
