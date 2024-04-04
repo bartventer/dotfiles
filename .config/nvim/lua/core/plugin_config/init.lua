@@ -1,4 +1,5 @@
 require("core.plugin_config.auto-pairs")
+require("core.plugin_config.auto-session")
 require("core.plugin_config.autotag")
 require("core.plugin_config.colorscheme")
 require("core.plugin_config.comment")
