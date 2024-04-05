@@ -1,3 +1,10 @@
+## [3.21.1](https://github.com/bartventer/dotfiles/compare/v3.21.0...v3.21.1) (2024-04-05)
+
+
+### Bug Fixes
+
+* **zshrc:** add conditional path checks ([3180c5d](https://github.com/bartventer/dotfiles/commit/3180c5d5b6fa123d7625731c27dd30b148239504))
+
 # [3.21.0](https://github.com/bartventer/dotfiles/compare/v3.20.0...v3.21.0) (2024-04-05)
 
 
