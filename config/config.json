@@ -40,6 +40,7 @@
     },
     "relative_paths": [
         ".zshrc",
+        ".p10k.zsh",
         ".config/nvim",
         ".tmux.conf"
     ],
