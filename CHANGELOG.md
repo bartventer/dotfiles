@@ -1,3 +1,15 @@
+# [3.21.0](https://github.com/bartventer/dotfiles/compare/v3.20.0...v3.21.0) (2024-04-05)
+
+
+### Features
+
+* **p10k:** add p10k.zsh configuration ([8987cc3](https://github.com/bartventer/dotfiles/commit/8987cc37fe42f7405796858e966e5fa93691d18e))
+
+
+### Reverts
+
+* **config:** remove pacman post install commands ([b829c81](https://github.com/bartventer/dotfiles/commit/b829c81812a1b940af5d297f13b84bdedbb1742c))
+
 # [3.20.0](https://github.com/bartventer/dotfiles/compare/v3.19.3...v3.20.0) (2024-04-04)
 
 
