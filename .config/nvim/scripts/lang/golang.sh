@@ -79,7 +79,7 @@ fi
 #https://golangci-lint.run/welcome/install/
 GOLANGCI_LINT_VERSION=v1.57.2
 
-# Go tools to install (not available in Mason.nvim)
+# Go tools to install
 # See https://github.com/bartventer/dotfiles/blob/master/config/config.json#L174
 GO_TOOLS="\
     golang.org/x/tools/gopls@latest \
