@@ -21,12 +21,20 @@ MASONBIN="$HOME/.local/share/nvim/mason/bin"
 # Go path: # https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable
 # Always install to $HOME/go, but also check for binaries in $MASONBIN
 if command -v go &>/dev/null; then
-  GOPATH=$HOME/go
-  if [ -d "$MASONBIN" ]; then
-    GOPATH=$GOPATH:$MASONBIN
+  export GOPATH=$HOME/go
+
+  # Add $GOPATH/bin to PATH if it's not already there
+  if [[ ":$PATH:" != *":$GOPATH/bin:"* ]]; then
+    export PATH=$PATH:$GOPATH/bin
   fi
-  export GOPATH
-  export PATH=$PATH:$GOPATH/bin
+
+  # Add Mason binaries to go path
+  if [ -d "$MASONBIN" ]; then
+    export GOPATH=$GOPATH:$MASONBIN
+    if [[ ":$PATH:" != *":$MASONBIN:"* ]]; then
+      export PATH=$PATH:$MASONBIN
+    fi
+  fi
 fi
 
 # Add directories to PATH only if they exist and are not already in PATH
