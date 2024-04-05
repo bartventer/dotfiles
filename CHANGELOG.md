@@ -1,3 +1,10 @@
+## [3.21.3](https://github.com/bartventer/dotfiles/compare/v3.21.2...v3.21.3) (2024-04-05)
+
+
+### Bug Fixes
+
+* **zshrc:** add MASONBIN to GOPATH ([64f7073](https://github.com/bartventer/dotfiles/commit/64f7073928b2154f468faed562854c647f35d667))
+
 ## [3.21.2](https://github.com/bartventer/dotfiles/compare/v3.21.1...v3.21.2) (2024-04-05)
 
 
