@@ -15,17 +15,23 @@ fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-# Go path
+# Mason Binaries
+MASONBIN="$HOME/.local/share/nvim/mason/bin"
+
+# Go path: # https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable
+# Always install to $HOME/go, but also check for binaries in $MASONBIN
 if command -v go &>/dev/null; then
-  export GOPATH=$HOME/go
+  GOPATH=$HOME/go
+  if [ -d "$MASONBIN" ]; then
+    GOPATH=$GOPATH:$MASONBIN
+  fi
+  export GOPATH
   export PATH=$PATH:$GOPATH/bin
 fi
 
-# Add directories to PATH only if they exist
-for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $HOME/.local/share/nvim/mason/bin; do
-  if [ -d "$dir" ]; then
-    PATH=$PATH:$dir
-  fi
+# Add directories to PATH only if they exist and are not already in PATH
+for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $MASONBIN; do
+  [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]] && PATH=$PATH:$dir
 done
 
 export PATH
@@ -111,7 +117,9 @@ if [ -f /etc/arch-release ]; then
 fi
 source $ZSH/oh-my-zsh.sh
 # Tmux config: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/tmux#configuration-variables
-ZSH_TMUX_AUTOSTART=true            # Automatically starts tmux
+# shellcheck disable=SC2034
+ZSH_TMUX_AUTOSTART=true # Automatically starts tmux
+# shellcheck disable=SC2034
 ZSH_TMUX_CONFIG="$HOME/.tmux.conf" # Path to tmux config file
 
 # User configuration
