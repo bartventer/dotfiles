@@ -15,11 +15,7 @@ fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-# Mason Binaries
-MASONBIN="$HOME/.local/share/nvim/mason/bin"
-
 # Go path: # https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable
-# Always install to $HOME/go, but also check for binaries in $MASONBIN
 if command -v go &>/dev/null; then
   export GOPATH=$HOME/go
 
@@ -27,18 +23,10 @@ if command -v go &>/dev/null; then
   if [[ ":$PATH:" != *":$GOPATH/bin:"* ]]; then
     export PATH=$PATH:$GOPATH/bin
   fi
-
-  # Add Mason binaries to go path
-  if [ -d "$MASONBIN" ]; then
-    export GOPATH=$GOPATH:$MASONBIN
-    if [[ ":$PATH:" != *":$MASONBIN:"* ]]; then
-      export PATH=$PATH:$MASONBIN
-    fi
-  fi
 fi
 
 # Add directories to PATH only if they exist and are not already in PATH
-for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $MASONBIN; do
+for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $HOME/.local/share/nvim/mason/bin; do
   [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]] && PATH=$PATH:$dir
 done
 
