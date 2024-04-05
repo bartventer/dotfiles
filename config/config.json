@@ -175,6 +175,9 @@
                     "go"
                 ]
             },
+            "lsps": [
+                "gopls"
+            ],
             "daps": [
                 "go-debug-adapter"
             ],
