@@ -1,3 +1,10 @@
+## [3.21.2](https://github.com/bartventer/dotfiles/compare/v3.21.1...v3.21.2) (2024-04-05)
+
+
+### Bug Fixes
+
+* **zshrc:** add MASONBIN to path ([8974e47](https://github.com/bartventer/dotfiles/commit/8974e47fdc0304205a84acbde6b3da953c8c3cd7))
+
 ## [3.21.1](https://github.com/bartventer/dotfiles/compare/v3.21.0...v3.21.1) (2024-04-05)
 
 
