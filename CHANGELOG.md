@@ -1,3 +1,16 @@
+## [3.21.4](https://github.com/bartventer/dotfiles/compare/v3.21.3...v3.21.4) (2024-04-05)
+
+
+### Bug Fixes
+
+* **config/go:** install go tools directly over Mason plugins ([58180f5](https://github.com/bartventer/dotfiles/commit/58180f5d78cb9857e03e4eb1bd739e79ffbf7285))
+* **neovim/config:** add gopls to go profile LSPS ([88b9813](https://github.com/bartventer/dotfiles/commit/88b9813e5db16dbc9da7de945d10ea4020191864))
+
+
+### Reverts
+
+* **zshrc:** remove MASONBIN from GOPATH ([10f08c1](https://github.com/bartventer/dotfiles/commit/10f08c1aa9b3d105f88cd2ec1cfa3d088d910801))
+
 ## [3.21.3](https://github.com/bartventer/dotfiles/compare/v3.21.2...v3.21.3) (2024-04-05)
 
 
