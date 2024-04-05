@@ -15,11 +15,20 @@ fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-# Path: (colon separated list of directories, preserves origanal $PATH and adds new directories to the end)
-export PATH=$PATH:$HOME/bin:/usr/local/bin:/usr/local/go/bin:$GOPATH/bin:/usr/local/lua/bin:$HOME/.config/emacs/bin
-
 # Go path
-export GOPATH=$HOME/go
+if command -v go &>/dev/null; then
+  export GOPATH=$HOME/go
+  export PATH=$PATH:$GOPATH/bin
+fi
+
+# Add directories to PATH only if they exist
+for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $HOME/.local/share/nvim/mason/bin; do
+  if [ -d "$dir" ]; then
+    PATH=$PATH:$dir
+  fi
+done
+
+export PATH
 
 # Npm config to allow user-wide installations (https://wiki.archlinux.org/title/node.js_)
 export npm_config_prefix="$HOME/.local"
