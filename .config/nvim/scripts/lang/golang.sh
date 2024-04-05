@@ -75,9 +75,22 @@ if command -v golangci-lint &>/dev/null; then
     update_zsh_local "$ZSH_LOCAL" "source ${GOLANGCI_LINT_COMPLETION}"
 fi
 
+# Golandci-lint
+#https://golangci-lint.run/welcome/install/
+GOLANGCI_LINT_VERSION=v1.57.2
+
 # Go tools to install (not available in Mason.nvim)
 # See https://github.com/bartventer/dotfiles/blob/master/config/config.json#L174
 GO_TOOLS="\
+    golang.org/x/tools/gopls@latest \
+    github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION} \
+    honnef.co/go/tools/cmd/staticcheck@latest \
+    github.com/mgechev/revive@latest \
+    github.com/incu6us/goimports-reviser/v2@latest \
+    github.com/segmentio/golines@latest \
+    github.com/fatih/gomodifytags@latest \
+    github.com/cweill/gotests/gotests@latest \
+    github.com/josharian/impl@latest \
     golang.org/x/lint/golint@latest \
     github.com/haya14busa/goplay/cmd/goplay@latest \
     github.com/cosmtrek/air@latest"
@@ -94,6 +107,6 @@ else
     fi
 fi
 log_info "Installing Go tools..."
-echo "${GO_TOOLS}" | xargs -n 1 -P 8 go install
+echo "${GO_TOOLS}" | xargs -n 1 go install
 
 log_success "Done. Go setup complete."

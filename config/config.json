@@ -175,23 +175,11 @@
                     "go"
                 ]
             },
-            "lsps": [
-                "gopls"
-            ],
             "daps": [
                 "go-debug-adapter"
             ],
-            "linters": [
-                "golangci-lint",
-                "staticcheck",
-                "revive"
-            ],
             "formatters": [
-                "goimports-reviser",
-                "golines",
-                "gomodifytags",
-                "gotests",
-                "impl"
+                "gotests"
             ],
             "custom_script": "golang.sh"
         },
