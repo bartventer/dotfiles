@@ -81,6 +81,7 @@ GOLANGCI_LINT_VERSION=v1.57.2
 
 # Go tools to install
 # See https://github.com/bartventer/dotfiles/blob/master/config/config.json#L174
+# Note: Opting not to use Mason for these go packages as it does not use GOPATH/GOBIN.
 GO_TOOLS="\
     golang.org/x/tools/gopls@latest \
     github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION} \
