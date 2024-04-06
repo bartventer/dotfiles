@@ -4,48 +4,99 @@
     "description": "Defines the configuration for the dotfiles",
     "properties": {
         "pkg_managers": {
+            "$ref": "#/definitions/pkgManagerConfig"
+        },
+        "nvim_deps": {
+            "$ref": "#/definitions/nvimDepsConfig"
+        },
+        "relative_paths": {
+            "$ref": "#/definitions/relativePathsConfig"
+        },
+        "ohmyzsh_plugins": {
+            "$ref": "#/definitions/ohMyZshPluginsConfig"
+        },
+        "tmux_plugins": {
+            "$ref": "#/definitions/tmuxPluginsConfig"
+        },
+        "common_packages": {
+            "$ref": "#/definitions/commonPackagesConfig"
+        },
+        "distro_packages": {
+            "$ref": "#/definitions/distroPackagesConfig"
+        },
+        "term_color": {
+            "$ref": "#/definitions/termColorConfig"
+        },
+        "oh_my_zsh_custom_theme_repo": {
+            "$ref": "#/definitions/ohMyZshCustomThemeRepoConfig"
+        },
+        "font_name": {
+            "$ref": "#/definitions/fontNameConfig"
+        },
+        "nvim_profiles": {
+            "$ref": "#/definitions/nvimProfilesConfig"
+        }
+    },
+    "required": [
+        "pkg_managers",
+        "nvim_deps",
+        "relative_paths",
+        "ohmyzsh_plugins",
+        "tmux_plugins",
+        "common_packages",
+        "distro_packages",
+        "term_color",
+        "oh_my_zsh_custom_theme_repo",
+        "font_name",
+        "nvim_profiles"
+    ],
+    "definitions": {
+        "pkgManagerConfig": {
             "type": "object",
             "description": "Package managers configuration",
             "additionalProperties": {
-                "type": "object",
-                "description": "Package manager details",
-                "properties": {
-                    "update_cmd": {
-                        "type": "string",
-                        "description": "Command to update the package manager",
-                        "minLength": 1
-                    },
-                    "install_cmd": {
-                        "type": "string",
-                        "description": "Command to install packages",
-                        "minLength": 1
-                    },
-                    "pre_install_commands": {
-                        "type": "array",
-                        "description": "Commands to run before installation",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    },
-                    "post_install_commands": {
-                        "type": "array",
-                        "description": "Commands to run after installation",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    }
-                },
-                "required": [
-                    "update_cmd",
-                    "install_cmd"
-                ]
+                "$ref": "#/definitions/pkgManagerDetails"
             }
         },
-        "nvim_deps": {
+        "pkgManagerDetails": {
+            "type": "object",
+            "description": "Package manager details",
+            "properties": {
+                "update_cmd": {
+                    "type": "string",
+                    "description": "Command to update the package manager",
+                    "minLength": 1
+                },
+                "install_cmd": {
+                    "type": "string",
+                    "description": "Command to install packages",
+                    "minLength": 1
+                },
+                "pre_install_commands": {
+                    "type": "array",
+                    "description": "Commands to run before installation",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "post_install_commands": {
+                    "type": "array",
+                    "description": "Commands to run after installation",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "update_cmd",
+                "install_cmd"
+            ]
+        },
+        "nvimDepsConfig": {
             "type": "object",
             "description": "Neovim dependencies",
             "properties": {
@@ -73,7 +124,7 @@
                 "pip_packages"
             ]
         },
-        "relative_paths": {
+        "relativePathsConfig": {
             "type": "array",
             "description": "Relative paths",
             "items": {
@@ -82,7 +133,7 @@
             },
             "minItems": 1
         },
-        "ohmyzsh_plugins": {
+        "ohMyZshPluginsConfig": {
             "type": "object",
             "description": "Oh My Zsh plugins",
             "additionalProperties": {
@@ -92,7 +143,7 @@
                 "minLength": 1
             }
         },
-        "tmux_plugins": {
+        "tmuxPluginsConfig": {
             "type": "object",
             "description": "Tmux plugins",
             "additionalProperties": {
@@ -102,7 +153,7 @@
                 "minLength": 1
             }
         },
-        "common_packages": {
+        "commonPackagesConfig": {
             "type": "array",
             "description": "Common packages",
             "items": {
@@ -112,7 +163,7 @@
             },
             "minItems": 1
         },
-        "distro_packages": {
+        "distroPackagesConfig": {
             "type": "object",
             "description": "Distribution specific packages",
             "additionalProperties": {
@@ -125,124 +176,120 @@
                 "minItems": 1
             }
         },
-        "term_color": {
+        "termColorConfig": {
             "type": "string",
             "description": "Terminal color",
             "minLength": 1
         },
-        "oh_my_zsh_custom_theme_repo": {
+        "ohMyZshCustomThemeRepoConfig": {
             "type": "string",
             "description": "Oh My Zsh custom theme repository",
-            "minLength": 1
+            "examples": [
+                "romkatv/powerlevel10k"
+            ],
+            "minLength": 1,
+            "pattern": "^\\w+\\/\\w+$"
         },
-        "font_name": {
+        "fontNameConfig": {
             "type": "string",
             "description": "Font name",
             "minLength": 1
         },
-        "nvim_profiles": {
+        "nvimProfilesConfig": {
             "type": "object",
             "description": "Neovim profiles",
             "additionalProperties": {
-                "type": "object",
-                "description": "Profile details",
-                "properties": {
-                    "checks": {
-                        "type": "object",
-                        "description": "Checks to perform",
-                        "properties": {
-                            "required": {
-                                "type": "array",
-                                "description": "Required checks",
-                                "items": {
-                                    "type": "string",
-                                    "minLength": 1
-                                },
-                                "minItems": 1
-                            },
-                            "one_of": {
-                                "type": "array",
-                                "description": "Checks where one must pass",
-                                "items": {
-                                    "type": "string",
-                                    "minLength": 1
-                                },
-                                "minItems": 2
-                            }
-                        },
-                        "required": [
-                            "required"
-                        ]
-                    },
-                    "parsers": {
-                        "type": "array",
-                        "description": "Parsers to use",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    },
-                    "lsps": {
-                        "type": "array",
-                        "description": "Language Server Protocols to use",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    },
-                    "daps": {
-                        "type": "array",
-                        "description": "Debug Adapter Protocols to use",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    },
-                    "linters": {
-                        "type": "array",
-                        "description": "Linters to use",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    },
-                    "formatters": {
-                        "type": "array",
-                        "description": "Formatters to use",
-                        "items": {
-                            "type": "string",
-                            "minLength": 1
-                        },
-                        "minItems": 1
-                    },
-                    "custom_script": {
-                        "type": "string",
-                        "description": "Custom script",
-                        "minLength": 1
-                    }
-                },
-                "required": [
-                    "checks",
-                    "lsps"
-                ]
+                "$ref": "#/definitions/profileDetails"
             }
+        },
+        "profileDetails": {
+            "type": "object",
+            "description": "Profile details",
+            "properties": {
+                "checks": {
+                    "$ref": "#/definitions/checksConfig"
+                },
+                "parsers": {
+                    "type": "array",
+                    "description": "Parsers to use",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "lsps": {
+                    "type": "array",
+                    "description": "Language Server Protocols to use",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "daps": {
+                    "type": "array",
+                    "description": "Debug Adapter Protocols to use",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "linters": {
+                    "type": "array",
+                    "description": "Linters to use",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "formatters": {
+                    "type": "array",
+                    "description": "Formatters to use",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "custom_script": {
+                    "type": "string",
+                    "description": "Custom script",
+                    "minLength": 1
+                }
+            },
+            "required": [
+                "checks"
+            ]
+        },
+        "checksConfig": {
+            "type": "object",
+            "description": "Checks to perform",
+            "properties": {
+                "required": {
+                    "type": "array",
+                    "description": "Required checks",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1
+                },
+                "one_of": {
+                    "type": "array",
+                    "description": "Checks where one must pass",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 2
+                }
+            },
+            "required": [
+                "required"
+            ]
         }
-    },
-    "required": [
-        "pkg_managers",
-        "nvim_deps",
-        "relative_paths",
-        "ohmyzsh_plugins",
-        "tmux_plugins",
-        "common_packages",
-        "distro_packages",
-        "term_color",
-        "oh_my_zsh_custom_theme_repo",
-        "font_name",
-        "nvim_profiles"
-    ]
+    }
 }
