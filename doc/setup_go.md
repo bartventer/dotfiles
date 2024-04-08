@@ -17,7 +17,7 @@ This document provides instructions for setting up the Go development environmen
 "go.lintTool": "golangci-lint",
 "go.lintFlags": [
     "--config",
-    "~/.config/.golangci.yaml",
+    "~/dotfiles/.config/.golangci.yaml",
     "--fast",
     "--fix"
 ]
