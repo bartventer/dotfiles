@@ -54,9 +54,7 @@
         "dracula": "https://github.com/dracula/tmux.git"
     },
     "common_packages": [
-        "git",
         "tmux",
-        "wget",
         "fontconfig"
     ],
     "distro_packages": {
@@ -71,6 +69,8 @@
             "python",
             "python-pip",
             "nodejs",
+            "npm",
+            "yarn",
             "gdb",
             "gcc",
             "procps-ng"
@@ -88,7 +88,8 @@
             "python3-pip",
             "nodejs",
             "gdb",
-            "build-essential"
+            "build-essential",
+            "procps"
         ],
         "fedora": [
             "lua",

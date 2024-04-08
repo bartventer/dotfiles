@@ -18,7 +18,7 @@
 #   - distro: The distribution of the operating system. This argument is required.
 #   - additional_arguments: Any additional arguments to be passed to the script.
 #
-# Dependencies: zsh, git, curl, jq, unzip, wget
+# Dependencies: zsh, git, curl, jq, unzip
 #-----------------------------------------------------------------------------------------------------------------
 set -e
 
