@@ -1,3 +1,11 @@
+## [3.21.5](https://github.com/bartventer/dotfiles/compare/v3.21.4...v3.21.5) (2024-04-08)
+
+
+### Bug Fixes
+
+* **config:** fix dependencies ([a05cd85](https://github.com/bartventer/dotfiles/commit/a05cd8577d5a2fff4f31f1b7c196ab08611e9852))
+* **config:** modify required dependencies ([dcd28bf](https://github.com/bartventer/dotfiles/commit/dcd28bf686f2a51626301c2eadd4dffa0c9a926e))
+
 ## [3.21.4](https://github.com/bartventer/dotfiles/compare/v3.21.3...v3.21.4) (2024-04-05)
 
 
