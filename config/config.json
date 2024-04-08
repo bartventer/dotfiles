@@ -68,9 +68,6 @@
             "fd",
             "python",
             "python-pip",
-            "nodejs",
-            "npm",
-            "yarn",
             "gdb",
             "gcc",
             "procps-ng"
@@ -86,7 +83,6 @@
             "locales",
             "python3",
             "python3-pip",
-            "nodejs",
             "gdb",
             "build-essential",
             "procps"
@@ -100,7 +96,6 @@
             "glibc-locale-source",
             "glibc-langpack-en",
             "python3-pip",
-            "nodejs",
             "gdb",
             "gcc",
             "procps-ng"
@@ -112,7 +107,6 @@
             "python3-venv",
             "locales",
             "python3-pip",
-            "nodejs",
             "gdb",
             "build-essential",
             "procps"
@@ -120,8 +114,7 @@
         "macos": [
             "lua",
             "ripgrep",
-            "fd",
-            "node"
+            "fd"
         ]
     },
     "term_color": "xterm-256color",

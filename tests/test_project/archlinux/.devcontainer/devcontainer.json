@@ -12,7 +12,7 @@
             "installOhMyZsh": true,
             "installOhMyZshConfig": false,
             "upgradePackages": true,
-            "additionalPackages": "curl make jq go"
+            "additionalPackages": "curl make jq go nodejs npm yarn"
         }
     },
     "remoteUser": "vscode"
