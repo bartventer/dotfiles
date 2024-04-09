@@ -1,6 +1,9 @@
 name: CI
 
-on: [push, pull_request]
+on:
+    push:
+        branches: [master]
+    pull_request:
 
 env:
     NODE_VERSION: '20.12.0'
@@ -12,7 +15,7 @@ jobs:
     validate-config:
         runs-on: ubuntu-latest
         name: Validate Configuration
-        steps: 
+        steps:
             - uses: actions/checkout@v4
             - name: Set up Node.js
               uses: actions/setup-node@v4
@@ -41,10 +44,10 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                node-version: ${{ env.NODE_VERSION }}
-                check-latest: ${{ env.NODE_CHECK_LATEST }}
-                cache: ${{ env.NODE_CACHE }}
-                cache-dependency-path: ${{ env.NODE_CACHE_DEPENDENCY_PATH }}
+                  node-version: ${{ env.NODE_VERSION }}
+                  check-latest: ${{ env.NODE_CHECK_LATEST }}
+                  cache: ${{ env.NODE_CACHE }}
+                  cache-dependency-path: ${{ env.NODE_CACHE_DEPENDENCY_PATH }}
             - name: Install Node Dependencies
               run: yarn install
 
@@ -63,6 +66,8 @@ jobs:
         needs: validate-config
         runs-on: macos-latest
         name: Test on macOS
+        env:
+            COVERAGE_REPORT_FORMAT: ${{ github.event_name == 'push' && 'xml' || 'html' }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -112,15 +117,24 @@ jobs:
               shell: bash
               run: |
                   make coverage
-                  make coverage-report COVERAGE_REPORT_FORMAT=xml
+                  # XML report for Codecov
+                  make coverage-report COVERAGE_REPORT_FORMAT=${{ env.COVERAGE_REPORT_FORMAT }}
 
             - name: Upload coverage to Codecov
+              if: ${{ github.event_name == 'push' }}
               uses: codecov/codecov-action@v3
               with:
-                  file: ./coverage.xml
+                  file: ./coverage.${{ env.COVERAGE_REPORT_FORMAT }}
                   token: ${{ secrets.CODECOV_TOKEN }}
                   fail_ci_if_error: true
                   slug: ${{ github.repository }}
+
+            - name: Archive coverage report
+              if: ${{ github.event_name != 'push' }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-report
+                  path: ./coverage.${{ env.COVERAGE_REPORT_FORMAT }}
 
     semantic-release:
         name: Release
