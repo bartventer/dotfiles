@@ -66,8 +66,6 @@ jobs:
         needs: validate-config
         runs-on: macos-latest
         name: Test on macOS
-        env:
-            COVERAGE_REPORT_FORMAT: ${{ github.event_name == 'push' && 'xml' || 'html' }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -118,13 +116,13 @@ jobs:
               run: |
                   make coverage
                   # XML report for Codecov
-                  make coverage-report COVERAGE_REPORT_FORMAT=${{ env.COVERAGE_REPORT_FORMAT }}
+                  make coverage-report COVERAGE_REPORT_FORMAT=${{ github.event_name == 'push' && 'xml' || 'html' }}
 
             - name: Upload coverage to Codecov
               if: ${{ github.event_name == 'push' }}
               uses: codecov/codecov-action@v3
               with:
-                  file: ./coverage.${{ env.COVERAGE_REPORT_FORMAT }}
+                  file: ./coverage.xml
                   token: ${{ secrets.CODECOV_TOKEN }}
                   fail_ci_if_error: true
                   slug: ${{ github.repository }}
@@ -134,7 +132,9 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: coverage-report
-                  path: ./coverage.${{ env.COVERAGE_REPORT_FORMAT }}
+                  path: ./htmlcov/
+                  if-no-files-found: error
+                  retention-days: 1
 
     semantic-release:
         name: Release
