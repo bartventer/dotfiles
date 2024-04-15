@@ -94,7 +94,8 @@ GO_TOOLS="\
     github.com/josharian/impl@latest \
     golang.org/x/lint/golint@latest \
     github.com/haya14busa/goplay/cmd/goplay@latest \
-    github.com/cosmtrek/air@latest"
+    github.com/cosmtrek/air@latest \
+    github.com/spf13/cobra-cli@latest"
 
 # Delve installation
 if [[ $PACKAGE_MANAGER != "pacman" ]]; then
