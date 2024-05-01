@@ -64,17 +64,6 @@ if [[ "${CI}" != "true" ]]; then
     update_path "$GOPATH/bin"
 fi
 
-# Configure golangci-lint
-if command -v golangci-lint &>/dev/null; then
-    log_info "Generating Zsh autocompletion script for golangci-lint..."
-    GOLANGCI_LINT_COMPLETION="${HOME}/.golangci-lint-completion.zsh"
-    if [[ ! -f $GOLANGCI_LINT_COMPLETION ]]; then
-        golangci-lint completion zsh >"${HOME}/.golangci-lint-completion.zsh"
-        echo "OK. Autocompletion script generated."
-    fi
-    update_zsh_local "$ZSH_LOCAL" "source ${GOLANGCI_LINT_COMPLETION}"
-fi
-
 # Golandci-lint
 #https://golangci-lint.run/welcome/install/
 GOLANGCI_LINT_VERSION=v1.57.2
@@ -110,5 +99,16 @@ else
 fi
 log_info "Installing Go tools..."
 echo "${GO_TOOLS}" | xargs -n 1 go install
+
+# Configure golangci-lint
+if command -v golangci-lint &>/dev/null; then
+    log_info "Generating Zsh autocompletion script for golangci-lint..."
+    GOLANGCI_LINT_COMPLETION="${HOME}/.golangci-lint-completion.zsh"
+    if [[ ! -f $GOLANGCI_LINT_COMPLETION ]]; then
+        golangci-lint completion zsh >"${HOME}/.golangci-lint-completion.zsh"
+        echo "OK. Autocompletion script generated."
+    fi
+    update_zsh_local "$ZSH_LOCAL" "source ${GOLANGCI_LINT_COMPLETION}"
+fi
 
 log_success "Done. Go setup complete."
