@@ -94,7 +94,7 @@ else
     if [[ $CI == "true" ]]; then
         pacman -Syu delve --noconfirm
     else
-        sudo pacman -Syu delve --noconfirm
+        sudo pacman -Syu delve zsh-completions diffutils --noconfirm
     fi
 fi
 log_info "Installing Go tools..."
