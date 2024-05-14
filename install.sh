@@ -32,7 +32,7 @@ BASH_PATH="/bin/bash"
 case "$(uname -s)" in
 Darwin)
   OS="macos"
-  BASH_PATH="/usr/local/bin/bash"
+  BASH_PATH="/bin/bash"
   ;;
 Linux)
   if [ -f "/etc/os-release" ]; then
