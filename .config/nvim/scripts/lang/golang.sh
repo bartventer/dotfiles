@@ -48,7 +48,7 @@ elif [[ -z $2 ]] || [[ ! -f $2 ]]; then
     exit 1
 fi
 
-PACKAGE_MANAGER=$1
+_PACKAGE_MANAGER=$1
 ZSH_LOCAL=$2
 
 log_info "Setting up go..."
@@ -57,48 +57,6 @@ if ! command -v go &>/dev/null; then
     log_error "go is not installed. Please install it and try again."
     exit 1
 fi
-
-# Set up Go environment
-if [[ "${CI}" != "true" ]]; then
-    export GOPATH="$HOME/go"
-    update_path "$GOPATH/bin"
-fi
-
-# Golandci-lint
-#https://golangci-lint.run/welcome/install/
-GOLANGCI_LINT_VERSION=v1.57.2
-
-# Go tools to install
-# See https://github.com/bartventer/dotfiles/blob/master/config/config.json#L174
-# Note: Opting not to use Mason for these go packages as it does not use GOPATH/GOBIN.
-GO_TOOLS="\
-    golang.org/x/tools/gopls@latest \
-    github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION} \
-    honnef.co/go/tools/cmd/staticcheck@latest \
-    github.com/mgechev/revive@latest \
-    github.com/incu6us/goimports-reviser/v2@latest \
-    github.com/segmentio/golines@latest \
-    github.com/fatih/gomodifytags@latest \
-    github.com/cweill/gotests/gotests@latest \
-    github.com/josharian/impl@latest \
-    golang.org/x/lint/golint@latest \
-    github.com/haya14busa/goplay/cmd/goplay@latest \
-    github.com/cosmtrek/air@latest \
-    github.com/spf13/cobra-cli@latest"
-
-# Delve installation
-if [[ $PACKAGE_MANAGER != "pacman" ]]; then
-    GO_TOOLS+=" github.com/go-delve/delve/cmd/dlv@latest"
-else
-    log_info ":: Installing delve (arch based system)..."
-    if [[ $CI == "true" ]]; then
-        pacman -Syu delve --noconfirm
-    else
-        sudo pacman -Syu delve zsh-completions diffutils --noconfirm
-    fi
-fi
-log_info "Installing Go tools..."
-echo "${GO_TOOLS}" | xargs -n 1 go install
 
 # Configure golangci-lint
 if command -v golangci-lint &>/dev/null; then
