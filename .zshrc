@@ -4,10 +4,8 @@
 prompt_file="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt.zsh"
 
 # Check if the prompt file is readable
-if [[ -r "$prompt_file" ]]; then
-  # Source the prompt file
-  source "$prompt_file"
-fi
+# shellcheck disable=SC1090
+[[ -r "$prompt_file" ]] && source "$prompt_file"
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -26,7 +24,7 @@ if command -v go &>/dev/null; then
 fi
 
 # Add directories to PATH only if they exist and are not already in PATH
-for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $HOME/.local/share/nvim/mason/bin; do
+for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $HOME/.local/share/nvim/mason/bin $HOME/.local/bin; do
   [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]] && PATH=$PATH:$dir
 done
 
@@ -39,6 +37,7 @@ export npm_config_prefix="$HOME/.local"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+# shellcheck disable=SC2034
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Set list of themes to pick from when loading at random
@@ -78,6 +77,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # You can also set it to another string to have that shown instead of the default red dots.
 # e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
 # Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
+# shellcheck disable=SC2034
 COMPLETION_WAITING_DOTS="true"
 
 # Uncomment the following line if you want to disable marking untracked files
@@ -111,6 +111,8 @@ plugins=(
 if [ -f /etc/arch-release ]; then
   plugins+=(archlinux)
 fi
+# shellcheck disable=SC1091
+# shellcheck disable=SC2086
 source $ZSH/oh-my-zsh.sh
 # Tmux config: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/tmux#configuration-variables
 # shellcheck disable=SC2034
@@ -156,20 +158,23 @@ alias tmux_source="tmux source-file ~/.tmux.conf"
 alias zsh_source="source ~/.zshrc"
 
 # Locally defined aliases
-if [[ -f ~/.aliases ]]; then
-  source ~/.aliases
-fi
+# shellcheck disable=SC1090
+[[ -f ~/.aliases ]] && source ~/.aliases
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# shellcheck disable=SC1090
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 # Source powerlevel10k theme if it exists
 POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
-if [[ -f "$POWERLEVEL10K_THEME" ]]; then
-  source "$POWERLEVEL10K_THEME"
-fi
+# shellcheck disable=SC1090
+[[ -f "$POWERLEVEL10K_THEME" ]] && source "$POWERLEVEL10K_THEME"
 
 # Source local zsh configuration
-if [[ -f "$HOME/.zsh_local" ]]; then
-  source "$HOME/.zsh_local"
+# shellcheck disable=SC1090
+[[ -f ~/.zsh_local ]] && source ~/.zsh_local
+
+# Run neofetch if it exists
+if command -v neofetch &>/dev/null; then
+  neofetch
 fi
