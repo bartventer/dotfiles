@@ -2,5 +2,13 @@
     "Lua.diagnostics.disable": [
         "undefined-global"
     ],
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "*/config.json"
+            ],
+            "url": "./config/config.schema.json"
+        }
+    ]
 }

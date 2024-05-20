@@ -16,26 +16,13 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "GitHub.copilot",
-                "GitHub.copilot-chat",
-                "golang.go",
                 "github.vscode-github-actions",
                 "mads-hartmann.bash-ide-vscode",
                 "foxundermoon.shell-format",
                 "timonwong.shellcheck",
                 "Remisa.shellman",
                 "rpinski.shebang-snippets"
-            ],
-            "settings": {
-                "json.schemas": [
-                    {
-                        "fileMatch": [
-                            "*/config.json"
-                        ],
-                        "url": "https://raw.githubusercontent.com/bartventer/dotfiles/master/config/config.schema.json"
-                    }
-                ]
-            }
+            ]
         }
     }
 }
