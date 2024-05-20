@@ -71,7 +71,8 @@
             "python-pip",
             "gdb",
             "gcc",
-            "procps-ng"
+            "procps-ng",
+            "neofetch"
         ],
         "debian": [
             "lua5.4",
