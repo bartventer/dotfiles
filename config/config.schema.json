@@ -56,6 +56,15 @@
             "description": "Package managers configuration",
             "additionalProperties": {
                 "$ref": "#/definitions/pkgManagerDetails"
+            },
+            "propertyNames": {
+                "enum": [
+                    "apt-get",
+                    "dnf",
+                    "yum",
+                    "pacman",
+                    "brew"
+                ]
             }
         },
         "pkgManagerDetails": {
@@ -200,6 +209,17 @@
             "description": "Neovim profiles",
             "additionalProperties": {
                 "$ref": "#/definitions/profileDetails"
+            },
+            "propertyNames": {
+                "enum": [
+                    "default",
+                    "bash",
+                    "golang",
+                    "typescript",
+                    "python",
+                    "docker",
+                    "docker_compose"
+                ]
             }
         },
         "profileDetails": {
