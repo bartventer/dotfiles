@@ -16,15 +16,25 @@ export ZSH="$HOME/.oh-my-zsh"
 # Go path: # https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable
 if command -v go &>/dev/null; then
   export GOPATH=$HOME/go
-
-  # Add $GOPATH/bin to PATH if it's not already there
-  if [[ ":$PATH:" != *":$GOPATH/bin:"* ]]; then
-    export PATH=$PATH:$GOPATH/bin
-  fi
+  # Add $GOPATH/bin to the PATH
+  [[ ":$PATH:" != *":$GOPATH/bin:"* ]] && export PATH=$PATH:$GOPATH/bin
 fi
 
-# Add directories to PATH only if they exist and are not already in PATH
-for dir in $HOME/bin /usr/local/bin /usr/local/go/bin /usr/local/lua/bin $HOME/.config/emacs/bin $HOME/.local/share/nvim/mason/bin $HOME/.local/bin; do
+# Yarn global bin path
+if command -v yarn &>/dev/null; then
+  _yarn_global_bin=$(yarn global bin)
+  [[ -d $_yarn_global_bin ]] && export PATH=$PATH:$_yarn_global_bin
+fi
+
+# Add default paths to PATH
+for dir in \
+  $HOME/bin \
+  /usr/local/bin \
+  /usr/local/go/bin \
+  /usr/local/lua/bin \
+  $HOME/.config/emacs/bin \
+  $HOME/.local/share/nvim/mason/bin \
+  $HOME/.local/bin; do
   [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]] && PATH=$PATH:$dir
 done
 
@@ -108,9 +118,8 @@ plugins=(
   man
   tmux
 )
-if [ -f /etc/arch-release ]; then
-  plugins+=(archlinux)
-fi
+# Arch Linux plugin
+[[ -f /etc/arch-release ]] && plugins+=(archlinux)
 # shellcheck disable=SC1091
 # shellcheck disable=SC2086
 source $ZSH/oh-my-zsh.sh
@@ -165,7 +174,7 @@ alias zsh_source="source ~/.zshrc"
 # shellcheck disable=SC1090
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
-# Source powerlevel10k theme if it exists
+# Source powerlevel10k theme
 POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
 # shellcheck disable=SC1090
 [[ -f "$POWERLEVEL10K_THEME" ]] && source "$POWERLEVEL10K_THEME"
@@ -174,7 +183,5 @@ POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.
 # shellcheck disable=SC1090
 [[ -f ~/.zsh_local ]] && source ~/.zsh_local
 
-# Run neofetch if it exists
-if command -v neofetch &>/dev/null; then
-  neofetch
-fi
+# Run neofetch
+if command -v neofetch &>/dev/null; then neofetch; fi
