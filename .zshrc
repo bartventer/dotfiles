@@ -183,5 +183,8 @@ POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.
 # shellcheck disable=SC1090
 [[ -f ~/.zsh_local ]] && source ~/.zsh_local
 
+# Shell auto-completion for zsh
+autoload -Uz compinit && compinit
+
 # Run neofetch
 if command -v neofetch &>/dev/null; then neofetch; fi
