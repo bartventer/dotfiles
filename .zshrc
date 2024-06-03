@@ -184,6 +184,7 @@ POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.
 [[ -f ~/.zsh_local ]] && source ~/.zsh_local
 
 # Shell auto-completion for zsh
+fpath=("${HOME}/.zsh/completions" "${fpath[@]}")
 autoload -Uz compinit && compinit
 
 # Run neofetch
