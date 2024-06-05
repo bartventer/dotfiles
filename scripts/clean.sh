@@ -134,13 +134,13 @@ clean_go() {
     fi
     echo "📂 Current directory: $(pwd)"
     echo "📝 Command to be executed:"
-    echo "  go clean -cache -modcache -i -r"
+    echo "  go clean -cache -modcache"
     read -r -p "🤔 Are you sure you want to proceed? [y/N] " answer
     if [[ $answer != [Yy]* ]]; then
         echo "🛑 Operation aborted."
         return
     fi
-    go clean -cache -modcache -i -r
+    go clean -cache -modcache
     echo "✔️ Done! The Go cache has been removed."
 }
 
