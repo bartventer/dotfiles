@@ -187,5 +187,9 @@ POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.
 fpath=("${HOME}/.zsh/completions" "${fpath[@]}")
 autoload -Uz compinit && compinit
 
+# GPG Key
+# shellcheck disable=SC2155
+export GPG_TTY=$(tty)
+
 # Run neofetch
 if command -v neofetch &>/dev/null; then neofetch; fi
