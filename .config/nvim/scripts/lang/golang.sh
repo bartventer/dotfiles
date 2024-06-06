@@ -49,7 +49,6 @@ elif [[ -z $2 ]] || [[ ! -f $2 ]]; then
 fi
 
 _PACKAGE_MANAGER=$1
-ZSH_LOCAL=$2
 
 log_info "Setting up go..."
 
@@ -61,12 +60,12 @@ fi
 # Configure golangci-lint
 if command -v golangci-lint &>/dev/null; then
     log_info "Generating Zsh autocompletion script for golangci-lint..."
-    GOLANGCI_LINT_COMPLETION="${HOME}/.golangci-lint-completion.zsh"
+    GOLANGCI_LINT_COMPLETION="${HOME}/.zsh/completions/_golangci-lint"
     if [[ ! -f $GOLANGCI_LINT_COMPLETION ]]; then
-        golangci-lint completion zsh >"${HOME}/.golangci-lint-completion.zsh"
+        mkdir -p "$(dirname "$GOLANGCI_LINT_COMPLETION")"
+        golangci-lint completion zsh >"${GOLANGCI_LINT_COMPLETION}"
         echo "OK. Autocompletion script generated."
     fi
-    update_zsh_local "$ZSH_LOCAL" "source ${GOLANGCI_LINT_COMPLETION}"
 fi
 
 log_success "Done. Go setup complete."
