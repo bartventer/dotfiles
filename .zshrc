@@ -115,11 +115,12 @@ plugins=(
   zsh-syntax-highlighting
   zsh-autosuggestions
   zsh-history-substring-search
-  man
-  tmux
 )
 # Arch Linux plugin
 [[ -f /etc/arch-release ]] && plugins+=(archlinux)
+# Tmux plugin
+[[ -f ~/.tmux.conf ]] && plugins+=(tmux)
+
 # shellcheck disable=SC1091
 # shellcheck disable=SC2086
 source $ZSH/oh-my-zsh.sh
@@ -138,11 +139,11 @@ export MYVIMRC=$HOME/.config/nvim/init.lua
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='mvim'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -164,7 +165,6 @@ alias nv="nvim"
 alias lc='colorls -lA --sd'
 alias dotfiles="cd ~/dotfiles"
 alias tmux_source="tmux source-file ~/.tmux.conf"
-alias zsh_source="source ~/.zshrc"
 
 # Locally defined aliases
 # shellcheck disable=SC1090
@@ -184,7 +184,6 @@ POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.
 [[ -f ~/.zsh_local ]] && source ~/.zsh_local
 
 # Shell auto-completion for zsh
-fpath=("${HOME}/.zsh/completions" "${fpath[@]}")
 autoload -Uz compinit && compinit
 
 # GPG Key
