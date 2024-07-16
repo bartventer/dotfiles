@@ -72,6 +72,7 @@
             "gdb",
             "gcc",
             "procps-ng",
+            "fzf",
             "neofetch"
         ],
         "debian": [
@@ -87,7 +88,8 @@
             "python3-pip",
             "gdb",
             "build-essential",
-            "procps"
+            "procps",
+            "fzf"
         ],
         "fedora": [
             "lua",
@@ -100,7 +102,8 @@
             "python3-pip",
             "gdb",
             "gcc",
-            "procps-ng"
+            "procps-ng",
+            "fzf"
         ],
         "ubuntu": [
             "lua5.4",
@@ -111,12 +114,14 @@
             "python3-pip",
             "gdb",
             "build-essential",
-            "procps"
+            "procps",
+            "fzf"
         ],
         "macos": [
             "lua",
             "ripgrep",
-            "fd"
+            "fd",
+            "fzf"
         ]
     },
     "term_color": "xterm-256color",
