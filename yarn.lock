@@ -30,10 +30,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@devcontainers/cli@^0.60.0":
-  version "0.60.0"
-  resolved "https://registry.yarnpkg.com/@devcontainers/cli/-/cli-0.60.0.tgz#fe2a2897ad793d38843db8780f7fdda5dc30038c"
-  integrity sha512-8e26m7uNY120ktqlLWs4Bj1Ca3hgvZ1WMn7PG2ajd3N07hzJbP8ID+avfjhOZOYIUWQSxx6xQ3yCk4ho9jiUOQ==
+"@devcontainers/cli@^0.70.0":
+  version "0.70.0"
+  resolved "https://registry.yarnpkg.com/@devcontainers/cli/-/cli-0.70.0.tgz#88b244c68050b5328c53fa4eb1a0978d7d879f00"
+  integrity sha512-Hq00AzzmWm6JZ70bs19jGGmnXLRLaC3Ej8TewmBG9EZvOxxfg+sBQGU5JjZLjkCqE/b3h+uKgCZ4NMaEGKTGhQ==
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
