@@ -5,7 +5,7 @@
   "author": "Bart <bartventer@outlook.com>",
   "license": "MIT",
   "devDependencies": {
-    "@devcontainers/cli": "^0.60.0",
+    "@devcontainers/cli": "^0.71.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "ajv-cli": "^5.0.0",
