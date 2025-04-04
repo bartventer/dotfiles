@@ -5,8 +5,8 @@ This document provides instructions for setting up the Go development environmen
 > [!IMPORTANT]
 > The following is assumed:
 >
-> * The [install.sh](../install.sh) script has been executed.
-> * [Go](https://golang.org/) is installed on the system and [golangci-lint](https://golangci-lint.run/) is available in the PATH. The [Go setup script](../.config/nvim/scripts/lang/golang.sh) would have automatically installed these if `go` was detected on the system.
+> -   The [install.sh](../install.sh) script has been executed.
+> -   [Go](https://golang.org/) is installed on the system and [golangci-lint](https://golangci-lint.run/) is available in the PATH. The [Go setup script](../.config/nvim/scripts/lang/golang.sh) would have automatically installed these if `go` was detected on the system.
 
 ## VSCode Setup
 
@@ -24,20 +24,20 @@ This document provides instructions for setting up the Go development environmen
 ```
 
 > [!NOTE]
-> If you require project-specific configuration, you can create symbolic links to the `.golangci-lint.yaml` file in the root of your project where `go.mod` is located.
+> If you require project-specific configuration, you can create symbolic links to the `.golangci.yaml` file in the root of your project where `go.mod` is located.
 >
 > ```bash
-> ln -sfv ~/dotfiles/.config/.golangci-lint.yaml ./.golangci-lint.yaml
+> ln -sfv ~/dotfiles/.config/.golangci.yaml ./.golangci.yaml
 > ```
 >
 > You'll also need to remove the `--config` flag from the `go.lintFlags` setting in the `settings.json` file.
 >
-> If you're using a Go workspace, you can create symbolic links to the `.golangci-lint.yaml` file in the root of your repo (referred to as the workspace root). Then, for each package in your workspace that contains a `go.mod` file, create a symbolic link to the `.golangci-lint.yaml` file in the workspace root.
+> If you're using a Go workspace, you can create symbolic links to the `.golangci.yaml` file in the root of your repo (referred to as the workspace root). Then, for each package in your workspace that contains a `go.mod` file, create a symbolic link to the `.golangci.yaml` file in the workspace root.
 >
 > ```bash
-> ln -sfv ~/dotfiles/.config/.golangci-lint.yaml ./.golangci-lint.yaml
-> ln -sfv ../.golangci-lint.yaml ./package1/.golangci-lint.yaml
-> ln -sfv ../.golangci-lint.yaml ./package2/.golangci-lint.yaml
+> ln -sfv ~/dotfiles/.config/.golangci.yaml ./.golangci.yaml
+> ln -sfv ../.golangci.yaml ./package1/.golangci.yaml
+> ln -sfv ../.golangci.yaml ./package2/.golangci.yaml
 > ```
 >
 > This way, you can have a single configuration file for the entire workspace and override it for specific packages.
