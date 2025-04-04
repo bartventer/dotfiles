@@ -19,6 +19,9 @@ vim.cmd([[ set noswapfile ]])
 --Line numbers
 vim.wo.number = true
 
+-- Session options
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+
 -- Python3 provider
 local nvim_venv = os.getenv("NVIM_VENV")
 if nvim_venv then
