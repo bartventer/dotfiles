@@ -31,12 +31,8 @@
         }
     },
     "nvim_deps": {
-        "node_packages": [
-            "neovim"
-        ],
-        "pip_packages": [
-            "pynvim"
-        ]
+        "node_packages": ["neovim"],
+        "pip_packages": ["pynvim"]
     },
     "relative_paths": [
         ".zshrc",
@@ -54,13 +50,11 @@
         "tpm": "https://github.com/tmux-plugins/tpm.git",
         "dracula": "https://github.com/dracula/tmux.git"
     },
-    "common_packages": [
-        "tmux",
-        "fontconfig"
-    ],
+    "common_packages": ["tmux", "fontconfig"],
     "distro_packages": {
         "arch": [
             "lua",
+            "lua-rocks",
             "xclip",
             "tree-sitter",
             "tree-sitter-cli",
@@ -117,12 +111,7 @@
             "procps",
             "fzf"
         ],
-        "macos": [
-            "lua",
-            "ripgrep",
-            "fd",
-            "fzf"
-        ]
+        "macos": ["lua", "ripgrep", "fd", "fzf"]
     },
     "term_color": "xterm-256color",
     "oh_my_zsh_custom_theme_repo": "romkatv/powerlevel10k",
@@ -130,116 +119,58 @@
     "nvim_profiles": {
         "default": {
             "checks": {
-                "required": [
-                    "node"
-                ],
-                "one_of": [
-                    "npm",
-                    "yarn",
-                    "pnpm"
-                ]
+                "required": ["node"],
+                "one_of": ["npm", "yarn", "pnpm"]
             },
-            "parsers": [
-                "markdown_inline"
-            ],
-            "lsps": [
-                "lua-language-server",
-                "yaml-language-server",
-                "json-lsp"
-            ],
-            "linters": [
-                "actionlint"
-            ],
-            "formatters": [
-                "stylua"
-            ]
+            "parsers": ["markdown_inline"],
+            "lsps": ["lua-language-server", "yaml-language-server", "json-lsp"],
+            "linters": ["actionlint"],
+            "formatters": ["stylua"]
         },
         "bash": {
             "checks": {
-                "required": [
-                    "bash"
-                ]
+                "required": ["bash"]
             },
-            "lsps": [
-                "bash-language-server"
-            ],
-            "linters": [
-                "shellcheck"
-            ],
-            "formatters": [
-                "beautysh"
-            ]
+            "lsps": ["bash-language-server"],
+            "linters": ["shellcheck"],
+            "formatters": ["beautysh"]
         },
         "golang": {
             "checks": {
-                "required": [
-                    "go"
-                ]
+                "required": ["go"]
             },
-            "daps": [
-                "go-debug-adapter"
-            ],
-            "formatters": [
-                "gotests"
-            ],
+            "daps": ["go-debug-adapter"],
+            "formatters": ["gotests"],
             "custom_script": "golang.sh"
         },
         "typescript": {
             "checks": {
-                "required": [
-                    "node"
-                ],
-                "one_of": [
-                    "npm",
-                    "yarn",
-                    "pnpm"
-                ]
+                "required": ["node"],
+                "one_of": ["npm", "yarn", "pnpm"]
             },
-            "lsps": [
-                "typescript-language-server"
-            ],
-            "linters": [
-                "eslint_d"
-            ],
-            "formatters": [
-                "prettierd"
-            ]
+            "lsps": ["typescript-language-server"],
+            "linters": ["eslint_d"],
+            "formatters": ["prettierd"]
         },
         "python": {
             "checks": {
-                "required": [
-                    "python"
-                ]
+                "required": ["python"]
             },
-            "lsps": [
-                "pyright"
-            ],
-            "formatters": [
-                "black"
-            ]
+            "lsps": ["pyright"],
+            "formatters": ["black"]
         },
         "docker": {
             "checks": {
-                "required": [
-                    "docker"
-                ]
+                "required": ["docker"]
             },
-            "lsps": [
-                "dockerfile-language-server"
-            ],
-            "parsers": [
-                "dockerfile"
-            ]
+            "lsps": ["dockerfile-language-server"],
+            "parsers": ["dockerfile"]
         },
         "docker_compose": {
             "checks": {
-                "required": [
-                    "docker-compose"
-                ]
+                "required": ["docker-compose"]
             },
-            "lsps": [
-                "docker-compose-language-service"
-            ]
+            "lsps": ["docker-compose-language-service"]
         }
     }
 }
