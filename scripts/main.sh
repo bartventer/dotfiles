@@ -208,10 +208,6 @@ while getopts "r:f:" opt; do
     esac
 done
 
-# ***********************
-# ** Debug information **
-# ***********************
-
 log_config() {
     # shellcheck disable=SC2155
     local is_terminal=$(tput colors 2>/dev/null)
@@ -271,29 +267,19 @@ ${hyphens}
 EOF
 }
 
-# ******************
-# ** Source Zshrc **
-# ******************
-
 source_zshrc() {
     log_info "Sourcing .zshrc file"
     # Fix permissions before sourcing the .zshrc file
     zsh -c "export ZSH_DISABLE_COMPFIX=true; source ${ZSHRC}"
 }
 
-# **********************
-# ** Install Packages **
-# **********************
-
 install_packages() {
     log_info "Installing packages (package manager: ${PKG_MANAGER}, DISTRO: ${DISTRO})..."
 
-    # Update the package manager
     echo ":: Updating the package manager (via ${UPDATE_CMD})..."
     run_sudo_cmd "$UPDATE_CMD"
     echo "OK. Package manager updated."
 
-    # Call pre-install commands
     echo ":: Running pre-install commands..."
     if [[ -n "${PRE_INSTALL_CMDS}" ]]; then
         echo "Pre-install commands: ${PRE_INSTALL_CMDS}"
@@ -322,7 +308,6 @@ install_packages() {
     esac
     echo "OK. Packages installed."
 
-    # Call post-install commands
     echo ":: Running post-install commands..."
     if [[ -n "${POST_INSTALL_CMDS}" ]]; then
         echo "Post-install commands: ${POST_INSTALL_CMDS}"
@@ -335,65 +320,42 @@ install_packages() {
     log_success "Packages installed successfully!"
 }
 
-# ********************
-# ** Install Neovim **
-# ********************
-
 install_neovim() {
     log_info "Installing Neovim on ${PKG_MANAGER}..."
 
-    # Determine package manager and corresponding commands
     case "${PKG_MANAGER}" in
     "apt-get")
-        # Check if Neovim is already installed
         if ! dpkg -s neovim &>/dev/null; then
 
-            # Neovim variables
             local nvim_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
             local nvim_tarball_name="nvim-linux64.tar.gz"
             local nvim_install_dir="/opt/nvim-linux64"
             local nvim_bin_dir="$nvim_install_dir/bin"
 
-            # Create a temporary directory
             local nvim_tmpdir
             nvim_tmpdir=$(mktemp -d)
-            # Download the pre-built binary for Neovim into the temporary directory
             curl -L $nvim_url -o "$nvim_tmpdir/$nvim_tarball_name"
-            # Extract the downloaded archive in the temporary directory
             tar -C "$nvim_tmpdir" -xzf "$nvim_tmpdir/$nvim_tarball_name"
-            # Remove the existing directory if it exists
             if [ -d "$nvim_install_dir" ]; then
                 run_sudo_cmd "rm -r $nvim_install_dir"
             fi
-            # Move the extracted directory to /opt
             run_sudo_cmd "mv $nvim_tmpdir/nvim-linux64 $nvim_install_dir"
-            # Remove the temporary directory
             rm -r "$nvim_tmpdir"
-            # Add the Neovim binary directory to the PATH in .zshenv
             update_zsh_local "${ZSH_LOCAL}" "export PATH=\"\$PATH:$nvim_bin_dir\""
             update_path "$nvim_bin_dir"
-            # Install tree-sitter
-            echo "Installing tree-sitter..."
 
-            # Create a temporary directory
+            echo "Installing tree-sitter..."
             local ts_tmpdir
             ts_tmpdir=$(mktemp -d)
-            # TS variables
             local ts_binary_name="tree-sitter-linux-x64"
             local ts_binary_url="https://github.com/tree-sitter/tree-sitter/releases/latest/download/$ts_binary_name.gz"
-            # TS file paths
             local ts_gz_file_path="$ts_tmpdir/$ts_binary_name.gz"
             local ts_binary_file_path="$ts_tmpdir/$ts_binary_name"
 
-            # Download the precompiled binary for tree-sitter
             curl -L $ts_binary_url -o "$ts_gz_file_path"
-            # Extract the downloaded archive to the temporary directory
             gunzip "$ts_gz_file_path"
-            # Make the binary executable
             chmod +x "$ts_binary_file_path"
-            # Move the binary to /usr/local/bin
             run_sudo_cmd "mv $ts_binary_file_path /usr/local/bin/tree-sitter"
-            # Remove the temporary directory
             rm -r "$ts_tmpdir"
 
         else
@@ -410,17 +372,15 @@ install_neovim() {
 install_neovim_deps() {
     log_info "Installing Neovim dependencies..."
 
-    # Create the directory for virtual environments
+    echo "Creating the directory for virtual environments..."
     update_zsh_local "${ZSH_LOCAL}" "export VENVS_DIR=${VENVS_DIR_ESCAPED}"
     export VENVS_DIR
     VENVS_DIR=$(eval echo "${VENVS_DIR_ESCAPED}")
 
-    # Nvim virtual environment
     update_zsh_local "${ZSH_LOCAL}" "export NVIM_VENV=${NVIM_VENV_DIR_ESCAPED}"
     export NVIM_VENV
     NVIM_VENV=$(eval echo "${NVIM_VENV_DIR_ESCAPED}")
 
-    # Get the Python command
     local PYTHON_CMD=""
     PYTHON_CMD=$(command -v python3 || command -v python)
     if [[ -z "${PYTHON_CMD}" ]]; then
@@ -440,7 +400,6 @@ install_neovim_deps() {
     node_packages=$(jq -r '.nvim_deps.node_packages[]' "${DOTFILES_CONFIG_PATH}")
     pip_packages=$(jq -r '.nvim_deps.pip_packages[]' "${DOTFILES_CONFIG_PATH}")
 
-    # Install the node packages
     if [[ -n "${node_packages}" ]]; then
         log_info "Installing node packages: ${node_packages}"
         local node_deps_installed=false
@@ -473,7 +432,6 @@ install_neovim_deps() {
         log_success "OK. Node packages installed successfully!"
     fi
 
-    # Install the pip packages
     if [[ -n "${pip_packages}" ]]; then
         log_info "Installing pip packages: ${pip_packages}"
         echo "Activating the virtual environment..."
@@ -495,15 +453,10 @@ install_neovim_deps() {
     log_success "OK. Neovim dependencies installed successfully!"
 }
 
-# **********************
-# ** Configure Neovim **
-# **********************
-
 configure_neovim() {
-    # Define local variables
     log_info "Configuring Neovim (package manager: $PKG_MANAGER)..."
 
-    # Parse variables from config.json
+    echo "Parsing variables from config.json..."
     local nvim_profiles_data
     nvim_profiles_data=$(jq -rS '.nvim_profiles' "${DOTFILES_CONFIG_PATH}")
     local nvim_profiles
@@ -512,7 +465,8 @@ configure_neovim() {
         log_error "No Neovim profiles found in the config file. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the profiles are defined."
         exit 1
     fi
-    # Run the Neovim headless commands
+
+    echo ":: Running Neovim headless commands..."
     nvim --headless -c "Lazy sync" -c "MasonUpdate" -c "quitall"
     for profile in ${nvim_profiles}; do
         local profile_data
@@ -523,13 +477,12 @@ configure_neovim() {
         checks_required=$(echo "${profile_data}" | jq -r 'try (.checks.required[]) // empty')
         checks_one_of=$(echo "${profile_data}" | jq -r '.checks.one_of[]?')
         custom_script=$(echo "${profile_data}" | jq -r '.custom_script?')
-        # debug info
+
         echo ":: Configuring Neovim profile: ${profile}..."
         echo ":: Required checks: ${checks_required[*]}"
         echo ":: One-of checks: ${checks_one_of[*]}"
         echo ":: Custom script(null if not set): $custom_script"
 
-        # Check required
         if [[ -z "${checks_required}" ]]; then
             log_warn "No required checks found for Neovim profile ${profile}. Please check the ${DOTFILES_CONFIG_PATH} file and ensure the checks are defined."
             continue
@@ -547,7 +500,6 @@ configure_neovim() {
             done
         fi
 
-        # Check one of
         if [[ -z "${checks_one_of}" ]]; then
             echo "OK. No one-of checks found for Neovim profile ${profile}."
         else
@@ -567,7 +519,7 @@ configure_neovim() {
             fi
         fi
 
-        # Build the TSInstallSync and MasonInstall commands for the profile
+        echo ":: Building commands for Neovim profile ${profile}..."
         local keys=("parsers" "lsps" "daps" "linters" "formatters")
         local mason_deps=()
         local parsers=()
@@ -583,7 +535,7 @@ configure_neovim() {
         echo ":: Profile ${profile} configuration:"
         echo ":: Parsers: ${parsers[*]}"
         echo ":: Mason dependencies: ${mason_deps[*]}"
-        # Profile commands
+
         local commands=()
         if [[ -n "${parsers[*]}" ]]; then
             commands+=("TSInstallSync! ${parsers[@]}")
@@ -601,7 +553,7 @@ configure_neovim() {
             {
                 echo ":: Running command: ${cmd}..."
                 if [ "${DISTRO}" != "macos" ]; then
-                    # Fix permissions for npm cache
+                    echo ":: Fixing permissions for npm cache..."
                     run_sudo_cmd "chown -R ${USER}:${USER} ${HOME}/.npm-cache"
                     npm config set cache "${HOME}/.npm-cache"
                 fi
@@ -615,7 +567,6 @@ configure_neovim() {
         done
         wait
 
-        # Run custom script
         if [[ "${custom_script}" != "null" ]]; then
             local script="${NVIM_LANGUAGE_SCRIPT_DIR}/${custom_script}"
             if [[ -f "$script" ]]; then
@@ -635,16 +586,11 @@ configure_neovim() {
     log_success "Neovim configured successfully!"
 }
 
-# *********************
-# ** Create symlinks **
-# *********************
-
 create_symlink() {
     local src=$1
     local target=$2
     log_info "Creating symlink from ${src} to ${target}"
-    mkdir -p "$(dirname "$target")" # Ensure the parent directory exists
-    # If the target is a directory, remove it
+    mkdir -p "$(dirname "$target")"
     if [ -d "$target" ]; then
         rm -rf "$target"
     fi
@@ -652,14 +598,9 @@ create_symlink() {
     echo "OK. Symlink created successfully!"
 }
 
-# *******************
-# ** Install fonts **
-# *******************
-
 install_fonts() {
     log_info "Installing ${FONT_NAME} fonts..."
 
-    # Determine the OS and set the font directory accordingly
     local font_dir
     case "$(uname)" in
     *nix | *ux)
@@ -674,64 +615,47 @@ install_fonts() {
         ;;
     esac
 
-    # Check if the fonts are already installed
     if [[ -d "$font_dir" && -n "$(ls -A "$font_dir")" ]]; then
         log_info "${FONT_NAME} fonts are already installed."
         return
     fi
 
-    # Create a temporary directory
     tmp_dir=$(mktemp -d)
-
-    # Check if the font starts with MesloLG and OH_MY_ZSH_CUSTOM_THEME_REPO equals OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT
     local font_files=()
     if [[ "$FONT_NAME" = MesloLG* ]] && [[ "$OH_MY_ZSH_CUSTOM_THEME_REPO" = "$OH_MY_ZSH_CUSTOM_THEME_REPO_DEFAULT" ]]; then
         # See https://github.com/romkatv/powerlevel10k?tab=readme-ov-file#fonts
-        # Download the font files in parallel
         for font_file in "Regular" "Bold" "Italic" "Bold Italic"; do
             (
-                # Replace spaces in font_file with %20 for the URL
                 local url_font_file=${font_file// /%20}
                 log_info "Downloading MesloLGS NF ${font_file}.ttf..."
                 curl -sSLo "$tmp_dir/MesloLGS NF $font_file.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${url_font_file}.ttf"
-                # Add the full path to the downloaded file to the array
                 font_files+=("$tmp_dir/MesloLGS NF $font_file.ttf")
                 echo "OK. MesloLGS NF ${font_file}.ttf downloaded successfully."
             ) &
         done
-        wait # Wait for all background tasks to finish
+        wait
     else
-        # Download the font file from the URL
         log_info "Downloading ${FONT_NAME} font..."
         curl -sSLo "$tmp_dir/font.zip" "$FONT_URL"
-
-        # Unzip the font file
         unzip -q "$tmp_dir/font.zip" -d "$tmp_dir"
         font_files=("$tmp_dir"/*.ttf)
     fi
 
-    # Create the font directory if it doesn't exist
     mkdir -p "$font_dir"
 
-    # Move the font files to the correct directory
     for font_file in "${font_files[@]}"; do
         mv "$font_file" "$font_dir"
     done
 
-    # Update the font cache for Linux
+    echo "Updating font cache..."
     [[ "$(uname)" == *nix || "$(uname)" == *ux ]] && fc-cache -fv
 
-    # Remove the temporary directory
     rm -r "$tmp_dir"
 
     log_success "${FONT_NAME} fonts installed successfully!"
 }
 
-# *******************************
-# ** Install zsh and oh-my-zsh **
-# *******************************
 install_zsh_and_oh_my_zsh() {
-    # Check if zsh is installed
     local zsh_installed=false
     local oh_my_zsh_installed=false
     local oh_my_zsh_dir="$HOME"/.oh-my-zsh
@@ -740,12 +664,10 @@ install_zsh_and_oh_my_zsh() {
         echo "zsh is installed"
         zsh_installed=true
 
-        # Check if oh-my-zsh.sh is present
         if [ -f "$oh_my_zsh_dir"/oh-my-zsh.sh ]; then
             echo "oh-my-zsh is already installed"
             oh_my_zsh_installed=true
 
-            # Check if oh-my-zsh is a git repository
             if [ -d "$oh_my_zsh_dir/.git" ]; then
                 echo "oh-my-zsh directory is a git repository. Stashing local changes and pulling latest changes..."
                 git -C "$oh_my_zsh_dir" stash
@@ -755,42 +677,30 @@ install_zsh_and_oh_my_zsh() {
                 fi
             fi
         else
-            # Backup existing oh-my-zsh installation if it exists
             if [ -d "$oh_my_zsh_dir" ]; then
                 echo "Backing up existing oh-my-zsh installation..."
                 mv "$oh_my_zsh_dir" "$oh_my_zsh_dir".bak
             fi
 
-            # Install oh-my-zsh
             echo "Installing oh-my-zsh..."
             sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
             oh_my_zsh_installed=true
         fi
     fi
 
-    # If either zsh or oh-my-zsh are not installed, exit the script
     if [ "$zsh_installed" = false ] || [ "$oh_my_zsh_installed" = false ]; then
         log_error "Either zsh or oh-my-zsh is not installed, cannot source .zshrc file"
         exit 1
     fi
 }
 
-# *********************
-# ** Create symlinks **
-# *********************
-
 create_symlinks() {
-    # Create symlinks for all files in the relative_paths array
     for relative_path in "${relative_paths[@]}"; do
         local src="${DOTFILES_DIR}/${relative_path}"
         local target="$HOME/$relative_path"
         create_symlink "$src" "$target"
     done
 }
-
-# ***************************************
-# ** Clone oh-my-zsh plugins and theme **
-# ***************************************
 
 clone_plugins_and_themes() {
     log_info "Cloning oh-my-zsh plugins and theme..."
@@ -802,7 +712,7 @@ clone_plugins_and_themes() {
             url=$(echo "${plugin}" | jq -r '.value')
             local dir="$HOME/.oh-my-zsh/custom/plugins/$name"
             log_info "Checking $dir..."
-            mkdir -p "$dir" # Ensure the directory exists
+            mkdir -p "$dir"
             if [ -d "$dir/.git" ]; then
                 echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
                 git -C "$dir" stash
@@ -817,14 +727,10 @@ clone_plugins_and_themes() {
             echo "OK. $plugin cloned successfully."
         ) &
     done <<<"${OHMYZSH_PLUGIN_DATA}"
-    wait # Wait for all background tasks to finish
+    wait
 
     log_success "OK. Oh-my-zsh plugins and theme cloned successfully!"
 }
-
-# ************************
-# ** Clone tmux plugins **
-# ************************
 
 clone_tmux_plugins() {
     log_info "Cloning tmux plugins..."
@@ -836,7 +742,7 @@ clone_tmux_plugins() {
             url=$(echo "${plugin}" | jq -r '.value')
             local dir="$HOME/.tmux/plugins/$name"
             log_info "Checking $dir..."
-            mkdir -p "$dir" # Ensure the directory exists
+            mkdir -p "$dir"
             if [ -d "$dir/.git" ]; then
                 echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
                 git -C "$dir" stash
@@ -851,18 +757,13 @@ clone_tmux_plugins() {
             echo "OK. $plugin cloned successfully."
         ) &
     done <<<"${TMUX_PLUGIN_DATA}"
-    wait # Wait for all background tasks to finish
+    wait
 
     log_success "OK. Tmux plugins cloned successfully!"
 
 }
 
-# **************************
-# ** Install tmux plugins **
-# **************************
-
 install_tmux_plugins() {
-    # Ensure tpm is installed
     local tpm_dir="$HOME/.tmux/plugins/tpm"
     if [[ -d "$tpm_dir" ]]; then
         log_info "Tmux Plugin Manager found. Updating..."
@@ -876,7 +777,6 @@ install_tmux_plugins() {
         git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
     fi
 
-    # Install tmux plugins
     log_info "Installing tmux plugins..."
     local session_name
     session_name="temp_$(date +%s)"
@@ -893,10 +793,6 @@ install_tmux_plugins() {
     fi
     update_zsh_local "${ZSH_LOCAL}" "export TERM=\"$TERM_COLOR\""
 }
-
-# *********************
-# ** Generate locale **
-# *********************
 
 generate_locale() {
     local lang=$1
@@ -916,15 +812,9 @@ generate_locale() {
     fi
 }
 
-# **********************
-# ** Configure Docker **
-# **********************
-
 configure_docker() {
-    # Docker specific configuration
     if [ -f /.dockerenv ]; then
         log_info "Docker detected. Configuring environment for Docker..."
-        # Set the language environment variables
         local language="en_US"
         local character_encoding="UTF-8"
         update_zsh_local "${ZSH_LOCAL}" "export LANG=C.${character_encoding}"
@@ -932,15 +822,12 @@ configure_docker() {
 
         case "$(uname)" in
         "Darwin")
-            # MacOS specific configuration
             echo "Running defaults write..."
             defaults write -g AppleLocale -string "$language"
             return 0
             ;;
         *)
-            # Generate locale
             log_info "Generating locale..."
-            # If neither locale-gen nor localedef is available, exit the script
             if ! type locale-gen &>/dev/null && ! type localedef &>/dev/null; then
                 log_error "No supported method for generating locale found"
                 exit 1
@@ -951,16 +838,11 @@ configure_docker() {
     fi
 }
 
-# *****************************
-# ** Install oh-my-zsh theme **
-# *****************************
-
 install_oh_my_zsh_theme() {
     local oh_my_zsh_theme_name=""
     if command -v basename &>/dev/null; then
         oh_my_zsh_theme_name=$(basename "${OH_MY_ZSH_CUSTOM_THEME_REPO}")
     else
-        # Use parameter expansion as a fallback
         oh_my_zsh_theme_name=${OH_MY_ZSH_CUSTOM_THEME_REPO##*/}
     fi
     if [[ -z "$oh_my_zsh_theme_name" ]]; then
@@ -982,10 +864,6 @@ install_oh_my_zsh_theme() {
     echo "OK. Theme installed successfully."
 }
 
-# ***************************
-# ** Configure permissions **
-# ***************************
-
 configure_permissions() {
     log_info "Configuring permissions for user ${USER}..."
     local dirs=(
@@ -1000,10 +878,6 @@ configure_permissions() {
     echo "OK. Permissions configured for user ${USER}."
 }
 
-# **********
-# ** Main **
-# **********
-
 main() {
     log_info "🚀 Starting dotfiles installation (distro: ${DISTRO})..."
     log_config
@@ -1011,42 +885,24 @@ main() {
         configure_permissions
     fi
 
-    # Install zsh and oh-my-zsh
     install_zsh_and_oh_my_zsh
-
-    # Create symlinks
     create_symlinks
-
-    # Detect and install packages
     install_packages
 
-    # Clone plugins and themes
     clone_plugins_and_themes
-
-    # Clone tmux plugins
     clone_tmux_plugins
-
-    # Install tmux plugins
     install_tmux_plugins
 
-    # Docker specific configuration
     configure_docker
 
-    # Install oh-my-zsh theme
     install_oh_my_zsh_theme
-
-    # Install fonts
     install_fonts
     source_zshrc
 
-    # Install Neovim
     install_neovim
     install_neovim_deps
-
-    # Configure Neovim
     configure_neovim
 
-    # Finish
     log_success "✅ Dotfiles installation complete!"
 }
 
