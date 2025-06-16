@@ -72,8 +72,7 @@
             "gdb",
             "gcc",
             "procps-ng",
-            "fzf",
-            "neofetch"
+            "fzf"
         ],
         "debian": [
             "lua5.4",
