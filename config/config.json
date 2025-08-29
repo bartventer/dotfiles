@@ -72,7 +72,8 @@
             "gdb",
             "gcc",
             "procps-ng",
-            "fzf"
+            "fzf",
+            "wl-clipboard"
         ],
         "debian": [
             "lua5.4",
