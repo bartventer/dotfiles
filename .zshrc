@@ -5,7 +5,7 @@ prompt_file="${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt.zsh"
 
 # Check if the prompt file is readable
 # shellcheck disable=SC1090
-[[ -r "$prompt_file" ]] && source "$prompt_file"
+[[ -r "$prompt_file" && -s "$prompt_file" ]] && source "$prompt_file"
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -16,14 +16,13 @@ export ZSH="$HOME/.oh-my-zsh"
 # Go path: # https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable
 if command -v go &>/dev/null; then
   export GOPATH=$HOME/go
-  # Add $GOPATH/bin to the PATH
   [[ ":$PATH:" != *":$GOPATH/bin:"* ]] && export PATH=$PATH:$GOPATH/bin
 fi
 
 # Yarn global bin path
 if command -v yarn &>/dev/null; then
   _yarn_global_bin=$(yarn global bin)
-  [[ -d $_yarn_global_bin ]] && export PATH=$PATH:$_yarn_global_bin
+  [[ -d "$_yarn_global_bin" ]] && export PATH=$PATH:$_yarn_global_bin
 fi
 
 # Add default paths to PATH
@@ -106,6 +105,11 @@ COMPLETION_WAITING_DOTS="true"
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
 
+# Preferred editor for local and remote sessions
+export EDITOR='emacs'
+# export EDITOR='emacs'
+# export EDITOR='vim'
+
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
@@ -116,10 +120,13 @@ plugins=(
   zsh-autosuggestions
   zsh-history-substring-search
 )
-# Arch Linux plugin
 [[ -f /etc/arch-release ]] && plugins+=(archlinux)
-# Tmux plugin
-[[ -f ~/.tmux.conf ]] && plugins+=(tmux)
+if command -v tmux &>/dev/null; then
+  plugins+=(tmux)
+fi
+if command -v emacs &>/dev/null; then
+  plugins+=(emacs)
+fi
 
 # shellcheck disable=SC1091
 # shellcheck disable=SC2086
@@ -138,13 +145,6 @@ export MYVIMRC=$HOME/.config/nvim/init.lua
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='mvim'
-fi
-
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
@@ -156,15 +156,21 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias python=python3
-alias nvconfigdir="cd ~/.config/nvim"
-alias nvconfig="cd ~/.config/nvim && nvim"
-alias brc="nvim ~/.bashrc"
-alias zrc="nvim ~/.zshrc"
-alias nv="nvim"
-alias lc='colorls -lA --sd'
+if command -v python3 &>/dev/null; then
+  alias python=python3
+  alias pip=pip3
+fi
+if command -v nvim &>/dev/null && [[ -d ~/.config/nvim ]]; then
+  alias nvconfigdir="cd ~/.config/nvim"
+  alias nvconfig="cd ~/.config/nvim && nvim"
+fi
+if command -v colorls &>/dev/null; then
+  alias lc='colorls -lA --sd'
+fi
 alias dotfiles="cd ~/dotfiles"
-alias tmux_source="tmux source-file ~/.tmux.conf"
+if command -v tmux &>/dev/null; then
+  alias tmux_source="tmux source-file ~/.tmux.conf"
+fi
 
 # Locally defined aliases
 # shellcheck disable=SC1090
@@ -177,18 +183,19 @@ alias tmux_source="tmux source-file ~/.tmux.conf"
 # Source powerlevel10k theme
 POWERLEVEL10K_THEME="$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
 # shellcheck disable=SC1090
-[[ -f "$POWERLEVEL10K_THEME" ]] && source "$POWERLEVEL10K_THEME"
-
-# Source local zsh configuration
-# shellcheck disable=SC1090
-[[ -f ~/.zsh_local ]] && source ~/.zsh_local
+[[ -f "$POWERLEVEL10K_THEME" && -r "$POWERLEVEL10K_THEME" ]] && source "$POWERLEVEL10K_THEME"
 
 # Shell auto-completion for zsh
 autoload -Uz compinit && compinit
+export _ZSH_COMPLETION_DIR="/usr/local/share/zsh/site-functions"
 
-# GPG Key
+# GPG agent
 # shellcheck disable=SC2155
-export GPG_TTY=$(tty)
+if command -v tty &>/dev/null; then
+  export GPG_TTY=$(tty)
+fi
 
-# Run neofetch
-if command -v neofetch &>/dev/null; then neofetch; fi
+# Display system information
+if command -v fastfetch &>/dev/null; then
+  fastfetch
+fi
