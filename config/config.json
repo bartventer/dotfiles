@@ -38,8 +38,10 @@
         ".zshrc",
         ".p10k.zsh",
         ".config/nvim",
+        ".config/emacs",
         ".tmux.conf",
-        ".cobra.yaml"
+        ".cobra.yaml",
+        ".doom.d"
     ],
     "ohmyzsh_plugins": {
         "zsh-syntax-highlighting": "https://github.com/zsh-users/zsh-syntax-highlighting.git",
@@ -68,6 +70,7 @@
             "procps-ng",
             "fzf",
             "wl-clipboard"
+            "fastfetch"
         ],
         "debian": [
             "lua5.4",
@@ -83,7 +86,8 @@
             "gdb",
             "build-essential",
             "procps",
-            "fzf"
+            "fzf",
+            "fastfetch"
         ],
         "fedora": [
             "lua",
@@ -97,7 +101,8 @@
             "gdb",
             "gcc",
             "procps-ng",
-            "fzf"
+            "fzf",
+            "fastfetch"
         ],
         "ubuntu": [
             "lua5.4",
@@ -111,7 +116,7 @@
             "procps",
             "fzf"
         ],
-        "macos": ["lua", "ripgrep", "fd", "fzf"]
+        "macos": ["lua", "ripgrep", "fd", "fzf", "fastfetch"]
     },
     "term_color": "xterm-256color",
     "oh_my_zsh_custom_theme_repo": "romkatv/powerlevel10k",
