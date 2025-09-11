@@ -15,3 +15,6 @@ output/
 # Local stuff
 __test.sh
 temp.json
+local.zsh
+.profile
+.config/emacs
