@@ -151,7 +151,7 @@ ZSH_LOCAL="$ZSH_CUSTOM/local.zsh"
 PROFILE="$HOME/.profile"
 for file in "$ZSH_LOCAL" "$PROFILE"; do
     if [[ ! -f "$file" ]]; then
-        touch "$file"
+        run_sudo_cmd "touch $file"
         case "$DISTRO" in
         macos)
             run_sudo_cmd "chown ${USER}:staff ${file}"
@@ -160,7 +160,7 @@ for file in "$ZSH_LOCAL" "$PROFILE"; do
             run_sudo_cmd "chown ${USER}:${USER} ${file}"
             ;;
         esac
-        ln -sf "$file" .
+        run_sudo_cmd "ln -sf $file ."
     fi
 done
 
