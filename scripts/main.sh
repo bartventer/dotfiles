@@ -18,7 +18,34 @@
 #   - distro: The distribution of the operating system. This argument is required.
 #   - additional_arguments: Any additional arguments to be passed to the script.
 #
-# Dependencies: zsh, git, curl, jq, unzip
+# Options:
+#   -r <repo>: Specify a custom oh-my-zsh theme repository (e.g., "romkatv/powerlevel10k").
+#   -f <font>: Specify a font name to install (e.g., "MesloLGS NF").
+#   -t <tags>: Specify which parts of the script to run. Tags should be comma-separated (e.g., "zsh,tmux,neovim").
+#              Available tags:
+#                - permissions: Configure user permissions (core)
+#                - zsh: Install zsh and oh-my-zsh (core)
+#                - symlinks: Create symbolic links (core)
+#                - packages: Install packages (core)
+#                - plugins: Clone oh-my-zsh and tmux plugins (core)
+#                - docker: Configure Docker (core)
+#                - theme: Install oh-my-zsh theme (core)
+#                - fonts: Install fonts (core)
+#                - emacs: Install and configure Doom Emacs.
+#                - neovim: Install and configure Neovim.
+#                - core: Runs all core steps.
+#
+# Dependencies:
+#   - zsh
+#   - git
+#   - curl
+#   - jq
+#   - unzip
+#
+# Example:
+#
+#   ./main.sh ubuntu -r "romkatv/powerlevel10k" -f "MesloLGS NF" -t "zsh,tmux,neovim"
+#   ./main.sh fedora -t "core,emacs"
 #-----------------------------------------------------------------------------------------------------------------
 set -e
 
@@ -102,6 +129,8 @@ fi
 # ** Configuration **
 # *******************
 
+
+
 # Paths
 ZSHRC="$HOME/.zshrc"
 TMUX_CONF="$HOME/.tmux.conf"
@@ -118,16 +147,20 @@ for v in NVIM_CONFIG_DIR NVIM_SCRIPTS_DIR NVIM_OPTIONS_FILE NVIM_LANGUAGE_SCRIPT
 done
 
 # User files
-ZSH_LOCAL="$HOME/.zsh_local"
+ZSH_LOCAL="$ZSH_CUSTOM/local.zsh"
 PROFILE="$HOME/.profile"
 for file in "$ZSH_LOCAL" "$PROFILE"; do
     if [[ ! -f "$file" ]]; then
         touch "$file"
-        if [[ "$DISTRO" == "macos" ]]; then
+        case "$DISTRO" in
+        macos)
             run_sudo_cmd "chown ${USER}:staff ${file}"
-        else
+            ;;
+        *)
             run_sudo_cmd "chown ${USER}:${USER} ${file}"
-        fi
+            ;;
+        esac
+        ln -sf "$file" .
     fi
 done
 
@@ -182,9 +215,11 @@ done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FON
 # ****************************
 
 # Parse command-line options
-# -r: oh-my-zsh theme repository
-# -f: font name
-while getopts "r:f:" opt; do
+# -r: oh-my-zsh theme repository (e.g., "romkatv/powerlevel10k")
+# -f: font name (e.g., "MesloLGS NF")
+# -t: tags to specify which parts of the script to run (e.g., "zsh,tmux,neovim")
+TAGS=("core" "emacs")
+while getopts "r:f:t:" opt; do
     case ${opt} in
     r)
         OH_MY_ZSH_CUSTOM_THEME_REPO="$OPTARG"
@@ -201,12 +236,26 @@ while getopts "r:f:" opt; do
             exit 1
         fi
         ;;
+    t)
+        IFS=',' read -r -a TAGS <<<"$OPTARG"
+        ;;
     \?)
         log_error "Invalid option: -$OPTARG"
         exit 1
         ;;
     esac
 done
+
+is_tag_enabled() {
+    ((${#TAGS[@]} == 0)) && return 0 # No tags specified -> assume all tags are enabled
+    local inputCsv="$1"
+    for enabled in "${TAGS[@]}"; do
+        if [[ "${inputCsv}" == *"${enabled}"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
 
 log_config() {
     # shellcheck disable=SC2155
@@ -586,6 +635,67 @@ configure_neovim() {
     log_success "Neovim configured successfully!"
 }
 
+# Function for installing doom emacs
+# References: https://github.com/doomemacs/doomemacs
+# git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+# ~/.config/emacs/bin/doom install
+setup_emacs() {
+    log_info "Installing Doom Emacs..."
+    local emacs_dir="$HOME/.config/emacs"
+    mkdir -p "$emacs_dir"
+    if [[ -d "$emacs_dir/.git" ]]; then
+        echo "Directory $emacs_dir already exists. Stashing local changes and pulling latest changes..."
+        git -C "$emacs_dir" stash
+        git -C "$emacs_dir" pull --rebase=false
+        if [ "$(git -C "$emacs_dir" stash list)" ]; then
+            git -C "$emacs_dir" stash apply
+        fi
+    else
+        echo "Cloning Doom Emacs into $emacs_dir..."
+        git clone --depth 1 https://github.com/doomemacs/doomemacs "$emacs_dir"
+    fi
+    echo "OK. Doom Emacs cloned successfully."
+
+    echo "Installing Doom Emacs..."
+    local doom_bin="$emacs_dir/bin/doom"
+    if [[ ! -f "$doom_bin" ]]; then
+        log_error "Doom Emacs binary not found. Please check the installation."
+        exit 1
+    fi
+    if ! "$doom_bin" install --yes; then
+        log_error "Doom Emacs installation failed. Please check the installation."
+        exit 1
+    fi
+
+    echo "OK. Doom Emacs installed successfully."
+
+    echo "Configuring Doom Emacs..."
+    local doom_config_dir="$HOME/.config/doom"
+    mkdir -p "$doom_config_dir"
+    if [[ -d "$doom_config_dir" ]]; then
+        echo "Backing up existing Doom Emacs configuration..."
+        mv "$doom_config_dir" "$doom_config_dir.bak"
+    fi
+    echo "Creating symlink for Doom Emacs configuration..."
+    create_symlink "$DOTFILES_DIR/.doom.d" "$doom_config_dir"
+    echo "OK. Doom Emacs configuration symlink created successfully."
+    echo "Installing Doom Emacs packages..."
+    "$doom_bin" sync
+    echo "OK. Doom Emacs packages installed successfully."
+    echo "Setting up Doom Emacs..."
+    "$doom_bin" install
+    echo "OK. Doom Emacs setup completed successfully."
+    echo "Doom Emacs setup completed successfully!"
+}
+
+setup_neovim() {
+    log_info "Setting up Neovim..."
+    install_neovim
+    install_neovim_deps
+    configure_neovim
+    log_success "Neovim setup completed successfully!"
+}
+
 create_symlink() {
     local src=$1
     local target=$2
@@ -652,10 +762,12 @@ install_fonts() {
 
     rm -r "$tmp_dir"
 
+    source_zshrc
+
     log_success "${FONT_NAME} fonts installed successfully!"
 }
 
-install_zsh_and_oh_my_zsh() {
+install_zsh_and_ohmyzsh() {
     local zsh_installed=false
     local oh_my_zsh_installed=false
     local oh_my_zsh_dir="$HOME"/.oh-my-zsh
@@ -702,7 +814,7 @@ create_symlinks() {
     done
 }
 
-clone_plugins_and_themes() {
+clone_ohmyzsh_plugins_and_themes() {
     log_info "Cloning oh-my-zsh plugins and theme..."
     while IFS= read -r plugin; do
         (
@@ -794,6 +906,14 @@ install_tmux_plugins() {
     update_zsh_local "${ZSH_LOCAL}" "export TERM=\"$TERM_COLOR\""
 }
 
+setup_plugins() {
+    log_info "Setting up plugins..."
+    clone_ohmyzsh_plugins_and_themes
+    clone_tmux_plugins
+    install_tmux_plugins
+    log_success "OK. Plugins set up successfully!"
+}
+
 generate_locale() {
     local lang=$1
     local encoding=$2
@@ -838,7 +958,7 @@ configure_docker() {
     fi
 }
 
-install_oh_my_zsh_theme() {
+install_ohmyzsh_theme() {
     local oh_my_zsh_theme_name=""
     if command -v basename &>/dev/null; then
         oh_my_zsh_theme_name=$(basename "${OH_MY_ZSH_CUSTOM_THEME_REPO}")
@@ -865,6 +985,7 @@ install_oh_my_zsh_theme() {
 }
 
 configure_permissions() {
+    [[ "${DISTRO}" == "macos" ]] && return 0
     log_info "Configuring permissions for user ${USER}..."
     local dirs=(
         "/home/${USER}/"{.local,.cache,.npm,.npm-cache,.config}
@@ -881,27 +1002,19 @@ configure_permissions() {
 main() {
     log_info "🚀 Starting dotfiles installation (distro: ${DISTRO})..."
     log_config
-    if [ "${DISTRO}" != "macos" ]; then
-        configure_permissions
-    fi
 
-    install_zsh_and_oh_my_zsh
-    create_symlinks
-    install_packages
-
-    clone_plugins_and_themes
-    clone_tmux_plugins
-    install_tmux_plugins
-
-    configure_docker
-
-    install_oh_my_zsh_theme
-    install_fonts
-    source_zshrc
-
-    install_neovim
-    install_neovim_deps
-    configure_neovim
+    # Core
+    is_tag_enabled "core,permissions" && configure_permissions
+    is_tag_enabled "core,zsh" && install_zsh_and_ohmyzsh
+    is_tag_enabled "core,symlinks" && create_symlinks
+    is_tag_enabled "core,packages" && install_packages
+    is_tag_enabled "core,plugins" && setup_plugins
+    is_tag_enabled "core,docker" && configure_docker
+    is_tag_enabled "core,theme" && install_ohmyzsh_theme
+    is_tag_enabled "core,fonts" && install_fonts
+    # Editors
+    is_tag_enabled "emacs" && setup_emacs
+    is_tag_enabled "neovim" && setup_neovim
 
     log_success "✅ Dotfiles installation complete!"
 }
