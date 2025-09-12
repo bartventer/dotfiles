@@ -635,12 +635,10 @@ configure_neovim() {
     log_success "Neovim configured successfully!"
 }
 
-# Function for installing doom emacs
-# References: https://github.com/doomemacs/doomemacs
-# git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
-# ~/.config/emacs/bin/doom install
 setup_emacs() {
+    # References: https://github.com/doomemacs/doomemacs
     log_info "Installing Doom Emacs..."
+    run_sudo_cmd "${INSTALL_CMD} emacs"
     local emacs_dir="$HOME/.config/emacs"
     mkdir -p "$emacs_dir"
     if [[ -d "$emacs_dir/.git" ]]; then
