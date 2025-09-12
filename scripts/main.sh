@@ -48,36 +48,31 @@
 #   ./main.sh fedora -t "core,emacs"
 #-----------------------------------------------------------------------------------------------------------------
 set -e
+umask 0022
 
+# ************************
+# ** Environment checks **
+# ************************
 CI=${CI:-"false"}
-DOTFILES_UTIL_SCRIPT="${DOTFILES_UTIL_SCRIPT:-}"
-if [[ -z "${DOTFILES_UTIL_SCRIPT}" || ! -f "${DOTFILES_UTIL_SCRIPT}" ]]; then
-    echo "Error: DOTFILES_UTIL_SCRIPT (${DOTFILES_UTIL_SCRIPT}) not set or does not exist."
+DOTFILES_UTIL_SCRIPT="${DOTFILES_UTIL_SCRIPT:?DOTFILES_UTIL_SCRIPT is not set.}"
+DOTFILES_DIR="${DOTFILES_DIR:?DOTFILES_DIR is not set.}"
+DOTFILES_CONFIG_PATH="${DOTFILES_CONFIG_PATH:?DOTFILES_CONFIG_PATH is not set.}"
+VENVS_DIR_ESCAPED="${VENVS_DIR_ESCAPED:?VENVS_DIR_ESCAPED is not set.}"
+NVIM_VENV_DIR_ESCAPED="${NVIM_VENV_DIR_ESCAPED:?NVIM_VENV_DIR_ESCAPED is not set.}"
+if [[ ! -f "${DOTFILES_UTIL_SCRIPT}" ]]; then
+    echo "Error: DOTFILES_UTIL_SCRIPT (${DOTFILES_UTIL_SCRIPT}) does not exist."
     exit 1
 fi
-DOTFILES_DIR=${DOTFILES_DIR:-}
-if [[ -z "${DOTFILES_DIR}" || ! -d "${DOTFILES_DIR}" ]]; then
-    echo "Error: DOTFILES_DIR (${DOTFILES_DIR}) is not set or does not exist."
+if [[ ! -d "${DOTFILES_DIR}" ]]; then
+    echo "Error: DOTFILES_DIR (${DOTFILES_DIR}) does not exist."
     exit 1
 fi
-DOTFILES_CONFIG_PATH="${DOTFILES_CONFIG_PATH:-}"
-if [[ -z "${DOTFILES_CONFIG_PATH}" || ! -f "${DOTFILES_CONFIG_PATH}" ]]; then
-    echo "Error: DOTFILES_CONFIG_PATH (${DOTFILES_CONFIG_PATH}) is not set or does not exist."
-    exit 1
-fi
-VENVS_DIR_ESCAPED="${VENVS_DIR_ESCAPED:-}"
-if [[ -z "${VENVS_DIR_ESCAPED}" ]]; then
-    echo "Error: VENVS_DIR_ESCAPED (${VENVS_DIR_ESCAPED}) is not set."
-    exit 1
-fi
-NVIM_VENV_DIR_ESCAPED="${NVIM_VENV_DIR_ESCAPED:-}"
-if [[ -z "${NVIM_VENV_DIR_ESCAPED}" ]]; then
-    echo "Error: NVIM_VENV_DIR_ESCAPED (${NVIM_VENV_DIR_ESCAPED}) is not set."
+if [[ ! -f "${DOTFILES_CONFIG_PATH}" ]]; then
+    echo "Error: DOTFILES_CONFIG_PATH (${DOTFILES_CONFIG_PATH}) does not exist."
     exit 1
 fi
 
-# shellcheck disable=SC1091
-# shellcheck source=scripts/util.sh
+# shellcheck disable=SC1091 source=scripts/util.sh
 source "${DOTFILES_UTIL_SCRIPT}"
 
 log_info "Starting dotfiles installation..."
@@ -85,11 +80,7 @@ log_info "Starting dotfiles installation..."
 debug_system
 
 USER="${USER:-$(whoami)}"
-DISTRO=${1:-}
-if [[ -z "$DISTRO" ]]; then
-    log_error "Please provide the distribution as the first argument."
-    exit 1
-fi
+DISTRO=${1:?Please provide the distribution as the first argument.}
 
 # *******************************
 # ** Package manager detection **
@@ -128,8 +119,6 @@ fi
 # *******************
 # ** Configuration **
 # *******************
-
-
 
 # Paths
 ZSHRC="$HOME/.zshrc"
@@ -365,7 +354,6 @@ install_packages() {
         done
     fi
     echo "OK. Post-install commands executed."
-
     log_success "Packages installed successfully!"
 }
 
@@ -439,7 +427,7 @@ install_neovim_deps() {
     local python_venv_activate="${NVIM_VENV}/bin/activate"
     if [[ ! -f "${python_venv_activate}" ]]; then
         log_info "Creating virtual environment for Neovim..."
-        mkdir -p "${NVIM_VENV}"
+        mkdir -pv "${NVIM_VENV}"
         "${PYTHON_CMD}" -m venv "${NVIM_VENV}"
         log_success "OK. Virtual environment created successfully!"
     fi
@@ -637,10 +625,10 @@ configure_neovim() {
 
 setup_emacs() {
     # References: https://github.com/doomemacs/doomemacs
-    log_info "Installing Doom Emacs..."
+    log_info "Setting up Doom Emacs..."
     run_sudo_cmd "${INSTALL_CMD} emacs"
     local emacs_dir="$HOME/.config/emacs"
-    mkdir -p "$emacs_dir"
+    mkdir -pv "$emacs_dir"
     if [[ -d "$emacs_dir/.git" ]]; then
         echo "Directory $emacs_dir already exists. Stashing local changes and pulling latest changes..."
         git -C "$emacs_dir" stash
@@ -650,13 +638,13 @@ setup_emacs() {
         fi
     else
         echo "Cloning Doom Emacs into $emacs_dir..."
-        git clone --depth 1 https://github.com/doomemacs/doomemacs "$emacs_dir"
+        git clone -v --depth 1 https://github.com/doomemacs/doomemacs "$emacs_dir"
     fi
     echo "OK. Doom Emacs cloned successfully."
 
     echo "Installing Doom Emacs..."
     local doom_bin="$emacs_dir/bin/doom"
-    if [[ ! -f "$doom_bin" ]]; then
+    if [[ ! -x "$doom_bin" ]]; then
         log_error "Doom Emacs binary not found. Please check the installation."
         exit 1
     fi
@@ -664,8 +652,6 @@ setup_emacs() {
         log_error "Doom Emacs installation failed. Please check the installation."
         exit 1
     fi
-
-    echo "OK. Doom Emacs installed successfully."
 
     source_zshrc
     log_success "Doom Emacs installed successfully!"
@@ -684,15 +670,13 @@ setup_neovim() {
     log_success "Neovim setup completed successfully!"
 }
 
-create_symlink() {
+symlink() {
     local src=$1
     local target=$2
     log_info "Creating symlink from ${src} to ${target}"
-    mkdir -p "$(dirname "$target")"
-    if [ -d "$target" ]; then
-        rm -rf "$target"
-    fi
-    ln -sf "$src" "$target"
+    mkdir -pv "$(dirname "$target")"
+    [[ -d "$target" ]] && rm -rf "$target"
+    ln -sfv "$src" "$target"
     echo "OK. Symlink created successfully!"
 }
 
@@ -739,7 +723,7 @@ install_fonts() {
         font_files=("$tmp_dir"/*.ttf)
     fi
 
-    mkdir -p "$font_dir"
+    mkdir -pv "$font_dir"
 
     for font_file in "${font_files[@]}"; do
         mv "$font_file" "$font_dir"
@@ -748,10 +732,8 @@ install_fonts() {
     echo "Updating font cache..."
     [[ "$(uname)" == *nix || "$(uname)" == *ux ]] && fc-cache -fv
 
-    rm -r "$tmp_dir"
-
+    rm -rv "$tmp_dir"
     source_zshrc
-
     log_success "${FONT_NAME} fonts installed successfully!"
 }
 
@@ -794,11 +776,11 @@ install_zsh_and_ohmyzsh() {
     fi
 }
 
-create_symlinks() {
+setup_relative_paths() {
     for relative_path in "${relative_paths[@]}"; do
         local src="${DOTFILES_DIR}/${relative_path}"
         local target="$HOME/$relative_path"
-        create_symlink "$src" "$target"
+        symlink "$src" "$target"
     done
 }
 
@@ -812,7 +794,7 @@ clone_ohmyzsh_plugins_and_themes() {
             url=$(echo "${plugin}" | jq -r '.value')
             local dir="$HOME/.oh-my-zsh/custom/plugins/$name"
             log_info "Checking $dir..."
-            mkdir -p "$dir"
+            mkdir -pv "$dir"
             if [ -d "$dir/.git" ]; then
                 echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
                 git -C "$dir" stash
@@ -822,7 +804,7 @@ clone_ohmyzsh_plugins_and_themes() {
                 fi
             else
                 echo "Cloning $url into $dir..."
-                git clone --depth=1 "$url" "$dir"
+                git clone -v --depth=1 "$url" "$dir"
             fi
             echo "OK. $plugin cloned successfully."
         ) &
@@ -842,7 +824,7 @@ clone_tmux_plugins() {
             url=$(echo "${plugin}" | jq -r '.value')
             local dir="$HOME/.tmux/plugins/$name"
             log_info "Checking $dir..."
-            mkdir -p "$dir"
+            mkdir -pv "$dir"
             if [ -d "$dir/.git" ]; then
                 echo "Directory $dir already exists. Stashing local changes and pulling latest changes..."
                 git -C "$dir" stash
@@ -852,7 +834,7 @@ clone_tmux_plugins() {
                 fi
             else
                 echo "Cloning $url into $dir..."
-                git clone --depth=1 "$url" "$dir"
+                git clone -v --depth=1 "$url" "$dir"
             fi
             echo "OK. $plugin cloned successfully."
         ) &
@@ -874,7 +856,7 @@ install_tmux_plugins() {
         fi
     else
         log_info "Tmux Plugin Manager not found. Cloning..."
-        git clone https://github.com/tmux-plugins/tpm "$tpm_dir"
+        git clone -v https://github.com/tmux-plugins/tpm "$tpm_dir"
     fi
 
     log_info "Installing tmux plugins..."
@@ -960,7 +942,7 @@ install_ohmyzsh_theme() {
     local theme_dir="${HOME}/.oh-my-zsh/custom/themes/${oh_my_zsh_theme_name}"
     if [[ ! -d "${theme_dir}" ]]; then
         log_info "Installing ${oh_my_zsh_theme_name} theme..."
-        git clone --depth=1 https://github.com/"${OH_MY_ZSH_CUSTOM_THEME_REPO}".git "${theme_dir}"
+        git clone -v --depth=1 https://github.com/"${OH_MY_ZSH_CUSTOM_THEME_REPO}".git "${theme_dir}"
     else
         log_info "${oh_my_zsh_theme_name} theme is already installed. Pulling latest changes..."
         git -C "${theme_dir}" stash
@@ -979,9 +961,7 @@ configure_permissions() {
         "/home/${USER}/"{.local,.cache,.npm,.npm-cache,.config}
     )
     for dir in "${dirs[@]}"; do
-        if [ ! -d "${dir}" ]; then
-            run_sudo_cmd "mkdir -p ${dir}"
-        fi
+        [[ ! -d "${dir}" ]] && run_sudo_cmd "mkdir -pv ${dir}"
         run_sudo_cmd "chown -R ${USER}:${USER} ${dir}"
     done
     echo "OK. Permissions configured for user ${USER}."
@@ -994,7 +974,7 @@ main() {
     # Core
     is_tag_enabled "core,permissions" && configure_permissions
     is_tag_enabled "core,zsh" && install_zsh_and_ohmyzsh
-    is_tag_enabled "core,symlinks" && create_symlinks
+    is_tag_enabled "core,symlinks" && setup_relative_paths
     is_tag_enabled "core,packages" && install_packages
     is_tag_enabled "core,plugins" && setup_plugins
     is_tag_enabled "core,docker" && configure_docker
