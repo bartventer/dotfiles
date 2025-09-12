@@ -669,23 +669,13 @@ setup_emacs() {
 
     echo "OK. Doom Emacs installed successfully."
 
+    source_zshrc
+    log_success "Doom Emacs installed successfully!"
+
     echo "Configuring Doom Emacs..."
-    local doom_config_dir="$HOME/.config/doom"
-    mkdir -p "$doom_config_dir"
-    if [[ -d "$doom_config_dir" ]]; then
-        echo "Backing up existing Doom Emacs configuration..."
-        mv "$doom_config_dir" "$doom_config_dir.bak"
-    fi
-    echo "Creating symlink for Doom Emacs configuration..."
-    create_symlink "$DOTFILES_DIR/.doom.d" "$doom_config_dir"
-    echo "OK. Doom Emacs configuration symlink created successfully."
-    echo "Installing Doom Emacs packages..."
     "$doom_bin" sync
-    echo "OK. Doom Emacs packages installed successfully."
-    echo "Setting up Doom Emacs..."
     "$doom_bin" install
-    echo "OK. Doom Emacs setup completed successfully."
-    echo "Doom Emacs setup completed successfully!"
+    log_success "Doom Emacs setup completed successfully!"
 }
 
 setup_neovim() {

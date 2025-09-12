@@ -56,7 +56,6 @@
     "distro_packages": {
         "arch": [
             "lua",
-            "lua-rocks",
             "xclip",
             "tree-sitter",
             "tree-sitter-cli",
