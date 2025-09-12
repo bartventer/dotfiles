@@ -627,38 +627,34 @@ setup_emacs() {
     # References: https://github.com/doomemacs/doomemacs
     log_info "Setting up Doom Emacs..."
     run_sudo_cmd "${INSTALL_CMD} emacs"
-    local emacs_dir="$HOME/.config/emacs"
-    mkdir -pv "$emacs_dir"
-    if [[ -d "$emacs_dir/.git" ]]; then
-        echo "Directory $emacs_dir already exists. Stashing local changes and pulling latest changes..."
-        git -C "$emacs_dir" stash
-        git -C "$emacs_dir" pull --rebase=false
-        if [ "$(git -C "$emacs_dir" stash list)" ]; then
-            git -C "$emacs_dir" stash apply
+    local _emacsdir="$HOME/.config/emacs"
+    mkdir -pv "$_emacsdir"
+    if [[ -d "$_emacsdir/.git" ]]; then
+        echo "Directory $_emacsdir already exists. Stashing local changes and pulling latest changes..."
+        git -C "$_emacsdir" stash
+        git -C "$_emacsdir" pull --rebase=false
+        if [ "$(git -C "$_emacsdir" stash list)" ]; then
+            git -C "$_emacsdir" stash apply
         fi
     else
-        echo "Cloning Doom Emacs into $emacs_dir..."
-        git clone -v --depth 1 https://github.com/doomemacs/doomemacs "$emacs_dir"
+        echo "Cloning Doom Emacs into $_emacsdir..."
+        git clone -v --depth 1 https://github.com/doomemacs/doomemacs "$_emacsdir"
     fi
     echo "OK. Doom Emacs cloned successfully."
 
     echo "Installing Doom Emacs..."
-    local doom_bin="$emacs_dir/bin/doom"
-    if [[ ! -x "$doom_bin" ]]; then
+    local _doombin="$_emacsdir/bin/doom"
+    if [[ ! -x "$_doombin" ]]; then
         log_error "Doom Emacs binary not found. Please check the installation."
         exit 1
     fi
-    if ! "$doom_bin" install --yes; then
+    if ! "$_doombin" install -v --force --fonts; then
         log_error "Doom Emacs installation failed. Please check the installation."
         exit 1
     fi
 
+    "$_doombin" sync -v --force
     source_zshrc
-    log_success "Doom Emacs installed successfully!"
-
-    echo "Configuring Doom Emacs..."
-    "$doom_bin" sync
-    "$doom_bin" install
     log_success "Doom Emacs setup completed successfully!"
 }
 
