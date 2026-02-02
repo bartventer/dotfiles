@@ -55,7 +55,6 @@
     "distro_packages": {
         "arch": [
             "lua",
-            "xclip",
             "tree-sitter",
             "tree-sitter-cli",
             "unzip",
