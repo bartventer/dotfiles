@@ -51,7 +51,7 @@ Add this to your `settings.json`:
 ```json
 {
     "dotfiles.repository": "bartventer/dotfiles",
-    "dotfiles.targetPath": "~/dotfiles",
+    "dotfiles.targetPath": "~/dev/personal/dotfiles",
     "dotfiles.installCommand": "install.sh"
 }
 ```

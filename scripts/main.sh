@@ -207,7 +207,8 @@ done < <(jq -r 'to_entries|map("\(.key):\(.value|tostring)")|.[]' "$DOTFILES_FON
 # -r: oh-my-zsh theme repository (e.g., "romkatv/powerlevel10k")
 # -f: font name (e.g., "MesloLGS NF")
 # -t: tags to specify which parts of the script to run (e.g., "zsh,tmux,neovim")
-TAGS=("core" "emacs")
+# TAGS=("core" "emacs") # For local install
+TAGS=("core") # Default to core
 while getopts "r:f:t:" opt; do
     case ${opt} in
     r)
